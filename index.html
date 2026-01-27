@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial Docs - Learn with step-by-step guides</title>
+  <meta name="description" content="A clean, modern tutorial documentation website with step-by-step guides">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2'><path d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/></svg>">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  
+  <div class="app-container">
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" aria-label="Tutorial navigation">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+          <span>Tutorial Docs</span>
+        </div>
+      </div>
+      
+      <div class="search-container">
+        <div class="search-wrapper">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search tutorials..." aria-label="Search tutorials">
+        </div>
+      </div>
+      
+      <nav class="tutorial-list" id="tutorialList" aria-label="Tutorials">
+        <!-- Tutorials rendered by JS -->
+      </nav>
+      
+      <div class="sidebar-footer" id="sidebarFooter">
+        <!-- Admin controls rendered by JS -->
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+      <header class="main-header">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu" aria-expanded="false">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <div class="header-actions" id="headerActions">
+          <!-- Header actions rendered by JS -->
+        </div>
+      </header>
+      
+      <div class="content-area" id="contentArea">
+        <!-- Tutorial content rendered by JS -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Login Modal -->
+  <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="loginModalTitle">Admin Login</h2>
+        <button class="modal-close" onclick="closeModal(loginModal)" aria-label="Close dialog">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form onsubmit="handleLogin(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="loginUsername">Username</label>
+            <input type="text" class="form-input" id="loginUsername" required autocomplete="username" placeholder="Enter your username">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Password</label>
+            <input type="password" class="form-input" id="loginPassword" required autocomplete="current-password" placeholder="Enter your password">
+          </div>
+          <p class="form-error" id="loginError" role="alert"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal(loginModal)">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+            </svg>
+            Sign In
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tutorial Modal (Add/Edit) -->
+  <div class="modal-overlay" id="tutorialModal" role="dialog" aria-modal="true" aria-labelledby="tutorialModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="tutorialModalTitle">Add Tutorial</h2>
+        <button class="modal-close" onclick="closeModal(tutorialModal)" aria-label="Close dialog">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form onsubmit="handleTutorialSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="tutorialTitle">Title</label>
+            <input type="text" class="form-input" id="tutorialTitle" required placeholder="e.g., Getting Started with React">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="tutorialDescription">Description</label>
+            <textarea class="form-textarea" id="tutorialDescription" required placeholder="A brief description of what users will learn..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal(tutorialModal)">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Save Tutorial
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Step Modal (Add/Edit) -->
+  <div class="modal-overlay" id="stepModal" role="dialog" aria-modal="true" aria-labelledby="stepModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="stepModalTitle">Add Step</h2>
+        <button class="modal-close" onclick="closeModal(stepModal)" aria-label="Close dialog">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form onsubmit="handleStepSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="stepHeading">Step Title</label>
+            <input type="text" class="form-input" id="stepHeading" required placeholder="e.g., Install Dependencies">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="stepExplanation">Explanation</label>
+            <textarea class="form-textarea" id="stepExplanation" required placeholder="Explain what this step does and why it's important..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="stepCode">Code Snippet (optional)</label>
+            <textarea class="form-textarea" id="stepCode" placeholder="npm install package-name" style="font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal(stepModal)">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Save Step
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

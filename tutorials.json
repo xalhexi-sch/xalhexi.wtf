@@ -1,0 +1,150 @@
+[
+  {
+    "id": "getting-started",
+    "title": "Getting Started with Git",
+    "description": "Learn the basics of Git version control system",
+    "steps": [
+      {
+        "id": "step-1",
+        "heading": "Installing Git",
+        "explanation": "First, you need to install Git on your system. Visit the official Git website or use your package manager.",
+        "code": "# On macOS with Homebrew\nbrew install git\n\n# On Ubuntu/Debian\nsudo apt-get install git\n\n# On Windows, download from git-scm.com"
+      },
+      {
+        "id": "step-2",
+        "heading": "Configure Git",
+        "explanation": "Set up your identity so your commits are properly attributed to you.",
+        "code": "git config --global user.name \"Your Name\"\ngit config --global user.email \"your.email@example.com\""
+      },
+      {
+        "id": "step-3",
+        "heading": "Initialize a Repository",
+        "explanation": "Create a new Git repository in your project directory.",
+        "code": "cd your-project\ngit init"
+      }
+    ]
+  },
+  {
+    "id": "branching",
+    "title": "Git Branching",
+    "description": "Master the art of branching and merging in Git",
+    "steps": [
+      {
+        "id": "step-1",
+        "heading": "Create a New Branch",
+        "explanation": "Branches allow you to work on different features independently.",
+        "code": "git branch feature-name\n# or create and switch in one command\ngit checkout -b feature-name"
+      },
+      {
+        "id": "step-2",
+        "heading": "Switch Between Branches",
+        "explanation": "Move between different branches to work on various features.",
+        "code": "git checkout main\ngit checkout feature-name\n# or using the newer switch command\ngit switch main"
+      },
+      {
+        "id": "step-3",
+        "heading": "Merge Branches",
+        "explanation": "Combine changes from one branch into another.",
+        "code": "# First, switch to the target branch\ngit checkout main\n# Then merge the feature branch\ngit merge feature-name"
+      }
+    ]
+  },
+  {
+    "id": "github-pages",
+    "title": "Deploy to GitHub Pages",
+    "description": "Host your static website for free using GitHub Pages",
+    "steps": [
+      {
+        "id": "step-1",
+        "heading": "Create a Repository",
+        "explanation": "Create a new repository on GitHub for your website.",
+        "code": "# Create repo on GitHub, then clone it\ngit clone https://github.com/username/repo-name.git\ncd repo-name"
+      },
+      {
+        "id": "step-2",
+        "heading": "Add Your Files",
+        "explanation": "Add your HTML, CSS, and JavaScript files to the repository.",
+        "code": "# Add all files\ngit add .\n# Commit the changes\ngit commit -m \"Initial commit\"\n# Push to GitHub\ngit push origin main"
+      },
+      {
+        "id": "step-3",
+        "heading": "Enable GitHub Pages",
+        "explanation": "Go to your repository settings, navigate to 'Pages' section, and select your branch as the source. Your site will be live at username.github.io/repo-name.",
+        "code": "# No code needed - this is done in GitHub UI\n# Settings > Pages > Source > Deploy from branch\n# Select 'main' branch and '/ (root)' folder"
+      }
+    ]
+  },
+  {
+    "id": "ssh-github-setup",
+    "title": "SSH + GitHub SSH Setup (ed25519 + Port 443)",
+    "description": "Complete guide to SSH into a server, generate ed25519 keys, configure GitHub SSH with Port 443, and set up Git",
+    "steps": [
+      {
+        "id": "step-1",
+        "heading": "Connect to the Server",
+        "explanation": "Open Terminal and SSH into your school server. When prompted, type 'yes' if asked to continue connecting, then enter your password.",
+        "code": "ssh it21_lastname@172.17.100.15 -p 9898"
+      },
+      {
+        "id": "step-2",
+        "heading": "Switch to Bash (Optional)",
+        "explanation": "Switch to bash shell for better compatibility. This step is optional but recommended.",
+        "code": "bash"
+      },
+      {
+        "id": "step-3",
+        "heading": "Create .ssh Folder",
+        "explanation": "Create the .ssh directory if it doesn't exist and navigate into it. You can verify your location with pwd.",
+        "code": "mkdir -p ~/.ssh\ncd ~/.ssh\n\n# Optional: verify directory\npwd"
+      },
+      {
+        "id": "step-4",
+        "heading": "Generate SSH Key (ed25519)",
+        "explanation": "Generate a new SSH key using the ed25519 algorithm. Press Enter for default file location, and Enter again for no passphrase (or set one if you prefer).",
+        "code": "ssh-keygen -t ed25519 -C \"your_email@example.com\""
+      },
+      {
+        "id": "step-5",
+        "heading": "Show and Copy Public Key",
+        "explanation": "Display your public key and copy the entire output (starts with 'ssh-ed25519'). You'll need this for GitHub.",
+        "code": "cat ~/.ssh/id_ed25519.pub"
+      },
+      {
+        "id": "step-6",
+        "heading": "Add Public Key to GitHub",
+        "explanation": "On GitHub: Go to Settings > SSH and GPG keys > New SSH key. Give it a title like 'School Server Key', paste your public key, and click 'Add SSH key'.",
+        "code": "# No terminal command needed\n# 1. Go to GitHub Settings\n# 2. Click 'SSH and GPG keys'\n# 3. Click 'New SSH key'\n# 4. Title: School Server Key\n# 5. Paste your public key\n# 6. Click 'Add SSH key'"
+      },
+      {
+        "id": "step-7",
+        "heading": "Configure SSH for Port 443",
+        "explanation": "Create/edit the SSH config file to force GitHub SSH connections through Port 443. This bypasses firewall restrictions. Use Ctrl+O then Enter to save, and Ctrl+X to exit nano.",
+        "code": "nano ~/.ssh/config\n\n# Paste this content:\nHost github.com\n  HostName ssh.github.com\n  User git\n  Port 443\n  IdentityFile ~/.ssh/id_ed25519"
+      },
+      {
+        "id": "step-8",
+        "heading": "Fix SSH Permissions",
+        "explanation": "Set the correct permissions for your SSH files. This is important for security and proper SSH operation.",
+        "code": "chmod 700 ~/.ssh\nchmod 600 ~/.ssh/config\nchmod 600 ~/.ssh/id_ed25519\nchmod 644 ~/.ssh/id_ed25519.pub"
+      },
+      {
+        "id": "step-9",
+        "heading": "Set Git Global Config",
+        "explanation": "Configure Git with your name and email so your commits are properly attributed. Optionally set 'main' as your default branch.",
+        "code": "git config --global user.name \"Your Full Name\"\ngit config --global user.email \"your_email@example.com\"\n\n# Optional: set default branch to main\ngit config --global init.defaultBranch main\n\n# Optional: verify your config\ngit config --global --list"
+      },
+      {
+        "id": "step-10",
+        "heading": "Verify GitHub SSH Connection",
+        "explanation": "Test your SSH connection to GitHub. If successful, you'll see a message like 'Hi USERNAME! You've successfully authenticated...' Type 'yes' if asked to trust the host.",
+        "code": "ssh -T git@github.com"
+      },
+      {
+        "id": "step-11",
+        "heading": "Return Home and Exit",
+        "explanation": "Navigate back to your home directory and exit the server when you're done. Remember: never share your private key (id_ed25519), only share the public key (id_ed25519.pub).",
+        "code": "cd ~\npwd  # Optional: confirm location\n\n# When done, exit the server\nexit"
+      }
+    ]
+  }
+]
