@@ -1628,7 +1628,7 @@ const deleteTutorial = (id: string) => {
     </button>
   )}
   <a
-  href="https://github.com"
+  href="https://github.com/xalhexi-sch"
   target="_blank"
   rel="noopener noreferrer"
   className="p-2 hover:bg-[#21262d] rounded-md transition-colors"
