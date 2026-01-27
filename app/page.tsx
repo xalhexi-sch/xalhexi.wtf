@@ -34,6 +34,7 @@ import {
   Monitor,
   Maximize2,
   Minimize2,
+  RefreshCw,
 } from "lucide-react";
 
 interface StepImage {
@@ -1227,6 +1228,9 @@ export default function ITPTutorial() {
   const sidebarRef = useRef<HTMLElement>(null);
   const MIN_SIDEBAR_WIDTH = 200;
   const MAX_SIDEBAR_WIDTH = 450;
+  const [githubSyncUrl, setGithubSyncUrl] = useState("https://raw.githubusercontent.com/xalhexi/xalhexi.com/main/tutorials.json");
+  const [showSyncSettings, setShowSyncSettings] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -1546,6 +1550,41 @@ const deleteTutorial = (id: string) => {
     input.click();
   };
 
+  // Sync from GitHub
+  const syncFromGithub = async () => {
+    if (!githubSyncUrl) {
+      showToast("No GitHub URL configured");
+      return;
+    }
+    
+    const confirmed = window.confirm(
+      "This will replace all your local tutorials with the version from GitHub.\n\nAre you sure? Any unsaved local changes will be lost."
+    );
+    
+    if (!confirmed) return;
+    
+    setIsSyncing(true);
+    try {
+      const response = await fetch(githubSyncUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.status}`);
+      }
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0 && data[0].id && data[0].title) {
+        setTutorials(data);
+        setSelectedTutorial(data[0].id);
+        showToast("Synced from GitHub!");
+      } else {
+        showToast("Invalid JSON format");
+      }
+    } catch (error) {
+      showToast("Failed to sync from GitHub");
+      console.error("Sync error:", error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0d1117] text-[#e6edf3]">
       {/* Header */}
@@ -1737,22 +1776,49 @@ const deleteTutorial = (id: string) => {
           {/* Sidebar footer */}
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#30363d] bg-[#161b22]">
             {isAdmin && (
-              <div className="flex gap-2 mb-3">
-                <button
-                  onClick={exportTutorials}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Export
-                </button>
-                <button
-                  onClick={importTutorials}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#1f6feb] hover:bg-[#388bfd] text-white rounded-md transition-colors"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  Import
-                </button>
-              </div>
+              <>
+                <div className="flex gap-2 mb-2">
+                  <button
+                    onClick={exportTutorials}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Export
+                  </button>
+                  <button
+                    onClick={importTutorials}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#1f6feb] hover:bg-[#388bfd] text-white rounded-md transition-colors"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    Import
+                  </button>
+                </div>
+                <div className="mb-3">
+                  <button
+                    onClick={syncFromGithub}
+                    disabled={isSyncing}
+                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+                    {isSyncing ? "Syncing..." : "Sync from GitHub"}
+                  </button>
+                  <button
+                    onClick={() => setShowSyncSettings(!showSyncSettings)}
+                    className="w-full mt-1 text-[10px] text-[#484f58] hover:text-[#8b949e] transition-colors"
+                  >
+                    {showSyncSettings ? "Hide URL settings" : "Edit GitHub URL"}
+                  </button>
+                  {showSyncSettings && (
+                    <input
+                      type="text"
+                      value={githubSyncUrl}
+                      onChange={(e) => setGithubSyncUrl(e.target.value)}
+                      placeholder="GitHub raw JSON URL"
+                      className="w-full mt-2 px-2 py-1.5 text-xs bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff]"
+                    />
+                  )}
+                </div>
+              </>
             )}
             {/* Terminal button - only show if admin OR unlocked */}
             {(isAdmin || !terminalLocked) && (
