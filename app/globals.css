@@ -123,3 +123,62 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom dark scrollbar styling - GitHub theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #161b22;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #30363d #161b22;
+}
+
+/* Code blocks and text editors specific */
+pre::-webkit-scrollbar,
+code::-webkit-scrollbar,
+textarea::-webkit-scrollbar,
+[contenteditable]::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+pre::-webkit-scrollbar-track,
+code::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track,
+[contenteditable]::-webkit-scrollbar-track {
+  background: #0d1117;
+  border-radius: 4px;
+}
+
+pre::-webkit-scrollbar-thumb,
+code::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb,
+[contenteditable]::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+  border: 2px solid #0d1117;
+}
+
+pre::-webkit-scrollbar-thumb:hover,
+code::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover,
+[contenteditable]::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
