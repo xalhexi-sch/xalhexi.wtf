@@ -2172,13 +2172,13 @@ const deleteTutorial = (id: string) => {
                   <span>Class Resources</span>
                 </a>
                 <a
-                  href="http://172.17.107.168/"
+                  href="https://github.com/xalhexi-sch"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 text-sm text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3] rounded-md transition-colors"
                 >
                   <Github className="w-4 h-4" />
-                  <span>GitHub Repo</span>
+                  <span>xalhexi-sch</span>
                 </a>
               </div>
             </div>
