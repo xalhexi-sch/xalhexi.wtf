@@ -459,6 +459,79 @@ const defaultTutorials: Tutorial[] = [
       },
     ],
   },
+  {
+    id: "10",
+    title: "App1 – Minimal Python Web App (WSGI + Jinja2 + Gunicorn)",
+    description: "Build a plain Python WSGI app using Jinja2 and Gunicorn inside a virtual environment",
+    steps: [
+      {
+        id: "10-1",
+        heading: "Go to Home Directory",
+        explanation: "Start by navigating to your home directory.",
+        code: "cd ~",
+      },
+      {
+        id: "10-2",
+        heading: "Copy the Virtual Environment",
+        explanation: "Copy the preconfigured Python virtual environment to your home directory. This must be done first before activating.",
+        code: "cp -r /opt/virt ~/",
+      },
+      {
+        id: "10-3",
+        heading: "Activate the Virtual Environment",
+        explanation: "Activate the virtual environment. You should see (virt) at the start of your prompt when activated.",
+        code: "source ~/virt/bin/activate\n\n# You should see:\n# (virt) username@server:~$",
+      },
+      {
+        id: "10-4",
+        heading: "Create webapps Directory",
+        explanation: "Create and navigate into the webapps directory where your applications will live.",
+        code: "mkdir webapps\ncd webapps",
+      },
+      {
+        id: "10-5",
+        heading: "Create app1 Directory",
+        explanation: "Create and navigate into the app1 directory for this specific application.",
+        code: "mkdir app1\ncd app1",
+      },
+      {
+        id: "10-6",
+        heading: "Create Empty GitHub Repository and Clone It",
+        explanation: "Create an empty repository on GitHub, then clone it. The 'empty repository' warning is expected and fine.",
+        code: "git clone git@github.com:xalhexi-sch/App1.git\n\n# You may see:\n# warning: You appear to have cloned an empty repository.\n# This is expected and fine.",
+      },
+      {
+        id: "10-7",
+        heading: "Create app.py",
+        explanation: "Create the main application file using nano. This is a pure WSGI app using Jinja2 for templating. Save with Ctrl+O then Enter, exit with Ctrl+X.",
+        code: "nano app.py\n\n# Paste this code:\nfrom jinja2 import Environment, FileSystemLoader\nimport os\n\nBASE_DIR = os.path.dirname(os.path.abspath(__file__))\n\nenv = Environment(\n    loader=FileSystemLoader(os.path.join(BASE_DIR, \"templates\")),\n    autoescape=True\n)\n\ndef app(environ, start_response):\n    path = environ.get(\"PATH_INFO\", \"/\")\n\n    if path.endswith(\"/hello\"):\n        title = \"Hello Page\"\n        message = \"Rendered using Jinja2\"\n    else:\n        title = \"Home\"\n        message = \"Plain Python + Gunicorn + Nginx\"\n\n    template = env.get_template(\"home.html\")\n    html = template.render(title=title, message=message)\n\n    start_response(\"200 OK\", [(\"Content-Type\", \"text/html; charset=utf-8\")])\n    return [html.encode(\"utf-8\")]",
+      },
+      {
+        id: "10-8",
+        heading: "Create Templates Folder and HTML File",
+        explanation: "Create the templates directory and the home.html template file. This uses Jinja2 syntax with {{ variable }} placeholders.",
+        code: "mkdir templates\ncd templates\nnano home.html\n\n# Paste this HTML:\n<!DOCTYPE html>\n<html>\n<head>\n    <title>{{ title }}</title>\n</head>\n<body>\n    <h1>{{ title }}</h1>\n    <p>{{ message }}</p>\n</body>\n</html>",
+      },
+      {
+        id: "10-9",
+        heading: "Return to App Root",
+        explanation: "Navigate back to the app1 directory and verify your location with pwd.",
+        code: "cd ..\npwd\n\n# Expected output:\n# ~/webapps/app1",
+      },
+      {
+        id: "10-10",
+        heading: "Run the App Using Gunicorn",
+        explanation: "Start the application using Gunicorn. You can change the port (5000) if needed. The app:app refers to the app function inside app.py.",
+        code: "gunicorn --bind 127.0.0.1:5000 app:app",
+      },
+      {
+        id: "10-11",
+        heading: "Access the App",
+        explanation: "Access your app through the server URL. The exact URL depends on your server/proxy setup.",
+        code: "# Example URL (depends on your server setup):\n# http://172.17.100.15:9899/it21_banas/webapps/app1\n\n# Final folder structure:\n# webapps/\n# └── app1/\n#     ├── app.py\n#     └── templates/\n#         └── home.html",
+      },
+    ],
+  },
 ];
 
 function generateId() {
