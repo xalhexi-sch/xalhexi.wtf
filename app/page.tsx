@@ -2163,7 +2163,7 @@ const deleteTutorial = (id: string) => {
                   <span>Port List</span>
                 </a>
                 <a
-                  href="https://github.com/xalhexi-sch"
+                  href="http://172.17.107.168/PORTS.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 text-sm text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3] rounded-md transition-colors"
@@ -2172,7 +2172,7 @@ const deleteTutorial = (id: string) => {
                   <span>Class Resources</span>
                 </a>
                 <a
-                  href="https://github.com/xalhexi-sch"
+                  href="http://172.17.107.168/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 text-sm text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3] rounded-md transition-colors"
