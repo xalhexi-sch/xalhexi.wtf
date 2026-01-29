@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark, .dark *));
 
 :root {
   --background: oklch(1 0 0);
@@ -122,6 +122,42 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Force dark mode styles on html.dark */
+html.dark,
+html.dark body {
+  background-color: #0d1117;
+  color: #e6edf3;
+}
+
+html.dark .bg-background {
+  background-color: #0d1117;
+}
+
+html.dark .bg-card,
+html.dark .bg-popover {
+  background-color: #161b22;
+}
+
+html.dark .bg-muted,
+html.dark .bg-secondary,
+html.dark .bg-accent {
+  background-color: #21262d;
+}
+
+html.dark .text-foreground,
+html.dark .text-card-foreground,
+html.dark .text-popover-foreground {
+  color: #e6edf3;
+}
+
+html.dark .text-muted-foreground {
+  color: #8b949e;
+}
+
+html.dark .border-border {
+  border-color: #30363d;
 }
 
 /* Custom dark scrollbar styling - GitHub theme */
