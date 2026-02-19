@@ -1304,7 +1304,9 @@ export default function ITPTutorial() {
   const [githubSyncUrl, setGithubSyncUrl] = useState("https://raw.githubusercontent.com/xalhexi/xalhexi.com/main/tutorials.json");
   const [showSyncSettings, setShowSyncSettings] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const hasLoadedFromStorage = useRef(false);
 
+  // Load from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (localStorage.getItem("isAdmin") === "true") setIsAdmin(true);
@@ -1328,11 +1330,14 @@ export default function ITPTutorial() {
       if (savedTerminalUrl) setTerminalUrl(savedTerminalUrl);
       const savedTerminalLocked = localStorage.getItem("terminalLocked");
       if (savedTerminalLocked !== null) setTerminalLocked(savedTerminalLocked === "true");
+      // Mark that we've loaded from storage, so the save effect can now safely write
+      hasLoadedFromStorage.current = true;
     }
   }, []);
 
+  // Save to localStorage only after initial load is complete
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && hasLoadedFromStorage.current) {
       localStorage.setItem("tutorialsOverride", JSON.stringify(tutorials));
     }
   }, [tutorials]);
