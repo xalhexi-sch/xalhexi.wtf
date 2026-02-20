@@ -1,55 +1,5 @@
 [
   {
-    "id": "terminal-setup",
-    "title": "Setting Up Web Terminal (Admin)",
-    "description": "How to install and configure ttyd for web-based terminal access",
-    "locked": true,
-    "steps": [
-      {
-        "id": "ts-1",
-        "heading": "Install ttyd on your VPS",
-        "explanation": "SSH into your VPS and install ttyd. This tool exposes a terminal session as a web page.",
-        "code": "# Ubuntu/Debian\nsudo apt update\nsudo apt install ttyd\n\n# Check version\nttyd --version"
-      },
-      {
-        "id": "ts-2",
-        "heading": "Kill existing ttyd process (if running)",
-        "explanation": "Before starting ttyd, make sure no other instance is using the port.",
-        "code": "# Kill any running ttyd\npkill ttyd\n\n# Or find and kill manually\nps aux | grep ttyd\nkill <PID>"
-      },
-      {
-        "id": "ts-3",
-        "heading": "Generate SSL Certificate (REQUIRED for HTTPS sites)",
-        "explanation": "Vercel uses HTTPS. Browsers block HTTP iframes in HTTPS pages. You MUST use SSL for embedding to work.",
-        "code": "# Generate self-signed certificate\nopenssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n  -keyout /root/ttyd-key.pem \\\n  -out /root/ttyd-cert.pem \\\n  -subj '/CN=localhost'\n\n# Or use Let's Encrypt for a real domain (recommended)"
-      },
-      {
-        "id": "ts-4",
-        "heading": "Run ttyd with SSL",
-        "explanation": "Start ttyd with SSL enabled and the -O flag to allow iframe embedding.",
-        "code": "# Run with SSL (REQUIRED for Vercel embedding)\nttyd -W -p 7681 -O \\\n  --ssl \\\n  --ssl-cert /root/ttyd-cert.pem \\\n  --ssl-key /root/ttyd-key.pem \\\n  bash\n\n# Run in background\nnohup ttyd -W -p 7681 -O --ssl --ssl-cert /root/ttyd-cert.pem --ssl-key /root/ttyd-key.pem bash &"
-      },
-      {
-        "id": "ts-5",
-        "heading": "With Authentication (Recommended)",
-        "explanation": "Add username/password protection to prevent unauthorized access.",
-        "code": "# With SSL + authentication\nttyd -W -p 7681 -O \\\n  --ssl \\\n  --ssl-cert /root/ttyd-cert.pem \\\n  --ssl-key /root/ttyd-key.pem \\\n  -c student:practice123 \\\n  bash"
-      },
-      {
-        "id": "ts-6",
-        "heading": "Configure Firewall",
-        "explanation": "Open the port on your VPS firewall.",
-        "code": "# UFW (Ubuntu)\nsudo ufw allow 7681\n\n# Or iptables\nsudo iptables -A INPUT -p tcp --dport 7681 -j ACCEPT"
-      },
-      {
-        "id": "ts-7",
-        "heading": "Test and Get Your URL",
-        "explanation": "First visit the URL directly in browser and accept the self-signed certificate warning. Then use this HTTPS URL in admin Terminal Settings.",
-        "code": "# Your terminal URL (MUST be HTTPS):\nhttps://YOUR_VPS_IP:7681\n\n# Example:\nhttps://104.64.209.151:7681\n\n# IMPORTANT: Visit this URL in browser first\n# and click 'Advanced' -> 'Proceed' to accept\n# the self-signed certificate!"
-      }
-    ]
-  },
-  {
     "id": "10",
     "title": "App1 – Minimal Python Web App (WSGI + Jinja2 + Gunicorn)",
     "description": "Build a plain Python WSGI app using Jinja2 and Gunicorn inside a virtual environment",
@@ -173,37 +123,6 @@
     ]
   },
   {
-    "id": "1",
-    "title": "Getting Started with Git",
-    "description": "Learn the basics of version control with Git",
-    "steps": [
-      {
-        "id": "1-1",
-        "heading": "Initialize a Repository",
-        "explanation": "Create a new Git repository in your project folder.",
-        "code": "git init"
-      },
-      {
-        "id": "1-2",
-        "heading": "Check Status",
-        "explanation": "See which files have been modified or staged.",
-        "code": "git status"
-      },
-      {
-        "id": "1-3",
-        "heading": "Stage Changes",
-        "explanation": "Add files to staging area before committing.",
-        "code": "git add ."
-      },
-      {
-        "id": "1-4",
-        "heading": "Commit Changes",
-        "explanation": "Save your staged changes with a descriptive message.",
-        "code": "git commit -m \"Your message\""
-      }
-    ]
-  },
-  {
     "id": "2",
     "title": "Git Branching",
     "description": "Master branching strategies for collaboration",
@@ -244,6 +163,37 @@
         "heading": "First Time Setup",
         "explanation": "Accept the fingerprint when prompted.",
         "code": "# Type 'yes' when asked about authenticity"
+      }
+    ]
+  },
+  {
+    "id": "1",
+    "title": "Getting Started with Git",
+    "description": "Learn the basics of version control with Git",
+    "steps": [
+      {
+        "id": "1-1",
+        "heading": "Initialize a Repository",
+        "explanation": "Create a new Git repository in your project folder.",
+        "code": "git init"
+      },
+      {
+        "id": "1-2",
+        "heading": "Check Status",
+        "explanation": "See which files have been modified or staged.",
+        "code": "git status"
+      },
+      {
+        "id": "1-3",
+        "heading": "Stage Changes",
+        "explanation": "Add files to staging area before committing.",
+        "code": "git add ."
+      },
+      {
+        "id": "1-4",
+        "heading": "Commit Changes",
+        "explanation": "Save your staged changes with a descriptive message.",
+        "code": "git commit -m \"Your message\""
       }
     ]
   },
@@ -508,6 +458,56 @@
         "heading": "Branch is Master Instead of Main",
         "explanation": "Rename your local branch to main and push to the main branch.",
         "code": "# Rename branch to main\ngit branch -M main\n\n# Push to main\ngit push -u origin main"
+      }
+    ]
+  },
+  {
+    "id": "terminal-setup",
+    "title": "Setting Up Web Terminal (Admin)",
+    "description": "How to install and configure ttyd for web-based terminal access",
+    "locked": false,
+    "steps": [
+      {
+        "id": "ts-1",
+        "heading": "Install ttyd on your VPS",
+        "explanation": "SSH into your VPS and install ttyd. This tool exposes a terminal session as a web page.",
+        "code": "# Ubuntu/Debian\nsudo apt update\nsudo apt install ttyd\n\n# Check version\nttyd --version"
+      },
+      {
+        "id": "ts-2",
+        "heading": "Kill existing ttyd process (if running)",
+        "explanation": "Before starting ttyd, make sure no other instance is using the port.",
+        "code": "# Kill any running ttyd\npkill ttyd\n\n# Or find and kill manually\nps aux | grep ttyd\nkill <PID>"
+      },
+      {
+        "id": "ts-3",
+        "heading": "Generate SSL Certificate (REQUIRED for HTTPS sites)",
+        "explanation": "Vercel uses HTTPS. Browsers block HTTP iframes in HTTPS pages. You MUST use SSL for embedding to work.",
+        "code": "# Generate self-signed certificate\nopenssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n  -keyout /root/ttyd-key.pem \\\n  -out /root/ttyd-cert.pem \\\n  -subj '/CN=localhost'\n\n# Or use Let's Encrypt for a real domain (recommended)"
+      },
+      {
+        "id": "ts-4",
+        "heading": "Run ttyd with SSL",
+        "explanation": "Start ttyd with SSL enabled and the -O flag to allow iframe embedding.",
+        "code": "# Run with SSL (REQUIRED for Vercel embedding)\nttyd -W -p 7681 -O \\\n  --ssl \\\n  --ssl-cert /root/ttyd-cert.pem \\\n  --ssl-key /root/ttyd-key.pem \\\n  bash\n\n# Run in background\nnohup ttyd -W -p 7681 -O --ssl --ssl-cert /root/ttyd-cert.pem --ssl-key /root/ttyd-key.pem bash &"
+      },
+      {
+        "id": "ts-5",
+        "heading": "With Authentication (Recommended)",
+        "explanation": "Add username/password protection to prevent unauthorized access.",
+        "code": "# With SSL + authentication\nttyd -W -p 7681 -O \\\n  --ssl \\\n  --ssl-cert /root/ttyd-cert.pem \\\n  --ssl-key /root/ttyd-key.pem \\\n  -c student:practice123 \\\n  bash"
+      },
+      {
+        "id": "ts-6",
+        "heading": "Configure Firewall",
+        "explanation": "Open the port on your VPS firewall.",
+        "code": "# UFW (Ubuntu)\nsudo ufw allow 7681\n\n# Or iptables\nsudo iptables -A INPUT -p tcp --dport 7681 -j ACCEPT"
+      },
+      {
+        "id": "ts-7",
+        "heading": "Test and Get Your URL",
+        "explanation": "First visit the URL directly in browser and accept the self-signed certificate warning. Then use this HTTPS URL in admin Terminal Settings.",
+        "code": "# Your terminal URL (MUST be HTTPS):\nhttps://YOUR_VPS_IP:7681\n\n# Example:\nhttps://104.64.209.151:7681\n\n# IMPORTANT: Visit this URL in browser first\n# and click 'Advanced' -> 'Proceed' to accept\n# the self-signed certificate!"
       }
     ]
   }
