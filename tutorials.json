@@ -95,7 +95,8 @@
         "explanation": "",
         "code": "from jinja2 import Environment, FileSystemLoader, select_autoescape\nimport os\n\nBASE_DIR = os.path.dirname(os.path.abspath(__file__))\n\nenv = Environment(\n    loader=FileSystemLoader(os.path.join(BASE_DIR, \"templates\")),\n    autoescape=select_autoescape([\"html\", \"xml\"])\n)\n\n\ndef app(environ, start_response):\n    path = environ.get(\"PATH_INFO\", \"/\")\n\n    students = [\n        {\"ID\": 1, \"Name\": \"Alice Johnson\", \"Course\": \"Computer Science\"},\n        {\"ID\": 2, \"Name\": \"Brian Smith\", \"Course\": \"Information Technology\"},\n        {\"ID\": 3, \"Name\": \"Catherine Lee\", \"Course\": \"Business Administration\"},\n        {\"ID\": 4, \"Name\": \"David Brown\", \"Course\": \"Mechanical Engineering\"},\n        {\"ID\": 5, \"Name\": \"Emma Wilson\", \"Course\": \"Psychology\"},\n        {\"ID\": 6, \"Name\": \"Frank Garcia\", \"Course\": \"Electrical Engineering\"},\n        {\"ID\": 7, \"Name\": \"Grace Martinez\", \"Course\": \"Marketing\"},\n        {\"ID\": 8, \"Name\": \"Henry Anderson\", \"Course\": \"Civil Engineering\"},\n        {\"ID\": 9, \"Name\": \"Isabella Thomas\", \"Course\": \"Biology\"},\n        {\"ID\": 10, \"Name\": \"James Taylor\", \"Course\": \"Accounting\"}\n    ]\n\n    if path.endswith(\"/students\"):\n        title = \"Students List\"\n        message = \"Dynamic Table with Jinja2\"\n    else:\n        title = \"Home\"\n        message = \"Plain Python + Gunicorn + Jinja2\"\n\n    template = env.get_template(\"home.html\")\n    html = template.render(title=title, message=message, students=students)\n\n    start_response(\"200 OK\", [(\"Content-Type\", \"text/html; charset=utf-8\")])\n    return [html.encode(\"utf-8\")]"
       }
-    ]
+    ],
+    "locked": false
   },
   {
     "id": "res3oiwu3",
@@ -120,7 +121,8 @@
         "explanation": "",
         "code": "from jinja2 import Environment, FileSystemLoader\nimport os\n\nBASE_DIR = os.path.dirname(os.path.abspath(__file__))\n\nenv = Environment(\n    loader=FileSystemLoader(os.path.join(BASE_DIR, \"templates\")),\n    autoescape=True\n)\n\ndef app(environ, start_response):\n    path = environ.get(\"PATH_INFO\", \"/\")\n\n    if path.endswith(\"/hello\"):\n        title = \"Hello Page\"\n        message = \"Rendered using Jinja2\"\n    else:\n        title = \"Home\"\n        message = \"Plain Python + Gunicorn + Nginx\"\n\n    template = env.get_template(\"home.html\")\n    html = template.render(title=title, message=message)\n\n    start_response(\"200 OK\", [(\"Content-Type\", \"text/html; charset=utf-8\")])\n    return [html.encode(\"utf-8\")]"
       }
-    ]
+    ],
+    "locked": false
   },
   {
     "id": "2",
@@ -145,7 +147,8 @@
         "explanation": "Combine changes from another branch.",
         "code": "git merge feature-name"
       }
-    ]
+    ],
+    "locked": true
   },
   {
     "id": "3",
@@ -164,7 +167,8 @@
         "explanation": "Accept the fingerprint when prompted.",
         "code": "# Type 'yes' when asked about authenticity"
       }
-    ]
+    ],
+    "locked": true
   },
   {
     "id": "1",
@@ -195,7 +199,8 @@
         "explanation": "Save your staged changes with a descriptive message.",
         "code": "git commit -m \"Your message\""
       }
-    ]
+    ],
+    "locked": true
   },
   {
     "id": "4",
@@ -268,7 +273,8 @@
         "explanation": "Navigate back to your home directory and exit the server when you're done. Remember: never share your private key (id_ed25519), only share the public key (id_ed25519.pub).",
         "code": "cd ~\npwd  # Optional: confirm location\n\n# When done, exit the server\nexit"
       }
-    ]
+    ],
+    "locked": true
   },
   {
     "id": "5",
@@ -435,7 +441,7 @@
         "code": "git shortlog -sne"
       }
     ],
-    "locked": false
+    "locked": true
   },
   {
     "id": "9",
@@ -512,11 +518,5 @@
         "code": "# Your terminal URL (MUST be HTTPS):\nhttps://YOUR_VPS_IP:7681\n\n# Example:\nhttps://104.64.209.151:7681\n\n# IMPORTANT: Visit this URL in browser first\n# and click 'Advanced' -> 'Proceed' to accept\n# the self-signed certificate!"
       }
     ]
-  },
-  {
-    "id": "r8qwc1amf",
-    "title": "test",
-    "description": "test",
-    "steps": []
   }
 ]
