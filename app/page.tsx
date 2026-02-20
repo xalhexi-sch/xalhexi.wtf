@@ -35,6 +35,10 @@ import {
   Maximize2,
   Minimize2,
   RefreshCw,
+  FolderIcon,
+  FileIcon,
+  ChevronLeft,
+  GitBranch,
 } from "lucide-react";
 
 interface StepImage {
@@ -67,6 +71,30 @@ interface SearchResult {
   tutorialTitle: string;
   step: Step;
   matchType: "heading" | "code" | "explanation";
+}
+
+interface GithubRepo {
+  name: string;
+  description: string;
+  language: string | null;
+  updated_at: string;
+  html_url: string;
+  default_branch: string;
+}
+
+interface RepoItem {
+  name: string;
+  type: "file" | "dir";
+  path: string;
+  size: number;
+}
+
+interface FileContent {
+  name: string;
+  path: string;
+  size: number;
+  content: string | null;
+  download_url?: string;
 }
 
 const defaultTutorials: Tutorial[] = [
@@ -1304,6 +1332,16 @@ export default function ITPTutorial() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
   const [isLoadingTutorials, setIsLoadingTutorials] = useState(true);
+  const [activeTab, setActiveTab] = useState<"tutorials" | "repositories">("tutorials");
+  const [repos, setRepos] = useState<GithubRepo[]>([]);
+  const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+  const [reposLoaded, setReposLoaded] = useState(false);
+  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
+  const [repoContents, setRepoContents] = useState<RepoItem[]>([]);
+  const [repoPath, setRepoPath] = useState<string[]>([]);
+  const [isLoadingContents, setIsLoadingContents] = useState(false);
+  const [viewingFile, setViewingFile] = useState<FileContent | null>(null);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
 
   // Load tutorials from server cache on mount (serves GitHub data to everyone globally)
   useEffect(() => {
@@ -1680,6 +1718,125 @@ const deleteTutorial = (id: string) => {
     }
   };
 
+  // Fetch public repos when switching to repositories tab
+  const loadRepos = async () => {
+    if (reposLoaded) return;
+    setIsLoadingRepos(true);
+    try {
+      const resp = await fetch("/api/github/repos");
+      const data = await resp.json();
+      if (resp.ok && Array.isArray(data.repos)) {
+        setRepos(data.repos);
+        setReposLoaded(true);
+      }
+    } catch {
+      showToast("Failed to load repositories");
+    } finally {
+      setIsLoadingRepos(false);
+    }
+  };
+
+  // Fetch contents of a repo directory
+  const loadRepoContents = async (repo: string, path: string = "") => {
+    setIsLoadingContents(true);
+    setViewingFile(null);
+    try {
+      const resp = await fetch(`/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}`);
+      const data = await resp.json();
+      if (resp.ok && data.type === "dir") {
+        setRepoContents(data.items);
+      }
+    } catch {
+      showToast("Failed to load contents");
+    } finally {
+      setIsLoadingContents(false);
+    }
+  };
+
+  // Fetch a single file's content
+  const loadFileContent = async (repo: string, path: string) => {
+    setIsLoadingFile(true);
+    try {
+      const resp = await fetch(`/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}`);
+      const data = await resp.json();
+      if (resp.ok && data.type === "file") {
+        setViewingFile(data);
+      }
+    } catch {
+      showToast("Failed to load file");
+    } finally {
+      setIsLoadingFile(false);
+    }
+  };
+
+  // Navigate into a folder
+  const enterFolder = (folderName: string) => {
+    if (!selectedRepo) return;
+    const newPath = [...repoPath, folderName];
+    setRepoPath(newPath);
+    loadRepoContents(selectedRepo, newPath.join("/"));
+  };
+
+  // Navigate back up
+  const goBack = () => {
+    if (!selectedRepo) return;
+    if (viewingFile) {
+      setViewingFile(null);
+      return;
+    }
+    const newPath = [...repoPath];
+    newPath.pop();
+    setRepoPath(newPath);
+    loadRepoContents(selectedRepo, newPath.join("/"));
+  };
+
+  // Open a repo
+  const openRepo = (repoName: string) => {
+    setSelectedRepo(repoName);
+    setRepoPath([]);
+    setViewingFile(null);
+    loadRepoContents(repoName);
+  };
+
+  // Go back to repo list
+  const backToRepoList = () => {
+    setSelectedRepo(null);
+    setRepoPath([]);
+    setRepoContents([]);
+    setViewingFile(null);
+  };
+
+  // Handle tab switch
+  const switchTab = (tab: "tutorials" | "repositories") => {
+    setActiveTab(tab);
+    if (tab === "repositories" && !reposLoaded) {
+      loadRepos();
+    }
+  };
+
+  // Format file size
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Language color map
+  const langColor: Record<string, string> = {
+    TypeScript: "#3178c6",
+    JavaScript: "#f1e05a",
+    Python: "#3572A5",
+    HTML: "#e34c26",
+    CSS: "#563d7c",
+    Java: "#b07219",
+    "C++": "#f34b7d",
+    C: "#555555",
+    Shell: "#89e051",
+    Rust: "#dea584",
+    Go: "#00ADD8",
+    PHP: "#4F5D95",
+  };
+
   return (
     <div className="min-h-screen bg-[#0d1117] text-[#e6edf3]">
       {/* Header */}
@@ -1792,17 +1949,35 @@ const deleteTutorial = (id: string) => {
             }`}
           />
           <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-[#8b949e] uppercase tracking-wide">
+            {/* Tab buttons */}
+            <div className="flex items-center gap-1 mb-4">
+              <button
+                onClick={() => switchTab("tutorials")}
+                className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${
+                  activeTab === "tutorials"
+                    ? "bg-[#238636] text-white"
+                    : "bg-[#21262d] text-[#8b949e] hover:bg-[#30363d] hover:text-[#e6edf3]"
+                }`}
+              >
                 Tutorials
-              </h2>
-              {isAdmin && (
+              </button>
+              <button
+                onClick={() => switchTab("repositories")}
+                className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${
+                  activeTab === "repositories"
+                    ? "bg-[#238636] text-white"
+                    : "bg-[#21262d] text-[#8b949e] hover:bg-[#30363d] hover:text-[#e6edf3]"
+                }`}
+              >
+                Repositories
+              </button>
+              {activeTab === "tutorials" && isAdmin && (
                 <button
                   onClick={() => {
                     setEditingTutorial(null);
                     setTutorialModalOpen(true);
                   }}
-                  className="p-1 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#e6edf3]"
+                  className="ml-auto p-1 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#e6edf3]"
                   title="Add Tutorial"
                 >
                   <Plus className="w-4 h-4" />
@@ -1810,6 +1985,8 @@ const deleteTutorial = (id: string) => {
               )}
             </div>
 
+            {/* Tutorials list */}
+            {activeTab === "tutorials" && (
             <nav className="space-y-1">
               {filteredTutorials.map((tutorial) => (
                 <div
@@ -1872,11 +2049,52 @@ const deleteTutorial = (id: string) => {
             {!isLoadingTutorials && filteredTutorials.length === 0 && (
               <p className="text-sm text-[#484f58] text-center py-4">No tutorials found</p>
             )}
+            )}
+
+            {/* Repositories list */}
+            {activeTab === "repositories" && (
+              <nav className="space-y-1">
+                {isLoadingRepos && (
+                  <div className="flex items-center justify-center gap-2 py-6">
+                    <RefreshCw className="w-4 h-4 text-[#484f58] animate-spin" />
+                    <p className="text-sm text-[#484f58]">Loading repos...</p>
+                  </div>
+                )}
+                {!isLoadingRepos && repos.map((repo) => (
+                  <button
+                    key={repo.name}
+                    onClick={() => openRepo(repo.name)}
+                    className={`w-full text-left px-3 py-2.5 rounded-md transition-colors ${
+                      selectedRepo === repo.name
+                        ? "bg-[#21262d] text-[#e6edf3]"
+                        : "text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <GitBranch className="w-3.5 h-3.5 shrink-0 text-[#8b949e]" />
+                      <span className="text-sm font-medium truncate">{repo.name}</span>
+                    </div>
+                    {repo.description && (
+                      <p className="text-[11px] text-[#484f58] mt-0.5 ml-6 truncate">{repo.description}</p>
+                    )}
+                    {repo.language && (
+                      <div className="flex items-center gap-1.5 mt-1 ml-6">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: langColor[repo.language] || "#8b949e" }} />
+                        <span className="text-[10px] text-[#484f58]">{repo.language}</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+                {!isLoadingRepos && repos.length === 0 && (
+                  <p className="text-sm text-[#484f58] text-center py-4">No public repos found</p>
+                )}
+              </nav>
+            )}
           </div>
 
           {/* Sidebar footer */}
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#30363d] bg-[#161b22]">
-            {isAdmin && (
+            {isAdmin && activeTab === "tutorials" && (
               <>
                 {/* GitHub Push/Pull */}
                 <div className="flex gap-2 mb-2">
@@ -1952,7 +2170,205 @@ const deleteTutorial = (id: string) => {
         {/* Main Content + Terminal Split */}
         <div className={`flex-1 min-w-0 flex ${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? '' : 'justify-center'}`}>
           <main className={`${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? 'w-1/2' : 'w-full max-w-4xl'} min-w-0 p-4 lg:p-6 overflow-y-auto`}>
-          {isSearching ? (
+
+          {/* Repository View */}
+          {activeTab === "repositories" ? (
+            <div className="max-w-3xl mx-auto">
+              {!selectedRepo ? (
+                /* Repo list view */
+                <div>
+                  <div className="mb-6">
+                    <h1 className="text-2xl font-bold text-[#e6edf3] mb-1">Public Repositories</h1>
+                    <p className="text-[#8b949e] text-sm">Public repositories from xalhexi-sch</p>
+                  </div>
+                  {isLoadingRepos ? (
+                    <div className="flex items-center justify-center gap-2 py-12">
+                      <RefreshCw className="w-5 h-5 text-[#484f58] animate-spin" />
+                      <p className="text-[#484f58]">Loading repositories...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {repos.map((repo) => (
+                        <button
+                          key={repo.name}
+                          onClick={() => openRepo(repo.name)}
+                          className="w-full text-left p-4 bg-[#161b22] border border-[#30363d] rounded-lg hover:border-[#484f58] transition-colors"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <GitBranch className="w-4 h-4 text-[#8b949e]" />
+                            <span className="text-[#58a6ff] font-semibold text-sm hover:underline">{repo.name}</span>
+                          </div>
+                          {repo.description && (
+                            <p className="text-sm text-[#8b949e] mb-2 ml-6">{repo.description}</p>
+                          )}
+                          <div className="flex items-center gap-4 ml-6">
+                            {repo.language && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: langColor[repo.language] || "#8b949e" }} />
+                                <span className="text-xs text-[#8b949e]">{repo.language}</span>
+                              </div>
+                            )}
+                            <span className="text-xs text-[#484f58]">
+                              Updated {new Date(repo.updated_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : viewingFile ? (
+                /* File content view */
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <button
+                      onClick={goBack}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Back
+                    </button>
+                    <div className="flex items-center gap-1.5 text-sm text-[#8b949e] min-w-0">
+                      <button onClick={backToRepoList} className="text-[#58a6ff] hover:underline shrink-0">{selectedRepo}</button>
+                      {repoPath.map((part, i) => (
+                        <React.Fragment key={i}>
+                          <span className="text-[#484f58]">/</span>
+                          <button
+                            onClick={() => {
+                              const newPath = repoPath.slice(0, i + 1);
+                              setRepoPath(newPath);
+                              setViewingFile(null);
+                              loadRepoContents(selectedRepo, newPath.join("/"));
+                            }}
+                            className="text-[#58a6ff] hover:underline"
+                          >
+                            {part}
+                          </button>
+                        </React.Fragment>
+                      ))}
+                      <span className="text-[#484f58]">/</span>
+                      <span className="text-[#e6edf3] truncate">{viewingFile.name}</span>
+                    </div>
+                  </div>
+                  {isLoadingFile ? (
+                    <div className="flex items-center justify-center gap-2 py-12">
+                      <RefreshCw className="w-5 h-5 text-[#484f58] animate-spin" />
+                      <p className="text-[#484f58]">Loading file...</p>
+                    </div>
+                  ) : (
+                  <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
+                    <div className="px-4 py-2 border-b border-[#30363d] flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileIcon className="w-4 h-4 text-[#8b949e]" />
+                        <span className="text-sm font-medium text-[#e6edf3]">{viewingFile.name}</span>
+                      </div>
+                      <span className="text-xs text-[#484f58]">{formatSize(viewingFile.size)}</span>
+                    </div>
+                    {viewingFile.content ? (
+                      <pre className="p-4 text-sm text-[#c9d1d9] overflow-x-auto font-mono leading-relaxed whitespace-pre"><code>{viewingFile.content}</code></pre>
+                    ) : (
+                      <div className="p-6 text-center">
+                        <p className="text-[#8b949e] mb-2">File too large to display inline</p>
+                        {viewingFile.download_url && (
+                          <a
+                            href={viewingFile.download_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#21262d] hover:bg-[#30363d] text-[#58a6ff] border border-[#30363d] rounded-md transition-colors"
+                          >
+                            <Download className="w-4 h-4" />
+                            Download
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  )}
+                </div>
+              ) : (
+                /* Directory listing view */
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    {repoPath.length > 0 ? (
+                      <button
+                        onClick={goBack}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back
+                      </button>
+                    ) : (
+                      <button
+                        onClick={backToRepoList}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        All Repos
+                      </button>
+                    )}
+                    <div className="flex items-center gap-1.5 text-sm text-[#8b949e] min-w-0">
+                      <button onClick={backToRepoList} className="text-[#58a6ff] hover:underline font-semibold shrink-0">{selectedRepo}</button>
+                      {repoPath.map((part, i) => (
+                        <React.Fragment key={i}>
+                          <span className="text-[#484f58]">/</span>
+                          <button
+                            onClick={() => {
+                              const newPath = repoPath.slice(0, i + 1);
+                              setRepoPath(newPath);
+                              loadRepoContents(selectedRepo, newPath.join("/"));
+                            }}
+                            className={`hover:underline ${i === repoPath.length - 1 ? "text-[#e6edf3] font-semibold" : "text-[#58a6ff]"}`}
+                          >
+                            {part}
+                          </button>
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+
+                  {isLoadingContents ? (
+                    <div className="flex items-center justify-center gap-2 py-12">
+                      <RefreshCw className="w-5 h-5 text-[#484f58] animate-spin" />
+                      <p className="text-[#484f58]">Loading...</p>
+                    </div>
+                  ) : (
+                    <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
+                      {repoContents.map((item, i) => (
+                        <button
+                          key={item.path}
+                          onClick={() => {
+                            if (item.type === "dir") {
+                              enterFolder(item.name);
+                            } else {
+                              loadFileContent(selectedRepo, item.path);
+                            }
+                          }}
+                          className={`w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-[#21262d] transition-colors ${
+                            i < repoContents.length - 1 ? "border-b border-[#21262d]" : ""
+                          }`}
+                        >
+                          {item.type === "dir" ? (
+                            <FolderIcon className="w-4 h-4 text-[#54aeff] shrink-0" />
+                          ) : (
+                            <FileIcon className="w-4 h-4 text-[#8b949e] shrink-0" />
+                          )}
+                          <span className={`text-sm ${item.type === "dir" ? "text-[#e6edf3]" : "text-[#c9d1d9]"}`}>
+                            {item.name}
+                          </span>
+                          {item.type === "file" && item.size > 0 && (
+                            <span className="text-xs text-[#484f58] ml-auto">{formatSize(item.size)}</span>
+                          )}
+                        </button>
+                      ))}
+                      {repoContents.length === 0 && (
+                        <p className="text-sm text-[#484f58] text-center py-6">Empty directory</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : isSearching ? (
             /* Search Results View */
             <div className={`${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? '' : 'max-w-3xl mx-auto'}`}>
               <div className="mb-6">
