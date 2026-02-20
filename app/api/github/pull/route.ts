@@ -9,7 +9,6 @@ const FILE_PATH = "tutorials.json";
 export async function GET() {
   try {
     const GITHUB_TOKEN = process.env.GITHUB_TUTORIALS_TOKEN;
-    console.log("[v0] Pull route hit, token exists:", !!GITHUB_TOKEN);
     if (!GITHUB_TOKEN) {
       return NextResponse.json(
         { error: "GitHub token not configured on server. Add GITHUB_TUTORIALS_TOKEN in the Vars section of the sidebar." },

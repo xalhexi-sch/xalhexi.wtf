@@ -1303,43 +1303,36 @@ export default function ITPTutorial() {
   const MAX_SIDEBAR_WIDTH = 450;
   const [isSyncing, setIsSyncing] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
-  const hasLoadedFromStorage = useRef(false);
+  const [isLoadingTutorials, setIsLoadingTutorials] = useState(true);
 
-  // Load from localStorage on mount
+  // Load tutorials from GitHub on mount (GitHub = source of truth for everyone)
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (localStorage.getItem("isAdmin") === "true") setIsAdmin(true);
-      const saved = localStorage.getItem("tutorialsOverride");
-      if (saved) {
-        try {
-          const savedTutorials = JSON.parse(saved) as Tutorial[];
-          // Merge: keep saved tutorials, add any new defaults that don't exist
-          const savedIds = new Set(savedTutorials.map((t) => t.id));
-          const newDefaults = defaultTutorials.filter((t) => !savedIds.has(t.id));
-          if (newDefaults.length > 0) {
-            setTutorials([...savedTutorials, ...newDefaults]);
-          } else {
-            setTutorials(savedTutorials);
-          }
-        } catch {
-          // ignore
-        }
-      }
       const savedTerminalUrl = localStorage.getItem("terminalUrl");
       if (savedTerminalUrl) setTerminalUrl(savedTerminalUrl);
       const savedTerminalLocked = localStorage.getItem("terminalLocked");
       if (savedTerminalLocked !== null) setTerminalLocked(savedTerminalLocked === "true");
-      // Mark that we've loaded from storage, so the save effect can now safely write
-      hasLoadedFromStorage.current = true;
     }
-  }, []);
 
-  // Save to localStorage only after initial load is complete
-  useEffect(() => {
-    if (typeof window !== "undefined" && hasLoadedFromStorage.current) {
-      localStorage.setItem("tutorialsOverride", JSON.stringify(tutorials));
-    }
-  }, [tutorials]);
+    // Fetch tutorials from GitHub for all users
+    const loadFromGithub = async () => {
+      try {
+        const resp = await fetch("/api/github/pull");
+        const data = await resp.json();
+        if (resp.ok && Array.isArray(data.tutorials) && data.tutorials.length > 0) {
+          setTutorials(data.tutorials);
+          setSelectedTutorial(data.tutorials[0].id);
+        }
+        // If fetch fails, defaultTutorials (from useState init) remain as fallback
+      } catch {
+        // GitHub unavailable, keep defaults
+      } finally {
+        setIsLoadingTutorials(false);
+      }
+    };
+    loadFromGithub();
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && terminalUrl) {
@@ -1654,13 +1647,8 @@ const deleteTutorial = (id: string) => {
     }
   };
 
-  // Pull tutorials from GitHub via server-side API route
+  // Pull tutorials from GitHub via server-side API route (refresh from source of truth)
   const pullFromGithub = async () => {
-    const confirmed = window.confirm(
-      "This will replace all your local tutorials with the version from GitHub.\n\nAre you sure? Any local-only changes will be lost."
-    );
-    if (!confirmed) return;
-
     setIsSyncing(true);
     try {
       const resp = await fetch("/api/github/pull");
@@ -1671,12 +1659,12 @@ const deleteTutorial = (id: string) => {
       if (Array.isArray(data.tutorials) && data.tutorials.length > 0) {
         setTutorials(data.tutorials);
         setSelectedTutorial(data.tutorials[0].id);
-        showToast("Pulled from GitHub!");
+        showToast("Synced from GitHub!");
       } else {
-        showToast("Invalid tutorials data");
+        showToast("No tutorials found on GitHub");
       }
     } catch (error) {
-      showToast("Failed to pull: " + (error instanceof Error ? error.message : "Unknown error"));
+      showToast("Failed to sync: " + (error instanceof Error ? error.message : "Unknown error"));
       console.error("Pull error:", error);
     } finally {
       setIsSyncing(false);
@@ -1866,7 +1854,13 @@ const deleteTutorial = (id: string) => {
               ))}
             </nav>
 
-            {filteredTutorials.length === 0 && (
+            {isLoadingTutorials && (
+              <div className="flex items-center justify-center gap-2 py-6">
+                <RefreshCw className="w-4 h-4 text-[#484f58] animate-spin" />
+                <p className="text-sm text-[#484f58]">Loading tutorials...</p>
+              </div>
+            )}
+            {!isLoadingTutorials && filteredTutorials.length === 0 && (
               <p className="text-sm text-[#484f58] text-center py-4">No tutorials found</p>
             )}
           </div>
@@ -1883,15 +1877,15 @@ const deleteTutorial = (id: string) => {
                     className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors disabled:opacity-50"
                   >
                     <Upload className={`w-3.5 h-3.5 ${isPushing ? "animate-pulse" : ""}`} />
-                    {isPushing ? "Pushing..." : "Push to GitHub"}
+                    {isPushing ? "Saving..." : "Save to GitHub"}
                   </button>
                   <button
                     onClick={pullFromGithub}
                     disabled={isSyncing}
                     className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#1f6feb] hover:bg-[#388bfd] text-white rounded-md transition-colors disabled:opacity-50"
                   >
-                    <Download className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
-                    {isSyncing ? "Pulling..." : "Pull from GitHub"}
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+                    {isSyncing ? "Syncing..." : "Sync from GitHub"}
                   </button>
                 </div>
                 {/* File Export/Import as secondary */}
