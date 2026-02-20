@@ -1301,14 +1301,8 @@ export default function ITPTutorial() {
   const sidebarRef = useRef<HTMLElement>(null);
   const MIN_SIDEBAR_WIDTH = 200;
   const MAX_SIDEBAR_WIDTH = 450;
-  const [githubSyncUrl, setGithubSyncUrl] = useState("https://raw.githubusercontent.com/xalhexi/xalhexi.com/main/tutorials.json");
-  const [showSyncSettings, setShowSyncSettings] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
-  const [githubToken, setGithubToken] = useState("");
-  const [showGithubToken, setShowGithubToken] = useState(false);
-  const [githubRepo, setGithubRepo] = useState("xalhexi-sch/xalhexi-sch.github.io");
-  const [githubFilePath, setGithubFilePath] = useState("tutorials.json");
   const hasLoadedFromStorage = useRef(false);
 
   // Load from localStorage on mount
@@ -1335,12 +1329,6 @@ export default function ITPTutorial() {
       if (savedTerminalUrl) setTerminalUrl(savedTerminalUrl);
       const savedTerminalLocked = localStorage.getItem("terminalLocked");
       if (savedTerminalLocked !== null) setTerminalLocked(savedTerminalLocked === "true");
-      const savedGithubToken = localStorage.getItem("githubToken");
-      if (savedGithubToken) setGithubToken(savedGithubToken);
-      const savedGithubRepo = localStorage.getItem("githubRepo");
-      if (savedGithubRepo) setGithubRepo(savedGithubRepo);
-      const savedGithubFilePath = localStorage.getItem("githubFilePath");
-      if (savedGithubFilePath) setGithubFilePath(savedGithubFilePath);
       // Mark that we've loaded from storage, so the save effect can now safely write
       hasLoadedFromStorage.current = true;
     }
@@ -1639,28 +1627,8 @@ const deleteTutorial = (id: string) => {
     input.click();
   };
 
-  // Save GitHub settings to localStorage whenever they change
-  useEffect(() => {
-    if (typeof window !== "undefined" && hasLoadedFromStorage.current) {
-      localStorage.setItem("githubToken", githubToken);
-      localStorage.setItem("githubRepo", githubRepo);
-      localStorage.setItem("githubFilePath", githubFilePath);
-    }
-  }, [githubToken, githubRepo, githubFilePath]);
-
-  // Push tutorials to GitHub (upload)
+  // Push tutorials to GitHub via server-side API route
   const pushToGithub = async () => {
-    if (!githubToken) {
-      showToast("Set your GitHub token first");
-      setShowSyncSettings(true);
-      return;
-    }
-    if (!githubRepo || !githubFilePath) {
-      showToast("Set repo and file path first");
-      setShowSyncSettings(true);
-      return;
-    }
-
     const confirmed = window.confirm(
       "This will upload your current tutorials to GitHub, overwriting the file there.\n\nContinue?"
     );
@@ -1668,48 +1636,15 @@ const deleteTutorial = (id: string) => {
 
     setIsPushing(true);
     try {
-      // First, get the current file SHA (needed for updates)
-      const getUrl = `https://api.github.com/repos/${githubRepo}/contents/${githubFilePath}`;
-      let sha: string | undefined;
-      try {
-        const getResp = await fetch(getUrl, {
-          headers: {
-            Authorization: `Bearer ${githubToken}`,
-            Accept: "application/vnd.github.v3+json",
-          },
-        });
-        if (getResp.ok) {
-          const existing = await getResp.json();
-          sha = existing.sha;
-        }
-      } catch {
-        // File doesn't exist yet, that's fine
-      }
-
-      // Encode content as base64
-      const content = JSON.stringify(tutorials, null, 2);
-      const base64Content = btoa(unescape(encodeURIComponent(content)));
-
-      // Create or update the file
-      const putResp = await fetch(getUrl, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${githubToken}`,
-          Accept: "application/vnd.github.v3+json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: `Update tutorials - ${new Date().toLocaleString()}`,
-          content: base64Content,
-          ...(sha ? { sha } : {}),
-        }),
+      const resp = await fetch("/api/github/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tutorials }),
       });
-
-      if (!putResp.ok) {
-        const err = await putResp.json();
-        throw new Error(err.message || `HTTP ${putResp.status}`);
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || `HTTP ${resp.status}`);
       }
-
       showToast("Pushed to GitHub!");
     } catch (error) {
       showToast("Failed to push: " + (error instanceof Error ? error.message : "Unknown error"));
@@ -1719,14 +1654,8 @@ const deleteTutorial = (id: string) => {
     }
   };
 
-  // Pull tutorials from GitHub (sync/download)
+  // Pull tutorials from GitHub via server-side API route
   const pullFromGithub = async () => {
-    if (!githubToken && !githubSyncUrl) {
-      showToast("Set your GitHub token or sync URL first");
-      setShowSyncSettings(true);
-      return;
-    }
-
     const confirmed = window.confirm(
       "This will replace all your local tutorials with the version from GitHub.\n\nAre you sure? Any local-only changes will be lost."
     );
@@ -1734,38 +1663,17 @@ const deleteTutorial = (id: string) => {
 
     setIsSyncing(true);
     try {
-      let data: Tutorial[];
-
-      if (githubToken && githubRepo && githubFilePath) {
-        // Use API with token (works for private repos too)
-        const url = `https://api.github.com/repos/${githubRepo}/contents/${githubFilePath}`;
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${githubToken}`,
-            Accept: "application/vnd.github.v3+json",
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.status}`);
-        }
-        const fileData = await response.json();
-        const decoded = decodeURIComponent(escape(atob(fileData.content)));
-        data = JSON.parse(decoded);
-      } else {
-        // Fallback to raw URL (public repos only)
-        const response = await fetch(githubSyncUrl);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.status}`);
-        }
-        data = await response.json();
+      const resp = await fetch("/api/github/pull");
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || `HTTP ${resp.status}`);
       }
-
-      if (Array.isArray(data) && data.length > 0 && data[0].id && data[0].title) {
-        setTutorials(data);
-        setSelectedTutorial(data[0].id);
+      if (Array.isArray(data.tutorials) && data.tutorials.length > 0) {
+        setTutorials(data.tutorials);
+        setSelectedTutorial(data.tutorials[0].id);
         showToast("Pulled from GitHub!");
       } else {
-        showToast("Invalid JSON format");
+        showToast("Invalid tutorials data");
       }
     } catch (error) {
       showToast("Failed to pull: " + (error instanceof Error ? error.message : "Unknown error"));
@@ -1986,58 +1894,6 @@ const deleteTutorial = (id: string) => {
                     {isSyncing ? "Pulling..." : "Pull from GitHub"}
                   </button>
                 </div>
-                {/* GitHub Settings Toggle */}
-                <button
-                  onClick={() => setShowSyncSettings(!showSyncSettings)}
-                  className="w-full mb-1 text-[10px] text-[#484f58] hover:text-[#8b949e] transition-colors"
-                >
-                  {showSyncSettings ? "Hide GitHub settings" : "GitHub settings"}
-                </button>
-                {showSyncSettings && (
-                  <div className="mb-2 p-2 bg-[#0d1117] border border-[#30363d] rounded-md space-y-2">
-                    <div>
-                      <label className="block text-[10px] text-[#8b949e] mb-1">Token (Fine-grained PAT)</label>
-                      <div className="flex gap-1">
-                        <input
-                          type={showGithubToken ? "text" : "password"}
-                          value={githubToken}
-                          onChange={(e) => setGithubToken(e.target.value)}
-                          placeholder="github_pat_..."
-                          className="flex-1 px-2 py-1.5 text-xs bg-[#161b22] border border-[#30363d] rounded-md text-[#c9d1d9] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff]"
-                        />
-                        <button
-                          onClick={() => setShowGithubToken(!showGithubToken)}
-                          className="px-2 py-1.5 text-xs bg-[#161b22] border border-[#30363d] rounded-md text-[#8b949e] hover:text-[#c9d1d9] transition-colors"
-                        >
-                          {showGithubToken ? "Hide" : "Show"}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#8b949e] mb-1">Repository (owner/repo)</label>
-                      <input
-                        type="text"
-                        value={githubRepo}
-                        onChange={(e) => setGithubRepo(e.target.value)}
-                        placeholder="xalhexi-sch/xalhexi-sch.github.io"
-                        className="w-full px-2 py-1.5 text-xs bg-[#161b22] border border-[#30363d] rounded-md text-[#c9d1d9] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#8b949e] mb-1">File path in repo</label>
-                      <input
-                        type="text"
-                        value={githubFilePath}
-                        onChange={(e) => setGithubFilePath(e.target.value)}
-                        placeholder="tutorials.json"
-                        className="w-full px-2 py-1.5 text-xs bg-[#161b22] border border-[#30363d] rounded-md text-[#c9d1d9] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff]"
-                      />
-                    </div>
-                    <p className="text-[9px] text-[#484f58] leading-relaxed">
-                      Create a fine-grained token at GitHub Settings &gt; Developer settings &gt; Fine-grained tokens. Give it Contents (Read/Write) for this repo only.
-                    </p>
-                  </div>
-                )}
                 {/* File Export/Import as secondary */}
                 <div className="flex gap-2 mb-3">
                   <button
