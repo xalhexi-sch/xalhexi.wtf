@@ -2038,17 +2038,16 @@ const deleteTutorial = (id: string) => {
                   </button>
                 </div>
               ))}
+              {isLoadingTutorials && (
+                <div className="flex items-center justify-center gap-2 py-6">
+                  <RefreshCw className="w-4 h-4 text-[#484f58] animate-spin" />
+                  <p className="text-sm text-[#484f58]">Loading tutorials...</p>
+                </div>
+              )}
+              {!isLoadingTutorials && filteredTutorials.length === 0 && (
+                <p className="text-sm text-[#484f58] text-center py-4">No tutorials found</p>
+              )}
             </nav>
-
-            {isLoadingTutorials && (
-              <div className="flex items-center justify-center gap-2 py-6">
-                <RefreshCw className="w-4 h-4 text-[#484f58] animate-spin" />
-                <p className="text-sm text-[#484f58]">Loading tutorials...</p>
-              </div>
-            )}
-            {!isLoadingTutorials && filteredTutorials.length === 0 && (
-              <p className="text-sm text-[#484f58] text-center py-4">No tutorials found</p>
-            )}
             )}
 
             {/* Repositories list */}
