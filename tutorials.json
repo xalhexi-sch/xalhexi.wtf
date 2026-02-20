@@ -434,7 +434,8 @@
         "explanation": "If you need screenshot proof for a teacher, this command clearly shows contributors with commit counts.",
         "code": "git shortlog -sne"
       }
-    ]
+    ],
+    "locked": true
   },
   {
     "id": "9",
@@ -459,13 +460,14 @@
         "explanation": "Rename your local branch to main and push to the main branch.",
         "code": "# Rename branch to main\ngit branch -M main\n\n# Push to main\ngit push -u origin main"
       }
-    ]
+    ],
+    "locked": true
   },
   {
     "id": "terminal-setup",
     "title": "Setting Up Web Terminal (Admin)",
     "description": "How to install and configure ttyd for web-based terminal access",
-    "locked": false,
+    "locked": true,
     "steps": [
       {
         "id": "ts-1",
