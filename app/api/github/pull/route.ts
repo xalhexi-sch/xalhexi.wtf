@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 
-const GITHUB_TOKEN = process.env.GITHUB_TUTORIALS_TOKEN!;
+// Force this route to always run dynamically (never static/cached)
+export const dynamic = "force-dynamic";
+
 const REPO = "xalhexi-sch/xalhexi-sch.github.io";
 const FILE_PATH = "tutorials.json";
 
 export async function GET() {
   try {
-    console.log("[v0] Pull route hit, token exists:", !!GITHUB_TOKEN, "token length:", GITHUB_TOKEN?.length);
+    const GITHUB_TOKEN = process.env.GITHUB_TUTORIALS_TOKEN;
+    console.log("[v0] Pull route hit, token exists:", !!GITHUB_TOKEN);
     if (!GITHUB_TOKEN) {
       return NextResponse.json(
-        { error: "GitHub token not configured on server. Add GITHUB_TUTORIALS_TOKEN to your environment variables." },
+        { error: "GitHub token not configured on server. Add GITHUB_TUTORIALS_TOKEN in the Vars section of the sidebar." },
         { status: 500 }
       );
     }
@@ -21,7 +24,6 @@ export async function GET() {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
         Accept: "application/vnd.github.v3+json",
       },
-      // Don't cache - always get latest from GitHub
       cache: "no-store",
     });
 

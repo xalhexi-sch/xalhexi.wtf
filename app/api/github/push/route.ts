@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const GITHUB_TOKEN = process.env.GITHUB_TUTORIALS_TOKEN!;
+export const dynamic = "force-dynamic";
+
 const REPO = "xalhexi-sch/xalhexi-sch.github.io";
 const FILE_PATH = "tutorials.json";
 
 export async function POST(req: NextRequest) {
   try {
+    const GITHUB_TOKEN = process.env.GITHUB_TUTORIALS_TOKEN;
     const { tutorials } = await req.json();
 
     if (!GITHUB_TOKEN) {
