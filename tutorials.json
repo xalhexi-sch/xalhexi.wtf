@@ -512,5 +512,11 @@
         "code": "# Your terminal URL (MUST be HTTPS):\nhttps://YOUR_VPS_IP:7681\n\n# Example:\nhttps://104.64.209.151:7681\n\n# IMPORTANT: Visit this URL in browser first\n# and click 'Advanced' -> 'Proceed' to accept\n# the self-signed certificate!"
       }
     ]
+  },
+  {
+    "id": "r8qwc1amf",
+    "title": "test",
+    "description": "test",
+    "steps": []
   }
 ]
