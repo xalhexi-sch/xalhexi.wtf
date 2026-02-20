@@ -14,16 +14,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "repo parameter required" }, { status: 400 });
     }
 
-    const GITHUB_TOKEN = process.env.GITHUB_TUTORIALS_TOKEN;
-    const headers: Record<string, string> = {
-      Accept: "application/vnd.github.v3+json",
-    };
-    if (GITHUB_TOKEN) {
-      headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
-    }
-
+    // Public repos don't need auth
     const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repo}/contents/${path}`;
-    const response = await fetch(apiUrl, { headers, cache: "no-store" });
+    const response = await fetch(apiUrl, {
+      headers: { Accept: "application/vnd.github.v3+json" },
+      cache: "no-store",
+    });
 
     if (!response.ok) {
       throw new Error(`GitHub API error: ${response.status}`);

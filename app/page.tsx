@@ -1723,13 +1723,19 @@ const deleteTutorial = (id: string) => {
     if (reposLoaded) return;
     setIsLoadingRepos(true);
     try {
+      console.log("[v0] Fetching repos from /api/github/repos");
       const resp = await fetch("/api/github/repos");
+      console.log("[v0] Repos response status:", resp.status);
       const data = await resp.json();
+      console.log("[v0] Repos data:", JSON.stringify(data).slice(0, 200));
       if (resp.ok && Array.isArray(data.repos)) {
         setRepos(data.repos);
         setReposLoaded(true);
+      } else {
+        showToast(data.error || "Failed to load repositories");
       }
-    } catch {
+    } catch (error) {
+      console.log("[v0] Repos fetch error:", error);
       showToast("Failed to load repositories");
     } finally {
       setIsLoadingRepos(false);
@@ -2038,17 +2044,16 @@ const deleteTutorial = (id: string) => {
                   </button>
                 </div>
               ))}
+              {isLoadingTutorials && (
+                <div className="flex items-center justify-center gap-2 py-6">
+                  <RefreshCw className="w-4 h-4 text-[#484f58] animate-spin" />
+                  <p className="text-sm text-[#484f58]">Loading tutorials...</p>
+                </div>
+              )}
+              {!isLoadingTutorials && filteredTutorials.length === 0 && (
+                <p className="text-sm text-[#484f58] text-center py-4">No tutorials found</p>
+              )}
             </nav>
-
-            {isLoadingTutorials && (
-              <div className="flex items-center justify-center gap-2 py-6">
-                <RefreshCw className="w-4 h-4 text-[#484f58] animate-spin" />
-                <p className="text-sm text-[#484f58]">Loading tutorials...</p>
-              </div>
-            )}
-            {!isLoadingTutorials && filteredTutorials.length === 0 && (
-              <p className="text-sm text-[#484f58] text-center py-4">No tutorials found</p>
-            )}
             )}
 
             {/* Repositories list */}

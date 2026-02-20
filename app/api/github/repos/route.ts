@@ -6,21 +6,17 @@ const GITHUB_USER = "xalhexi-sch";
 
 export async function GET() {
   try {
-    const GITHUB_TOKEN = process.env.GITHUB_TUTORIALS_TOKEN;
-    const headers: Record<string, string> = {
-      Accept: "application/vnd.github.v3+json",
-    };
-    if (GITHUB_TOKEN) {
-      headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
-    }
+    // Public repos don't need auth - avoid using the scoped token here
+    const url = `https://api.github.com/users/${GITHUB_USER}/repos?type=public&sort=updated&per_page=100`;
 
-    const response = await fetch(
-      `https://api.github.com/users/${GITHUB_USER}/repos?type=public&sort=updated&per_page=100`,
-      { headers, cache: "no-store" }
-    );
+    const response = await fetch(url, {
+      headers: { Accept: "application/vnd.github.v3+json" },
+      cache: "no-store",
+    });
 
     if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status}`);
+      const errorBody = await response.text();
+      throw new Error(`GitHub API error: ${response.status} - ${errorBody}`);
     }
 
     const repos = await response.json();
