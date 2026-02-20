@@ -435,7 +435,7 @@
         "code": "git shortlog -sne"
       }
     ],
-    "locked": true
+    "locked": false
   },
   {
     "id": "9",
