@@ -1501,13 +1501,14 @@ export default function ITPTutorial() {
     );
   }, [tutorials, searchQuery, isAdmin]);
 
-  // Search results - find all matching steps across all tutorials
+  // Search results - find all matching steps across visible tutorials (exclude locked for non-admin)
   const searchResults = useMemo((): SearchResult[] => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
     const results: SearchResult[] = [];
+    const visibleTutorials = isAdmin ? tutorials : tutorials.filter((t) => !t.locked);
 
-    tutorials.forEach((tutorial) => {
+    visibleTutorials.forEach((tutorial) => {
       tutorial.steps.forEach((step) => {
         const headingMatch = step.heading.toLowerCase().includes(q);
         const codeMatch = step.code.toLowerCase().includes(q);
@@ -1525,7 +1526,7 @@ export default function ITPTutorial() {
     });
 
     return results;
-  }, [tutorials, searchQuery]);
+  }, [tutorials, searchQuery, isAdmin]);
 
   const isSearching = searchQuery.trim().length > 0;
 
@@ -1900,6 +1901,30 @@ const deleteTutorial = (id: string) => {
             </div>
           </div>
 
+          {/* Mobile tab switcher */}
+          <div className="flex items-center gap-1 lg:hidden">
+            <button
+              onClick={() => switchTab("tutorials")}
+              className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${
+                activeTab === "tutorials"
+                  ? "bg-[#238636] text-white"
+                  : "bg-[#21262d] text-[#8b949e]"
+              }`}
+            >
+              Tutorials
+            </button>
+            <button
+              onClick={() => switchTab("repositories")}
+              className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${
+                activeTab === "repositories"
+                  ? "bg-[#238636] text-white"
+                  : "bg-[#21262d] text-[#8b949e]"
+              }`}
+            >
+              Repos
+            </button>
+          </div>
+
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#484f58]" />
@@ -2084,9 +2109,10 @@ const deleteTutorial = (id: string) => {
                 </div>
               ))}
               {isLoadingTutorials && (
-                <div className="flex items-center justify-center gap-2 py-6">
-                  <RefreshCw className="w-4 h-4 text-[#484f58] animate-spin" />
-                  <p className="text-sm text-[#484f58]">Loading tutorials...</p>
+                <div className="space-y-2 py-2">
+                  <div className="skeleton-shimmer h-9 w-full" />
+                  <div className="skeleton-shimmer h-9 w-4/5" />
+                  <div className="skeleton-shimmer h-9 w-11/12" />
                 </div>
               )}
               {!isLoadingTutorials && filteredTutorials.length === 0 && (
@@ -2099,9 +2125,10 @@ const deleteTutorial = (id: string) => {
             {activeTab === "repositories" && (
               <nav className="space-y-1">
                 {isLoadingRepos && (
-                  <div className="flex items-center justify-center gap-2 py-6">
-                    <RefreshCw className="w-4 h-4 text-[#484f58] animate-spin" />
-                    <p className="text-sm text-[#484f58]">Loading repos...</p>
+                  <div className="space-y-2 py-2">
+                    <div className="skeleton-shimmer h-12 w-full" />
+                    <div className="skeleton-shimmer h-12 w-4/5" />
+                    <div className="skeleton-shimmer h-12 w-11/12" />
                   </div>
                 )}
                 {!isLoadingRepos && repos.map((repo) => (
@@ -2226,9 +2253,14 @@ const deleteTutorial = (id: string) => {
                     <p className="text-[#8b949e] text-sm">Public repositories from xalhexi-sch</p>
                   </div>
                   {isLoadingRepos ? (
-                    <div className="flex items-center justify-center gap-2 py-12">
-                      <RefreshCw className="w-5 h-5 text-[#484f58] animate-spin" />
-                      <p className="text-[#484f58]">Loading repositories...</p>
+                    <div className="space-y-3">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="p-4 bg-[#161b22] border border-[#30363d] rounded-lg">
+                          <div className="skeleton-shimmer h-5 w-2/5 mb-3" />
+                          <div className="skeleton-shimmer h-4 w-4/5 mb-2 ml-6" />
+                          <div className="skeleton-shimmer h-3 w-1/4 ml-6" />
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -2295,9 +2327,13 @@ const deleteTutorial = (id: string) => {
                     </div>
                   </div>
                   {isLoadingFile ? (
-                    <div className="flex items-center justify-center gap-2 py-12">
-                      <RefreshCw className="w-5 h-5 text-[#484f58] animate-spin" />
-                      <p className="text-[#484f58]">Loading file...</p>
+                    <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 space-y-3">
+                      <div className="skeleton-shimmer h-4 w-3/5" />
+                      <div className="skeleton-shimmer h-4 w-full" />
+                      <div className="skeleton-shimmer h-4 w-4/5" />
+                      <div className="skeleton-shimmer h-4 w-2/3" />
+                      <div className="skeleton-shimmer h-4 w-full" />
+                      <div className="skeleton-shimmer h-4 w-1/2" />
                     </div>
                   ) : (
                   <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
@@ -2382,9 +2418,13 @@ const deleteTutorial = (id: string) => {
                   </div>
 
                   {isLoadingContents ? (
-                    <div className="flex items-center justify-center gap-2 py-12">
-                      <RefreshCw className="w-5 h-5 text-[#484f58] animate-spin" />
-                      <p className="text-[#484f58]">Loading...</p>
+                    <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${i < 5 ? "border-b border-[#21262d]" : ""}`}>
+                          <div className="skeleton-shimmer h-4 w-4 shrink-0" />
+                          <div className="skeleton-shimmer h-4" style={{ width: `${30 + i * 10}%` }} />
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
