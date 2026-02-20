@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import hljs from "highlight.js";
 import { Minus } from "lucide-react";
 import {
   Search,
@@ -1723,19 +1724,15 @@ const deleteTutorial = (id: string) => {
     if (reposLoaded) return;
     setIsLoadingRepos(true);
     try {
-      console.log("[v0] Fetching repos from /api/github/repos");
       const resp = await fetch("/api/github/repos");
-      console.log("[v0] Repos response status:", resp.status);
       const data = await resp.json();
-      console.log("[v0] Repos data:", JSON.stringify(data).slice(0, 200));
       if (resp.ok && Array.isArray(data.repos)) {
         setRepos(data.repos);
         setReposLoaded(true);
       } else {
         showToast(data.error || "Failed to load repositories");
       }
-    } catch (error) {
-      console.log("[v0] Repos fetch error:", error);
+    } catch {
       showToast("Failed to load repositories");
     } finally {
       setIsLoadingRepos(false);
@@ -1817,6 +1814,48 @@ const deleteTutorial = (id: string) => {
     setActiveTab(tab);
     if (tab === "repositories" && !reposLoaded) {
       loadRepos();
+    }
+  };
+
+  const [fileCopied, setFileCopied] = useState(false);
+
+  // Copy file content to clipboard
+  const copyFileContent = (content: string) => {
+    navigator.clipboard.writeText(content);
+    setFileCopied(true);
+    setTimeout(() => setFileCopied(false), 2000);
+  };
+
+  // Get highlight.js language from filename
+  const getLanguage = (filename: string): string | undefined => {
+    const ext = filename.split(".").pop()?.toLowerCase();
+    const map: Record<string, string> = {
+      js: "javascript", jsx: "javascript", ts: "typescript", tsx: "typescript",
+      py: "python", rb: "ruby", rs: "rust", go: "go", java: "java",
+      c: "c", cpp: "cpp", cs: "csharp", swift: "swift", kt: "kotlin",
+      html: "html", htm: "html", css: "css", scss: "scss", less: "less",
+      json: "json", xml: "xml", yaml: "yaml", yml: "yaml", toml: "ini",
+      md: "markdown", sh: "bash", bash: "bash", zsh: "bash",
+      sql: "sql", php: "php", lua: "lua", r: "r",
+      dockerfile: "dockerfile", makefile: "makefile",
+    };
+    return ext ? map[ext] : undefined;
+  };
+
+  // Highlight code content
+  const highlightCode = (content: string, filename: string): string => {
+    const lang = getLanguage(filename);
+    if (lang) {
+      try {
+        return hljs.highlight(content, { language: lang }).value;
+      } catch {
+        // fallback to auto-detect
+      }
+    }
+    try {
+      return hljs.highlightAuto(content).value;
+    } catch {
+      return content;
     }
   };
 
@@ -2267,10 +2306,21 @@ const deleteTutorial = (id: string) => {
                         <FileIcon className="w-4 h-4 text-[#8b949e]" />
                         <span className="text-sm font-medium text-[#e6edf3]">{viewingFile.name}</span>
                       </div>
-                      <span className="text-xs text-[#484f58]">{formatSize(viewingFile.size)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-[#484f58]">{formatSize(viewingFile.size)}</span>
+                        {viewingFile.content && (
+                          <button
+                            onClick={() => copyFileContent(viewingFile.content!)}
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors"
+                          >
+                            {fileCopied ? <Check className="w-3.5 h-3.5 text-[#3fb950]" /> : <Copy className="w-3.5 h-3.5" />}
+                            {fileCopied ? "Copied!" : "Copy"}
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {viewingFile.content ? (
-                      <pre className="p-4 text-sm text-[#c9d1d9] overflow-x-auto font-mono leading-relaxed whitespace-pre"><code>{viewingFile.content}</code></pre>
+                      <pre className="p-4 text-sm overflow-x-auto font-mono leading-relaxed whitespace-pre"><code dangerouslySetInnerHTML={{ __html: highlightCode(viewingFile.content, viewingFile.name) }} /></pre>
                     ) : (
                       <div className="p-6 text-center">
                         <p className="text-[#8b949e] mb-2">File too large to display inline</p>
@@ -2372,6 +2422,33 @@ const deleteTutorial = (id: string) => {
                   )}
                 </div>
               )}
+
+              {/* GitHub Attribution Footer */}
+              <div className="mt-8 pt-4 border-t border-[#21262d] text-center space-y-1">
+                <p className="text-xs text-[#484f58]">
+                  Repositories from{" "}
+                  <a
+                    href="https://github.com/xalhexi-sch"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#58a6ff] hover:underline"
+                  >
+                    xalhexi-sch
+                  </a>
+                </p>
+                {selectedRepo && (
+                  <p className="text-xs text-[#484f58]">
+                    <a
+                      href={`https://github.com/xalhexi-sch/${selectedRepo}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#58a6ff] hover:underline"
+                    >
+                      View this repository on GitHub
+                    </a>
+                  </p>
+                )}
+              </div>
             </div>
           ) : isSearching ? (
             /* Search Results View */
