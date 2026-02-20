@@ -1305,7 +1305,7 @@ export default function ITPTutorial() {
   const [isPushing, setIsPushing] = useState(false);
   const [isLoadingTutorials, setIsLoadingTutorials] = useState(true);
 
-  // Load tutorials from GitHub on mount (GitHub = source of truth for everyone)
+  // Load tutorials from server cache on mount (serves GitHub data to everyone globally)
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (localStorage.getItem("isAdmin") === "true") setIsAdmin(true);
@@ -1315,23 +1315,23 @@ export default function ITPTutorial() {
       if (savedTerminalLocked !== null) setTerminalLocked(savedTerminalLocked === "true");
     }
 
-    // Fetch tutorials from GitHub for all users
-    const loadFromGithub = async () => {
+    // Fetch tutorials from the server cache (backed by GitHub)
+    const loadTutorials = async () => {
       try {
-        const resp = await fetch("/api/github/pull");
+        const resp = await fetch("/api/tutorials");
         const data = await resp.json();
         if (resp.ok && Array.isArray(data.tutorials) && data.tutorials.length > 0) {
           setTutorials(data.tutorials);
           setSelectedTutorial(data.tutorials[0].id);
         }
-        // If fetch fails, defaultTutorials (from useState init) remain as fallback
+        // If fetch fails, defaultTutorials remain as fallback
       } catch {
-        // GitHub unavailable, keep defaults
+        // Server unavailable, keep defaults
       } finally {
         setIsLoadingTutorials(false);
       }
     };
-    loadFromGithub();
+    loadTutorials();
   }, []);
 
   useEffect(() => {
@@ -1620,10 +1620,10 @@ const deleteTutorial = (id: string) => {
     input.click();
   };
 
-  // Push tutorials to GitHub via server-side API route
+  // Save tutorials to GitHub and update the global server cache
   const pushToGithub = async () => {
     const confirmed = window.confirm(
-      "This will upload your current tutorials to GitHub, overwriting the file there.\n\nContinue?"
+      "This will save your current tutorials to GitHub.\nEveryone will see these tutorials.\n\nContinue?"
     );
     if (!confirmed) return;
 
@@ -1638,20 +1638,29 @@ const deleteTutorial = (id: string) => {
       if (!resp.ok) {
         throw new Error(data.error || `HTTP ${resp.status}`);
       }
-      showToast("Pushed to GitHub!");
+      showToast("Saved! Everyone will see the updated tutorials.");
     } catch (error) {
-      showToast("Failed to push: " + (error instanceof Error ? error.message : "Unknown error"));
+      showToast("Failed to save: " + (error instanceof Error ? error.message : "Unknown error"));
       console.error("Push error:", error);
     } finally {
       setIsPushing(false);
     }
   };
 
-  // Pull tutorials from GitHub via server-side API route (refresh from source of truth)
+  // Pull from GitHub: revalidate the server cache, then re-fetch fresh data
+  // This updates what EVERYONE sees globally, not just this browser
   const pullFromGithub = async () => {
     setIsSyncing(true);
     try {
-      const resp = await fetch("/api/github/pull");
+      // Step 1: Tell the server to bust the cache and re-fetch from GitHub
+      const revalidateResp = await fetch("/api/github/pull", { method: "POST" });
+      if (!revalidateResp.ok) {
+        const err = await revalidateResp.json();
+        throw new Error(err.error || "Failed to revalidate");
+      }
+
+      // Step 2: Fetch the now-fresh tutorials from the server cache
+      const resp = await fetch("/api/tutorials");
       const data = await resp.json();
       if (!resp.ok) {
         throw new Error(data.error || `HTTP ${resp.status}`);
@@ -1659,7 +1668,7 @@ const deleteTutorial = (id: string) => {
       if (Array.isArray(data.tutorials) && data.tutorials.length > 0) {
         setTutorials(data.tutorials);
         setSelectedTutorial(data.tutorials[0].id);
-        showToast("Synced from GitHub!");
+        showToast("Synced! All users now see the latest tutorials.");
       } else {
         showToast("No tutorials found on GitHub");
       }
