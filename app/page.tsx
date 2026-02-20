@@ -1723,13 +1723,19 @@ const deleteTutorial = (id: string) => {
     if (reposLoaded) return;
     setIsLoadingRepos(true);
     try {
+      console.log("[v0] Fetching repos from /api/github/repos");
       const resp = await fetch("/api/github/repos");
+      console.log("[v0] Repos response status:", resp.status);
       const data = await resp.json();
+      console.log("[v0] Repos data:", JSON.stringify(data).slice(0, 200));
       if (resp.ok && Array.isArray(data.repos)) {
         setRepos(data.repos);
         setReposLoaded(true);
+      } else {
+        showToast(data.error || "Failed to load repositories");
       }
-    } catch {
+    } catch (error) {
+      console.log("[v0] Repos fetch error:", error);
       showToast("Failed to load repositories");
     } finally {
       setIsLoadingRepos(false);
