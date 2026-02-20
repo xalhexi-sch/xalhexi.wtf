@@ -219,6 +219,18 @@ textarea::-webkit-scrollbar-thumb:hover,
   background: #484f58;
 }
 
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #21262d 25%, #30363d 50%, #21262d 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.375rem;
+}
+
 /* highlight.js GitHub Dark theme */
 .hljs { color: #c9d1d9; background: transparent; }
 .hljs-keyword, .hljs-selector-tag, .hljs-built_in { color: #ff7b72; }
