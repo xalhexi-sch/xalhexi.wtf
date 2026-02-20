@@ -1,146 +1,319 @@
 [
   {
-    "id": "getting-started",
+    "id": "terminal-setup",
+    "title": "Setting Up Web Terminal (Admin)",
+    "description": "How to install and configure ttyd for web-based terminal access",
+    "locked": true,
+    "steps": [
+      {
+        "id": "ts-1",
+        "heading": "Install ttyd on your VPS",
+        "explanation": "SSH into your VPS and install ttyd. This tool exposes a terminal session as a web page.",
+        "code": "# Ubuntu/Debian\nsudo apt update\nsudo apt install ttyd\n\n# Check version\nttyd --version"
+      },
+      {
+        "id": "ts-2",
+        "heading": "Kill existing ttyd process (if running)",
+        "explanation": "Before starting ttyd, make sure no other instance is using the port.",
+        "code": "# Kill any running ttyd\npkill ttyd\n\n# Or find and kill manually\nps aux | grep ttyd\nkill <PID>"
+      },
+      {
+        "id": "ts-3",
+        "heading": "Generate SSL Certificate (REQUIRED for HTTPS sites)",
+        "explanation": "Vercel uses HTTPS. Browsers block HTTP iframes in HTTPS pages. You MUST use SSL for embedding to work.",
+        "code": "# Generate self-signed certificate\nopenssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n  -keyout /root/ttyd-key.pem \\\n  -out /root/ttyd-cert.pem \\\n  -subj '/CN=localhost'\n\n# Or use Let's Encrypt for a real domain (recommended)"
+      },
+      {
+        "id": "ts-4",
+        "heading": "Run ttyd with SSL",
+        "explanation": "Start ttyd with SSL enabled and the -O flag to allow iframe embedding.",
+        "code": "# Run with SSL (REQUIRED for Vercel embedding)\nttyd -W -p 7681 -O \\\n  --ssl \\\n  --ssl-cert /root/ttyd-cert.pem \\\n  --ssl-key /root/ttyd-key.pem \\\n  bash\n\n# Run in background\nnohup ttyd -W -p 7681 -O --ssl --ssl-cert /root/ttyd-cert.pem --ssl-key /root/ttyd-key.pem bash &"
+      },
+      {
+        "id": "ts-5",
+        "heading": "With Authentication (Recommended)",
+        "explanation": "Add username/password protection to prevent unauthorized access.",
+        "code": "# With SSL + authentication\nttyd -W -p 7681 -O \\\n  --ssl \\\n  --ssl-cert /root/ttyd-cert.pem \\\n  --ssl-key /root/ttyd-key.pem \\\n  -c student:practice123 \\\n  bash"
+      },
+      {
+        "id": "ts-6",
+        "heading": "Configure Firewall",
+        "explanation": "Open the port on your VPS firewall.",
+        "code": "# UFW (Ubuntu)\nsudo ufw allow 7681\n\n# Or iptables\nsudo iptables -A INPUT -p tcp --dport 7681 -j ACCEPT"
+      },
+      {
+        "id": "ts-7",
+        "heading": "Test and Get Your URL",
+        "explanation": "First visit the URL directly in browser and accept the self-signed certificate warning. Then use this HTTPS URL in admin Terminal Settings.",
+        "code": "# Your terminal URL (MUST be HTTPS):\nhttps://YOUR_VPS_IP:7681\n\n# Example:\nhttps://104.64.209.151:7681\n\n# IMPORTANT: Visit this URL in browser first\n# and click 'Advanced' -> 'Proceed' to accept\n# the self-signed certificate!"
+      }
+    ]
+  },
+  {
+    "id": "10",
+    "title": "App1 – Minimal Python Web App (WSGI + Jinja2 + Gunicorn)",
+    "description": "Build a plain Python WSGI app using Jinja2 and Gunicorn inside a virtual environment",
+    "steps": [
+      {
+        "id": "10-1",
+        "heading": "Go to Home Directory",
+        "explanation": "Start by navigating to your home directory.",
+        "code": "cd ~"
+      },
+      {
+        "id": "10-2",
+        "heading": "Copy the Virtual Environment",
+        "explanation": "Copy the preconfigured Python virtual environment to your home directory. This must be done first before activating.",
+        "code": "cp -r /opt/virt ~/"
+      },
+      {
+        "id": "10-3",
+        "heading": "Activate the Virtual Environment",
+        "explanation": "Activate the virtual environment. You should see (virt) at the start of your prompt when activated.",
+        "code": "source ~/virt/bin/activate\n\n# You should see:\n# (virt) username@server:~$"
+      },
+      {
+        "id": "10-4",
+        "heading": "Create webapps Directory",
+        "explanation": "Create and navigate into the webapps directory where your applications will live.",
+        "code": "mkdir webapps\ncd webapps"
+      },
+      {
+        "id": "10-5",
+        "heading": "Create app1 Directory",
+        "explanation": "Create and navigate into the app1 directory for this specific application.",
+        "code": "mkdir app1\ncd app1"
+      },
+      {
+        "id": "10-6",
+        "heading": "Create Empty GitHub Repository and Clone It",
+        "explanation": "Create an empty repository on GitHub, then clone it. The 'empty repository' warning is expected and fine.",
+        "code": "git clone git@github.com:xalhexi-sch/App1.git\n\n# You may see:\n# warning: You appear to have cloned an empty repository.\n# This is expected and fine."
+      },
+      {
+        "id": "10-7",
+        "heading": "Create app.py",
+        "explanation": "Create the main application file using nano. This is a pure WSGI app using Jinja2 for templating. Save with Ctrl+O then Enter, exit with Ctrl+X.",
+        "code": "nano app.py\n\n# Paste this code:\nfrom jinja2 import Environment, FileSystemLoader\nimport os\n\nBASE_DIR = os.path.dirname(os.path.abspath(__file__))\n\nenv = Environment(\n    loader=FileSystemLoader(os.path.join(BASE_DIR, \"templates\")),\n    autoescape=True\n)\n\ndef app(environ, start_response):\n    path = environ.get(\"PATH_INFO\", \"/\")\n\n    if path.endswith(\"/hello\"):\n        title = \"Hello Page\"\n        message = \"Rendered using Jinja2\"\n    else:\n        title = \"Home\"\n        message = \"Plain Python + Gunicorn + Nginx\"\n\n    template = env.get_template(\"home.html\")\n    html = template.render(title=title, message=message)\n\n    start_response(\"200 OK\", [(\"Content-Type\", \"text/html; charset=utf-8\")])\n    return [html.encode(\"utf-8\")]"
+      },
+      {
+        "id": "10-8",
+        "heading": "Create Templates Folder and HTML File",
+        "explanation": "Create the templates directory and the home.html template file. This uses Jinja2 syntax with {{ variable }} placeholders.",
+        "code": "mkdir templates\ncd templates\nnano home.html\n\n# Paste this HTML:\n<!DOCTYPE html>\n<html>\n<head>\n    <title>{{ title }}</title>\n</head>\n<body>\n    <h1>{{ title }}</h1>\n    <p>{{ message }}</p>\n</body>\n</html>"
+      },
+      {
+        "id": "10-9",
+        "heading": "Return to App Root",
+        "explanation": "Navigate back to the app1 directory and verify your location with pwd.",
+        "code": "cd ..\npwd\n\n# Expected output:\n# ~/webapps/app1"
+      },
+      {
+        "id": "10-10",
+        "heading": "Run the App Using Gunicorn",
+        "explanation": "Start the application using Gunicorn. You can change the port (5000) if needed. The app:app refers to the app function inside app.py.",
+        "code": "gunicorn --bind 127.0.0.1:5000 app:app"
+      },
+      {
+        "id": "10-11",
+        "heading": "Access the App",
+        "explanation": "Access your app through the server URL. The exact URL depends on your server/proxy setup.",
+        "code": "# Example URL (depends on your server setup):\n# http://172.17.100.15:9899/it21_banas/webapps/app1\n\n# Final folder structure:\n# webapps/\n# └── app1/\n#     ├── app.py\n#     └── templates/\n#         └── home.html"
+      }
+    ]
+  },
+  {
+    "id": "1h5r70vne",
+    "title": "app3",
+    "description": "",
+    "steps": [
+      {
+        "id": "znj0s2gt4",
+        "heading": "base.html",
+        "explanation": "",
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n    <title>{{ title }}</title>\n    <!-- Bootstrap CSS -->\n    <link rel=\"stylesheet\" href=\"http://172.17.100.15:9899/bootstrap.min.css\">\n</head>\n<body>\n    <h1>{{ title }}</h1>\n    <p>{{ message }}</p>\n\n    {% block content %}\n    \n    {% endblock %}\n\n    <!-- Bootstrap JS Bundle -->\n    <script src=\"http://172.17.100.15:9899/bootstrap.bundle.min.js\"></script>\n</body>\n</html>"
+      },
+      {
+        "id": "qxhyzj9nt",
+        "heading": "home.html",
+        "explanation": "",
+        "code": "{% extends \"base.html\" %}\n\n{% block content %}\n<table class=\"table table-borderless table-striped table-hover\">\n    <thead class=\"table-primary\">\n        <tr>\n            <th>ID</th>\n            <th>Name</th>\n            <th>Course</th>\n        </tr>\n    </thead>\n    <tbody>\n        {% for student in students %}\n        <tr>\n            <td>{{ student[\"ID\"] }}</td>\n            <td>{{ student[\"Name\"] }}</td>\n            <td>{{ student[\"Course\"] }}</td>\n        </tr>\n        {% endfor %}\n    </tbody>\n</table>\n{% endblock %}"
+      },
+      {
+        "id": "50hg8qegd",
+        "heading": "app.py",
+        "explanation": "",
+        "code": "from jinja2 import Environment, FileSystemLoader, select_autoescape\nimport os\n\nBASE_DIR = os.path.dirname(os.path.abspath(__file__))\n\nenv = Environment(\n    loader=FileSystemLoader(os.path.join(BASE_DIR, \"templates\")),\n    autoescape=select_autoescape([\"html\", \"xml\"])\n)\n\n\ndef app(environ, start_response):\n    path = environ.get(\"PATH_INFO\", \"/\")\n\n    students = [\n        {\"ID\": 1, \"Name\": \"Alice Johnson\", \"Course\": \"Computer Science\"},\n        {\"ID\": 2, \"Name\": \"Brian Smith\", \"Course\": \"Information Technology\"},\n        {\"ID\": 3, \"Name\": \"Catherine Lee\", \"Course\": \"Business Administration\"},\n        {\"ID\": 4, \"Name\": \"David Brown\", \"Course\": \"Mechanical Engineering\"},\n        {\"ID\": 5, \"Name\": \"Emma Wilson\", \"Course\": \"Psychology\"},\n        {\"ID\": 6, \"Name\": \"Frank Garcia\", \"Course\": \"Electrical Engineering\"},\n        {\"ID\": 7, \"Name\": \"Grace Martinez\", \"Course\": \"Marketing\"},\n        {\"ID\": 8, \"Name\": \"Henry Anderson\", \"Course\": \"Civil Engineering\"},\n        {\"ID\": 9, \"Name\": \"Isabella Thomas\", \"Course\": \"Biology\"},\n        {\"ID\": 10, \"Name\": \"James Taylor\", \"Course\": \"Accounting\"}\n    ]\n\n    if path.endswith(\"/students\"):\n        title = \"Students List\"\n        message = \"Dynamic Table with Jinja2\"\n    else:\n        title = \"Home\"\n        message = \"Plain Python + Gunicorn + Jinja2\"\n\n    template = env.get_template(\"home.html\")\n    html = template.render(title=title, message=message, students=students)\n\n    start_response(\"200 OK\", [(\"Content-Type\", \"text/html; charset=utf-8\")])\n    return [html.encode(\"utf-8\")]"
+      }
+    ]
+  },
+  {
+    "id": "res3oiwu3",
+    "title": "App2",
+    "description": "",
+    "steps": [
+      {
+        "id": "q049qfzbh",
+        "heading": "base.html",
+        "explanation": "",
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n    <title>{{ title }}</title>\n    <!-- Bootstrap CSS -->\n    <link rel=\"stylesheet\" href=\"http://172.17.100.15:9899/bootstrap.min.css\">\n</head>\n<body>\n    <h1>{{ title }}</h1>\n    <p>{{ message }}</p>\n\n    {% block content %}\n    \n    {% endblock %}\n\n    <!-- Bootstrap JS Bundle -->\n    <script src=\"http://172.17.100.15:9899/bootstrap.bundle.min.js\"></script>\n</body>\n</html>"
+      },
+      {
+        "id": "xlc7e3n4e",
+        "heading": "home.html",
+        "explanation": "",
+        "code": "{% extends \"base.html\" %}\n\n{% block content %}\n<table class=\"table table-borderless table-striped table-hover\">\n    <thead class=\"table-primary\">\n        <tr>\n            <th>ID</th>\n            <th>Name</th>\n            <th>Course</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td>1001</td>\n            <td>John Parker</td>\n            <td>BSIT</td>\n        </tr>\n    </tbody>\n</table>\n{% endblock %}"
+      },
+      {
+        "id": "7jj8ghi20",
+        "heading": "app.py",
+        "explanation": "",
+        "code": "from jinja2 import Environment, FileSystemLoader\nimport os\n\nBASE_DIR = os.path.dirname(os.path.abspath(__file__))\n\nenv = Environment(\n    loader=FileSystemLoader(os.path.join(BASE_DIR, \"templates\")),\n    autoescape=True\n)\n\ndef app(environ, start_response):\n    path = environ.get(\"PATH_INFO\", \"/\")\n\n    if path.endswith(\"/hello\"):\n        title = \"Hello Page\"\n        message = \"Rendered using Jinja2\"\n    else:\n        title = \"Home\"\n        message = \"Plain Python + Gunicorn + Nginx\"\n\n    template = env.get_template(\"home.html\")\n    html = template.render(title=title, message=message)\n\n    start_response(\"200 OK\", [(\"Content-Type\", \"text/html; charset=utf-8\")])\n    return [html.encode(\"utf-8\")]"
+      }
+    ]
+  },
+  {
+    "id": "1",
     "title": "Getting Started with Git",
-    "description": "Learn the basics of Git version control system",
+    "description": "Learn the basics of version control with Git",
     "steps": [
       {
-        "id": "step-1",
-        "heading": "Installing Git",
-        "explanation": "First, you need to install Git on your system. Visit the official Git website or use your package manager.",
-        "code": "# On macOS with Homebrew\nbrew install git\n\n# On Ubuntu/Debian\nsudo apt-get install git\n\n# On Windows, download from git-scm.com"
-      },
-      {
-        "id": "step-2",
-        "heading": "Configure Git",
-        "explanation": "Set up your identity so your commits are properly attributed to you.",
-        "code": "git config --global user.name \"Your Name\"\ngit config --global user.email \"your.email@example.com\""
-      },
-      {
-        "id": "step-3",
+        "id": "1-1",
         "heading": "Initialize a Repository",
-        "explanation": "Create a new Git repository in your project directory.",
-        "code": "cd your-project\ngit init"
+        "explanation": "Create a new Git repository in your project folder.",
+        "code": "git init"
+      },
+      {
+        "id": "1-2",
+        "heading": "Check Status",
+        "explanation": "See which files have been modified or staged.",
+        "code": "git status"
+      },
+      {
+        "id": "1-3",
+        "heading": "Stage Changes",
+        "explanation": "Add files to staging area before committing.",
+        "code": "git add ."
+      },
+      {
+        "id": "1-4",
+        "heading": "Commit Changes",
+        "explanation": "Save your staged changes with a descriptive message.",
+        "code": "git commit -m \"Your message\""
       }
     ]
   },
   {
-    "id": "branching",
+    "id": "2",
     "title": "Git Branching",
-    "description": "Master the art of branching and merging in Git",
+    "description": "Master branching strategies for collaboration",
     "steps": [
       {
-        "id": "step-1",
-        "heading": "Create a New Branch",
-        "explanation": "Branches allow you to work on different features independently.",
-        "code": "git branch feature-name\n# or create and switch in one command\ngit checkout -b feature-name"
+        "id": "2-1",
+        "heading": "Create a Branch",
+        "explanation": "Create and switch to a new branch.",
+        "code": "git checkout -b feature-name"
       },
       {
-        "id": "step-2",
-        "heading": "Switch Between Branches",
-        "explanation": "Move between different branches to work on various features.",
-        "code": "git checkout main\ngit checkout feature-name\n# or using the newer switch command\ngit switch main"
+        "id": "2-2",
+        "heading": "Switch Branches",
+        "explanation": "Move between different branches.",
+        "code": "git checkout main"
       },
       {
-        "id": "step-3",
-        "heading": "Merge Branches",
-        "explanation": "Combine changes from one branch into another.",
-        "code": "# First, switch to the target branch\ngit checkout main\n# Then merge the feature branch\ngit merge feature-name"
+        "id": "2-3",
+        "heading": "Merge Branch",
+        "explanation": "Combine changes from another branch.",
+        "code": "git merge feature-name"
       }
     ]
   },
   {
-    "id": "github-pages",
-    "title": "Deploy to GitHub Pages",
-    "description": "Host your static website for free using GitHub Pages",
+    "id": "3",
+    "title": "SSH Connection",
+    "description": "Connect to the ITP server via SSH",
     "steps": [
       {
-        "id": "step-1",
-        "heading": "Create a Repository",
-        "explanation": "Create a new repository on GitHub for your website.",
-        "code": "# Create repo on GitHub, then clone it\ngit clone https://github.com/username/repo-name.git\ncd repo-name"
+        "id": "3-1",
+        "heading": "Basic SSH Command",
+        "explanation": "Connect to the server using your credentials.",
+        "code": "ssh it21_lastname@172.17.100.15 -p 9898"
       },
       {
-        "id": "step-2",
-        "heading": "Add Your Files",
-        "explanation": "Add your HTML, CSS, and JavaScript files to the repository.",
-        "code": "# Add all files\ngit add .\n# Commit the changes\ngit commit -m \"Initial commit\"\n# Push to GitHub\ngit push origin main"
-      },
-      {
-        "id": "step-3",
-        "heading": "Enable GitHub Pages",
-        "explanation": "Go to your repository settings, navigate to 'Pages' section, and select your branch as the source. Your site will be live at username.github.io/repo-name.",
-        "code": "# No code needed - this is done in GitHub UI\n# Settings > Pages > Source > Deploy from branch\n# Select 'main' branch and '/ (root)' folder"
+        "id": "3-2",
+        "heading": "First Time Setup",
+        "explanation": "Accept the fingerprint when prompted.",
+        "code": "# Type 'yes' when asked about authenticity"
       }
     ]
   },
   {
-    "id": "ssh-github-setup",
-    "title": "SSH + GitHub SSH Setup (ed25519 + Port 443)",
-    "description": "Complete guide to SSH into a server, generate ed25519 keys, configure GitHub SSH with Port 443, and set up Git",
+    "id": "4",
+    "title": "SSH + GitHub SSH Setup (ed25519)",
+    "description": "Complete guide to SSH into server, generate ed25519 keys, configure GitHub SSH with Port 443, and set up Git",
     "steps": [
       {
-        "id": "step-1",
+        "id": "4-1",
         "heading": "Connect to the Server",
         "explanation": "Open Terminal and SSH into your school server. When prompted, type 'yes' if asked to continue connecting, then enter your password.",
         "code": "ssh it21_lastname@172.17.100.15 -p 9898"
       },
       {
-        "id": "step-2",
+        "id": "4-2",
         "heading": "Switch to Bash (Optional)",
         "explanation": "Switch to bash shell for better compatibility. This step is optional but recommended.",
         "code": "bash"
       },
       {
-        "id": "step-3",
+        "id": "4-3",
         "heading": "Create .ssh Folder",
         "explanation": "Create the .ssh directory if it doesn't exist and navigate into it. You can verify your location with pwd.",
         "code": "mkdir -p ~/.ssh\ncd ~/.ssh\n\n# Optional: verify directory\npwd"
       },
       {
-        "id": "step-4",
+        "id": "4-4",
         "heading": "Generate SSH Key (ed25519)",
         "explanation": "Generate a new SSH key using the ed25519 algorithm. Press Enter for default file location, and Enter again for no passphrase (or set one if you prefer).",
         "code": "ssh-keygen -t ed25519 -C \"your_email@example.com\""
       },
       {
-        "id": "step-5",
+        "id": "4-5",
         "heading": "Show and Copy Public Key",
         "explanation": "Display your public key and copy the entire output (starts with 'ssh-ed25519'). You'll need this for GitHub.",
         "code": "cat ~/.ssh/id_ed25519.pub"
       },
       {
-        "id": "step-6",
+        "id": "4-6",
         "heading": "Add Public Key to GitHub",
         "explanation": "On GitHub: Go to Settings > SSH and GPG keys > New SSH key. Give it a title like 'School Server Key', paste your public key, and click 'Add SSH key'.",
         "code": "# No terminal command needed\n# 1. Go to GitHub Settings\n# 2. Click 'SSH and GPG keys'\n# 3. Click 'New SSH key'\n# 4. Title: School Server Key\n# 5. Paste your public key\n# 6. Click 'Add SSH key'"
       },
       {
-        "id": "step-7",
+        "id": "4-7",
         "heading": "Configure SSH for Port 443",
         "explanation": "Create/edit the SSH config file to force GitHub SSH connections through Port 443. This bypasses firewall restrictions. Use Ctrl+O then Enter to save, and Ctrl+X to exit nano.",
         "code": "nano ~/.ssh/config\n\n# Paste this content:\nHost github.com\n  HostName ssh.github.com\n  User git\n  Port 443\n  IdentityFile ~/.ssh/id_ed25519"
       },
       {
-        "id": "step-8",
+        "id": "4-8",
         "heading": "Fix SSH Permissions",
         "explanation": "Set the correct permissions for your SSH files. This is important for security and proper SSH operation.",
         "code": "chmod 700 ~/.ssh\nchmod 600 ~/.ssh/config\nchmod 600 ~/.ssh/id_ed25519\nchmod 644 ~/.ssh/id_ed25519.pub"
       },
       {
-        "id": "step-9",
+        "id": "4-9",
         "heading": "Set Git Global Config",
         "explanation": "Configure Git with your name and email so your commits are properly attributed. Optionally set 'main' as your default branch.",
         "code": "git config --global user.name \"Your Full Name\"\ngit config --global user.email \"your_email@example.com\"\n\n# Optional: set default branch to main\ngit config --global init.defaultBranch main\n\n# Optional: verify your config\ngit config --global --list"
       },
       {
-        "id": "step-10",
+        "id": "4-10",
         "heading": "Verify GitHub SSH Connection",
         "explanation": "Test your SSH connection to GitHub. If successful, you'll see a message like 'Hi USERNAME! You've successfully authenticated...' Type 'yes' if asked to trust the host.",
         "code": "ssh -T git@github.com"
       },
       {
-        "id": "step-11",
+        "id": "4-11",
         "heading": "Return Home and Exit",
         "explanation": "Navigate back to your home directory and exit the server when you're done. Remember: never share your private key (id_ed25519), only share the public key (id_ed25519.pub).",
         "code": "cd ~\npwd  # Optional: confirm location\n\n# When done, exit the server\nexit"
@@ -148,75 +321,193 @@
     ]
   },
   {
-    "id": "python-wsgi-app",
-    "title": "App1 – Minimal Python Web App (WSGI + Jinja2 + Gunicorn)",
-    "description": "Build a plain Python WSGI app using Jinja2 and Gunicorn inside a virtual environment",
+    "id": "5",
+    "title": "Git Basics: Create Repo & Push",
+    "description": "Create a new repository, add files, commit changes, and push to GitHub",
     "steps": [
       {
-        "id": "step-1",
-        "heading": "Go to Home Directory",
-        "explanation": "Start by navigating to your home directory.",
-        "code": "cd ~"
+        "id": "5-1",
+        "heading": "Create Project Folder",
+        "explanation": "Create a project folder and navigate into it. Use pwd to verify your location.",
+        "code": "mkdir my-project\ncd my-project\n\n# Optional: check where you are\npwd"
       },
       {
-        "id": "step-2",
-        "heading": "Copy the Virtual Environment",
-        "explanation": "Copy the preconfigured Python virtual environment to your home directory. This must be done first before activating.",
-        "code": "cp -r /opt/virt ~/"
+        "id": "5-2",
+        "heading": "Initialize Git Repository",
+        "explanation": "Initialize Git in the folder and set the branch to 'main' (recommended).",
+        "code": "git init\n\n# Set branch to main\ngit branch -M main"
       },
       {
-        "id": "step-3",
-        "heading": "Activate the Virtual Environment",
-        "explanation": "Activate the virtual environment. You should see (virt) at the start of your prompt when activated.",
-        "code": "source ~/virt/bin/activate\n\n# You should see:\n# (virt) username@server:~$"
+        "id": "5-3",
+        "heading": "Create Files",
+        "explanation": "Create a README file using nano. Save with Ctrl+O then Enter, exit with Ctrl+X. You can also create files quickly with echo.",
+        "code": "# Create README with nano\nnano README.md\n\n# Or create file quickly\necho \"Hello world\" > hello.txt\n\n# Check your files\nls"
       },
       {
-        "id": "step-4",
-        "heading": "Create webapps Directory",
-        "explanation": "Create and navigate into the webapps directory where your applications will live.",
-        "code": "mkdir webapps\ncd webapps"
+        "id": "5-4",
+        "heading": "Check Status & Stage Files",
+        "explanation": "Check Git status to see untracked files, then add them to staging area.",
+        "code": "git status\n\n# Add all files\ngit add .\n\n# Or add specific file\ngit add README.md\n\n# Check status again\ngit status"
       },
       {
-        "id": "step-5",
-        "heading": "Create app1 Directory",
-        "explanation": "Create and navigate into the app1 directory for this specific application.",
-        "code": "mkdir app1\ncd app1"
+        "id": "5-5",
+        "heading": "Commit Changes",
+        "explanation": "Commit your staged changes with a descriptive message.",
+        "code": "git commit -m \"Initial commit\""
       },
       {
-        "id": "step-6",
-        "heading": "Create Empty GitHub Repository and Clone It",
-        "explanation": "Create an empty repository on GitHub, then clone it. The 'empty repository' warning is expected and fine.",
-        "code": "git clone git@github.com:xalhexi-sch/App1.git\n\n# You may see:\n# warning: You appear to have cloned an empty repository.\n# This is expected and fine."
+        "id": "5-6",
+        "heading": "Create GitHub Repo & Connect",
+        "explanation": "On GitHub: Click 'New repository', name it, do NOT initialize with README. Copy the SSH link and connect your local repo.",
+        "code": "# Add remote (replace USERNAME and my-project)\ngit remote add origin git@github.com:USERNAME/my-project.git\n\n# Verify remote\ngit remote -v"
       },
       {
-        "id": "step-7",
-        "heading": "Create app.py",
-        "explanation": "Create the main application file using nano. This is a pure WSGI app using Jinja2 for templating. Save with Ctrl+O then Enter, exit with Ctrl+X.",
-        "code": "nano app.py\n\n# Paste this code:\nfrom jinja2 import Environment, FileSystemLoader\nimport os\n\nBASE_DIR = os.path.dirname(os.path.abspath(__file__))\n\nenv = Environment(\n    loader=FileSystemLoader(os.path.join(BASE_DIR, \"templates\")),\n    autoescape=True\n)\n\ndef app(environ, start_response):\n    path = environ.get(\"PATH_INFO\", \"/\")\n\n    if path.endswith(\"/hello\"):\n        title = \"Hello Page\"\n        message = \"Rendered using Jinja2\"\n    else:\n        title = \"Home\"\n        message = \"Plain Python + Gunicorn + Nginx\"\n\n    template = env.get_template(\"home.html\")\n    html = template.render(title=title, message=message)\n\n    start_response(\"200 OK\", [(\"Content-Type\", \"text/html; charset=utf-8\")])\n    return [html.encode(\"utf-8\")]"
+        "id": "5-7",
+        "heading": "Push to GitHub",
+        "explanation": "Push your commits to GitHub. The -u flag sets upstream, so future pushes only need 'git push'.",
+        "code": "git push -u origin main\n\n# Future pushes:\ngit push"
       },
       {
-        "id": "step-8",
-        "heading": "Create Templates Folder and HTML File",
-        "explanation": "Create the templates directory and the home.html template file. This uses Jinja2 syntax with {{ variable }} placeholders.",
-        "code": "mkdir templates\ncd templates\nnano home.html\n\n# Paste this HTML:\n<!DOCTYPE html>\n<html>\n<head>\n    <title>{{ title }}</title>\n</head>\n<body>\n    <h1>{{ title }}</h1>\n    <p>{{ message }}</p>\n</body>\n</html>"
+        "id": "5-8",
+        "heading": "Normal Workflow",
+        "explanation": "After initial setup, use this workflow when you make changes: status, add, commit, push.",
+        "code": "git status\ngit add .\ngit commit -m \"Describe what you changed\"\ngit push"
+      }
+    ]
+  },
+  {
+    "id": "6",
+    "title": "Clone Existing Repo from GitHub",
+    "description": "How to clone an existing repository and start working on it",
+    "steps": [
+      {
+        "id": "6-1",
+        "heading": "Navigate to Projects Folder",
+        "explanation": "Go to the folder where you want the repo to be downloaded. Create a projects folder if needed.",
+        "code": "# Go to home directory\ncd ~\n\n# Or create a projects folder\nmkdir -p ~/projects\ncd ~/projects"
       },
       {
-        "id": "step-9",
-        "heading": "Return to App Root",
-        "explanation": "Navigate back to the app1 directory and verify your location with pwd.",
-        "code": "cd ..\npwd\n\n# Expected output:\n# ~/webapps/app1"
+        "id": "6-2",
+        "heading": "Clone the Repository",
+        "explanation": "Copy the SSH link from GitHub and clone the repo. This creates a folder with the repo name.",
+        "code": "# Clone using SSH (recommended)\ngit clone git@github.com:USERNAME/REPO_NAME.git\n\n# Example:\ngit clone git@github.com:octocat/Hello-World.git"
       },
       {
-        "id": "step-10",
-        "heading": "Run the App Using Gunicorn",
-        "explanation": "Start the application using Gunicorn. You can change the port (5000) if needed. The app:app refers to the app function inside app.py.",
-        "code": "gunicorn --bind 127.0.0.1:5000 app:app"
+        "id": "6-3",
+        "heading": "Enter & Verify",
+        "explanation": "Enter the cloned repo folder and verify the remote and branch.",
+        "code": "cd REPO_NAME\n\n# Check remote\ngit remote -v\n\n# Check branch\ngit branch"
       },
       {
-        "id": "step-11",
-        "heading": "Access the App",
-        "explanation": "Access your app through the server URL. The exact URL depends on your server/proxy setup.",
-        "code": "# Example URL (depends on your server setup):\n# http://172.17.100.15:9899/it21_banas/webapps/app1\n\n# Final folder structure:\n# webapps/\n# └── app1/\n#     ├── app.py\n#     └── templates/\n#         └── home.html"
+        "id": "6-4",
+        "heading": "Make Changes & Push",
+        "explanation": "Create or edit files, then stage, commit, and push your changes.",
+        "code": "# Create/edit a file\nnano notes.txt\n\n# Stage, commit, push\ngit add .\ngit commit -m \"Add notes\"\ngit push"
+      },
+      {
+        "id": "6-5",
+        "heading": "Useful Commands",
+        "explanation": "Handy commands for checking history, changes, and syncing with remote.",
+        "code": "# Check commit history\ngit log --oneline\n\n# See file changes\ngit diff\n\n# Pull latest updates\ngit pull\n\n# Check current branch\ngit branch"
+      }
+    ]
+  },
+  {
+    "id": "7",
+    "title": "Ubuntu: Rename & Move Files",
+    "description": "How to rename files and move them between folders in Ubuntu",
+    "steps": [
+      {
+        "id": "7-1",
+        "heading": "Rename a File",
+        "explanation": "Use mv command to rename files. Same syntax works for folders.",
+        "code": "# Rename a file\nmv oldname.txt newname.txt\n\n# Example\nmv notes.txt notes-final.txt\n\n# Rename a folder\nmv oldfolder newfolder"
+      },
+      {
+        "id": "7-2",
+        "heading": "Move File to Parent Folder",
+        "explanation": "Use ../ to reference the parent folder. Move files one level up with mv.",
+        "code": "# Move file one level up\nmv file.txt ../\n\n# Move folder one level up\nmv myfolder ../\n\n# Move multiple files up\nmv a.txt b.txt c.txt ../"
+      },
+      {
+        "id": "7-3",
+        "heading": "Move Multiple Levels Up",
+        "explanation": "Use multiple ../ to go up several levels. Each ../ goes up one folder.",
+        "code": "# ../ = up 1 folder\n# ../../ = up 2 folders\n# ../../../ = up 3 folders\n\n# Move file up 2 levels\nmv file.txt ../../"
+      },
+      {
+        "id": "7-4",
+        "heading": "Move File Into Another Folder",
+        "explanation": "Move a file into a subfolder by specifying the folder name.",
+        "code": "mv file.txt foldername/\n\n# Example\nmv hello.txt src/"
+      },
+      {
+        "id": "7-5",
+        "heading": "Check Location & List Files",
+        "explanation": "Helpful commands to see where you are and what files exist.",
+        "code": "# Print working directory\npwd\n\n# List files\nls\n\n# List all files with details\nls -la"
+      }
+    ]
+  },
+  {
+    "id": "8",
+    "title": "Check GitHub Repo Contributors",
+    "description": "Three ways to check contributors of a GitHub repository",
+    "steps": [
+      {
+        "id": "8-1",
+        "heading": "GitHub Web (Easiest)",
+        "explanation": "The simplest way - use the GitHub website to view contributors.",
+        "code": "# No terminal needed\n# On the repo page:\n# 1. Click 'Insights' tab\n# 2. Click 'Contributors' in sidebar"
+      },
+      {
+        "id": "8-2",
+        "heading": "Using Git Log",
+        "explanation": "Use git shortlog to see contributors and their commit counts. Works without GitHub CLI.",
+        "code": "# Inside the repo folder:\ngit shortlog -s -n\n\n# -s = show commit counts only\n# -n = sort by number of commits\n\n# Show names + emails:\ngit shortlog -sne"
+      },
+      {
+        "id": "8-3",
+        "heading": "Install GitHub CLI",
+        "explanation": "Install the GitHub CLI (gh) if not already installed, then login.",
+        "code": "# Check if installed\ngh --version\n\n# Install on Ubuntu\nsudo apt update\nsudo apt install gh -y\n\n# Login to GitHub\ngh auth login"
+      },
+      {
+        "id": "8-4",
+        "heading": "Using GitHub CLI",
+        "explanation": "Use gh api to fetch contributor data. Works for public repos or repos you have access to.",
+        "code": "# Get contributors\ngh api repos/OWNER/REPO/contributors\n\n# Show only usernames\ngh api repos/OWNER/REPO/contributors --jq '.[].login'\n\n# Show username + contributions\ngh api repos/OWNER/REPO/contributors --jq '.[] | \"\\(.login) - \\(.contributions)\"'"
+      },
+      {
+        "id": "8-5",
+        "heading": "Quick Tip for Screenshots",
+        "explanation": "If you need screenshot proof for a teacher, this command clearly shows contributors with commit counts.",
+        "code": "git shortlog -sne"
+      }
+    ]
+  },
+  {
+    "id": "9",
+    "title": "Common Git Errors & Fixes",
+    "description": "Quick fixes for common Git errors you might encounter",
+    "steps": [
+      {
+        "id": "9-1",
+        "heading": "Permission Denied (publickey)",
+        "explanation": "This error means your SSH key is not set up or not added to GitHub.",
+        "code": "# Test SSH connection\nssh -T git@github.com\n\n# If it fails, check your SSH key setup\n# Refer to the SSH + GitHub Setup tutorial"
+      },
+      {
+        "id": "9-2",
+        "heading": "Remote Origin Already Exists",
+        "explanation": "Remove the existing remote and add it again with the correct URL.",
+        "code": "# Remove existing remote\ngit remote remove origin\n\n# Add new remote\ngit remote add origin git@github.com:USERNAME/REPO_NAME.git"
+      },
+      {
+        "id": "9-3",
+        "heading": "Branch is Master Instead of Main",
+        "explanation": "Rename your local branch to main and push to the main branch.",
+        "code": "# Rename branch to main\ngit branch -M main\n\n# Push to main\ngit push -u origin main"
       }
     ]
   }
