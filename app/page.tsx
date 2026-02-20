@@ -1301,10 +1301,11 @@ export default function ITPTutorial() {
   const sidebarRef = useRef<HTMLElement>(null);
   const MIN_SIDEBAR_WIDTH = 200;
   const MAX_SIDEBAR_WIDTH = 450;
-  const [githubSyncUrl, setGithubSyncUrl] = useState("https://raw.githubusercontent.com/xalhexi/xalhexi.com/main/tutorials.json");
-  const [showSyncSettings, setShowSyncSettings] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isPushing, setIsPushing] = useState(false);
+  const hasLoadedFromStorage = useRef(false);
 
+  // Load from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (localStorage.getItem("isAdmin") === "true") setIsAdmin(true);
@@ -1328,11 +1329,14 @@ export default function ITPTutorial() {
       if (savedTerminalUrl) setTerminalUrl(savedTerminalUrl);
       const savedTerminalLocked = localStorage.getItem("terminalLocked");
       if (savedTerminalLocked !== null) setTerminalLocked(savedTerminalLocked === "true");
+      // Mark that we've loaded from storage, so the save effect can now safely write
+      hasLoadedFromStorage.current = true;
     }
   }, []);
 
+  // Save to localStorage only after initial load is complete
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && hasLoadedFromStorage.current) {
       localStorage.setItem("tutorialsOverride", JSON.stringify(tutorials));
     }
   }, [tutorials]);
@@ -1623,36 +1627,57 @@ const deleteTutorial = (id: string) => {
     input.click();
   };
 
-  // Sync from GitHub
-  const syncFromGithub = async () => {
-    if (!githubSyncUrl) {
-      showToast("No GitHub URL configured");
-      return;
-    }
-    
+  // Push tutorials to GitHub via server-side API route
+  const pushToGithub = async () => {
     const confirmed = window.confirm(
-      "This will replace all your local tutorials with the version from GitHub.\n\nAre you sure? Any unsaved local changes will be lost."
+      "This will upload your current tutorials to GitHub, overwriting the file there.\n\nContinue?"
     );
-    
     if (!confirmed) return;
-    
+
+    setIsPushing(true);
+    try {
+      const resp = await fetch("/api/github/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tutorials }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || `HTTP ${resp.status}`);
+      }
+      showToast("Pushed to GitHub!");
+    } catch (error) {
+      showToast("Failed to push: " + (error instanceof Error ? error.message : "Unknown error"));
+      console.error("Push error:", error);
+    } finally {
+      setIsPushing(false);
+    }
+  };
+
+  // Pull tutorials from GitHub via server-side API route
+  const pullFromGithub = async () => {
+    const confirmed = window.confirm(
+      "This will replace all your local tutorials with the version from GitHub.\n\nAre you sure? Any local-only changes will be lost."
+    );
+    if (!confirmed) return;
+
     setIsSyncing(true);
     try {
-      const response = await fetch(githubSyncUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.status}`);
+      const resp = await fetch("/api/github/pull");
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || `HTTP ${resp.status}`);
       }
-      const data = await response.json();
-      if (Array.isArray(data) && data.length > 0 && data[0].id && data[0].title) {
-        setTutorials(data);
-        setSelectedTutorial(data[0].id);
-        showToast("Synced from GitHub!");
+      if (Array.isArray(data.tutorials) && data.tutorials.length > 0) {
+        setTutorials(data.tutorials);
+        setSelectedTutorial(data.tutorials[0].id);
+        showToast("Pulled from GitHub!");
       } else {
-        showToast("Invalid JSON format");
+        showToast("Invalid tutorials data");
       }
     } catch (error) {
-      showToast("Failed to sync from GitHub");
-      console.error("Sync error:", error);
+      showToast("Failed to pull: " + (error instanceof Error ? error.message : "Unknown error"));
+      console.error("Pull error:", error);
     } finally {
       setIsSyncing(false);
     }
@@ -1850,46 +1875,41 @@ const deleteTutorial = (id: string) => {
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#30363d] bg-[#161b22]">
             {isAdmin && (
               <>
+                {/* GitHub Push/Pull */}
                 <div className="flex gap-2 mb-2">
                   <button
-                    onClick={exportTutorials}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors"
+                    onClick={pushToGithub}
+                    disabled={isPushing}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors disabled:opacity-50"
                   >
-                    <Download className="w-3.5 h-3.5" />
-                    Export
+                    <Upload className={`w-3.5 h-3.5 ${isPushing ? "animate-pulse" : ""}`} />
+                    {isPushing ? "Pushing..." : "Push to GitHub"}
+                  </button>
+                  <button
+                    onClick={pullFromGithub}
+                    disabled={isSyncing}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#1f6feb] hover:bg-[#388bfd] text-white rounded-md transition-colors disabled:opacity-50"
+                  >
+                    <Download className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+                    {isSyncing ? "Pulling..." : "Pull from GitHub"}
+                  </button>
+                </div>
+                {/* File Export/Import as secondary */}
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={exportTutorials}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] border border-[#30363d] rounded-md transition-colors"
+                  >
+                    <Download className="w-3 h-3" />
+                    Export File
                   </button>
                   <button
                     onClick={importTutorials}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#1f6feb] hover:bg-[#388bfd] text-white rounded-md transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] border border-[#30363d] rounded-md transition-colors"
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    Import
+                    <Upload className="w-3 h-3" />
+                    Import File
                   </button>
-                </div>
-                <div className="mb-3">
-                  <button
-                    onClick={syncFromGithub}
-                    disabled={isSyncing}
-                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
-                    {isSyncing ? "Syncing..." : "Sync from GitHub"}
-                  </button>
-                  <button
-                    onClick={() => setShowSyncSettings(!showSyncSettings)}
-                    className="w-full mt-1 text-[10px] text-[#484f58] hover:text-[#8b949e] transition-colors"
-                  >
-                    {showSyncSettings ? "Hide URL settings" : "Edit GitHub URL"}
-                  </button>
-                  {showSyncSettings && (
-                    <input
-                      type="text"
-                      value={githubSyncUrl}
-                      onChange={(e) => setGithubSyncUrl(e.target.value)}
-                      placeholder="GitHub raw JSON URL"
-                      className="w-full mt-2 px-2 py-1.5 text-xs bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff]"
-                    />
-                  )}
                 </div>
               </>
             )}
