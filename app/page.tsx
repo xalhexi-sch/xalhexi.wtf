@@ -2162,12 +2162,12 @@ const deleteTutorial = (id: string) => {
             )}
           </div>
 
-          {/* Sidebar footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[var(--t-border)] bg-[var(--t-bg-secondary)]">
+          {/* Sidebar bottom: pinned footer */}
+          <div className="shrink-0 p-4 pt-2 border-t border-[var(--t-border)] bg-[var(--t-bg-secondary)] space-y-2">
             {isAdmin && activeTab === "tutorials" && (
               <>
                 {/* GitHub Push/Pull */}
-                <div className="flex gap-2 mb-2">
+                <div className="flex gap-2">
                   <button
                     onClick={pushToGithub}
                     disabled={isPushing}
@@ -2185,30 +2185,26 @@ const deleteTutorial = (id: string) => {
                     {isSyncing ? "Syncing..." : "Sync from GitHub"}
                   </button>
                 </div>
-                {/* File Export/Import as secondary */}
-                <div className="flex gap-2 mb-3">
+                {/* File Export/Import */}
+                <div className="flex gap-2">
                   <button
                     onClick={exportTutorials}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
                   >
                     <Download className="w-3 h-3" />
-                    Export File
+                    Export
                   </button>
                   <button
                     onClick={importTutorials}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
                   >
                     <Upload className="w-3 h-3" />
-                    Import File
+                    Import
                   </button>
                 </div>
               </>
             )}
-          </div>
-
-          {/* Sidebar bottom: pinned footer */}
-          <div className="shrink-0 p-4 pt-2 border-t border-[var(--t-border-subtle)] space-y-1">
-            {/* Terminal button - only show if admin OR unlocked */}
+            {/* Terminal button */}
             {(isAdmin || !terminalLocked) && (
               <button
                 onClick={() => setShowTerminal(true)}
