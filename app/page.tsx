@@ -1051,6 +1051,32 @@ function StepModal({
   const [explanation, setExplanation] = useState("");
   const [code, setCode] = useState("");
   const [images, setImages] = useState<StepImage[]>([]);
+  const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const uploadImage = async (imageId: string, file: File) => {
+    setUploadingImageId(imageId);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const resp = await fetch("/api/github/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await resp.json();
+      if (resp.ok && data.url) {
+        setImages((prev) =>
+          prev.map((img) => (img.id === imageId ? { ...img, url: data.url } : img))
+        );
+      } else {
+        alert(data.error || "Failed to upload image");
+      }
+    } catch {
+      alert("Failed to upload image");
+    } finally {
+      setUploadingImageId(null);
+    }
+  };
 
   useEffect(() => {
     setHeading(step?.heading || "");
@@ -1161,6 +1187,7 @@ function StepModal({
               <div className="text-center py-6 border border-dashed border-[#30363d] rounded-md">
                 <ImageIcon className="w-8 h-8 mx-auto text-[#484f58] mb-2" />
                 <p className="text-xs text-[#484f58]">No screenshots added yet</p>
+                <p className="text-[10px] text-[#484f58] mt-1">Paste a URL or upload from your PC (PNG, JPEG, WEBP)</p>
               </div>
             )}
 
@@ -1178,14 +1205,41 @@ function StepModal({
                     </button>
                   </div>
 
-                  {/* Image URL */}
-                  <input
-                    type="url"
-                    value={img.url}
-                    onChange={(e) => updateImage(img.id, { url: e.target.value })}
-                    placeholder="https://i.ibb.co/example.png"
-                    className="w-full px-2.5 py-1.5 bg-[#161b22] border border-[#30363d] rounded text-sm text-[#e6edf3] placeholder-[#484f58] focus:ring-1 focus:ring-[#1f6feb] outline-none mb-2"
-                  />
+                  {/* Image URL or Upload */}
+                  <div className="flex gap-1.5 mb-2">
+                    <input
+                      type="url"
+                      value={img.url}
+                      onChange={(e) => updateImage(img.id, { url: e.target.value })}
+                      placeholder="Paste URL or upload from PC"
+                      className="flex-1 px-2.5 py-1.5 bg-[#161b22] border border-[#30363d] rounded text-sm text-[#e6edf3] placeholder-[#484f58] focus:ring-1 focus:ring-[#1f6feb] outline-none"
+                    />
+                    <input
+                      type="file"
+                      ref={(el) => { fileInputRefs.current[img.id] = el; }}
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadImage(img.id, file);
+                        e.target.value = "";
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRefs.current[img.id]?.click()}
+                      disabled={uploadingImageId === img.id}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded text-xs text-[#c9d1d9] transition-colors disabled:opacity-50 shrink-0"
+                      title="Upload from PC"
+                    >
+                      {uploadingImageId === img.id ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      {uploadingImageId === img.id ? "Uploading..." : "Upload"}
+                    </button>
+                  </div>
 
                   {/* Image Preview */}
                   {img.url && (
