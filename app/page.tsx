@@ -2012,7 +2012,7 @@ const deleteTutorial = (id: string) => {
         <aside
           ref={sidebarRef}
           style={{ width: sidebarWidth }}
-          className={`fixed lg:sticky top-14 left-0 z-30 h-[calc(100vh-3.5rem)] bg-[var(--t-bg-secondary)] border-r border-[var(--t-border)] overflow-y-auto transition-transform lg:translate-x-0 shrink-0 ${
+          className={`fixed lg:sticky top-14 left-0 z-30 h-[calc(100vh-3.5rem)] bg-[var(--t-bg-secondary)] border-r border-[var(--t-border)] overflow-hidden transition-transform lg:translate-x-0 shrink-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -2023,7 +2023,9 @@ const deleteTutorial = (id: string) => {
               isResizing ? "bg-[#58a6ff]" : "bg-transparent"
             }`}
           />
-          <div className="p-4">
+          <div className="flex flex-col h-full">
+          {/* Sidebar top: tabs */}
+          <div className="p-4 pb-0 shrink-0">
             {/* Tab buttons */}
             <div className="flex items-center gap-1 mb-4">
               <button
@@ -2059,7 +2061,10 @@ const deleteTutorial = (id: string) => {
                 </button>
               )}
             </div>
+          </div>
 
+          {/* Sidebar middle: scrollable content */}
+          <div className="flex-1 overflow-y-auto px-4 py-2 min-h-0">
             {/* Tutorials list */}
             {activeTab === "tutorials" && (
             <nav className="space-y-1">
@@ -2081,7 +2086,9 @@ const deleteTutorial = (id: string) => {
                   {isAdmin && (
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleLock(tutorial.id); }}
-                      className="shrink-0 p-1.5 mr-1 opacity-0 group-hover:opacity-100 hover:bg-[var(--t-bg-hover)] rounded transition-all"
+                      className={`shrink-0 p-1.5 mr-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${
+                        tutorial.locked ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      }`}
                       title={tutorial.locked ? "Unlock tutorial" : "Lock tutorial"}
                     >
                       {tutorial.locked ? (
@@ -2197,6 +2204,10 @@ const deleteTutorial = (id: string) => {
                 </div>
               </>
             )}
+          </div>
+
+          {/* Sidebar bottom: pinned footer */}
+          <div className="shrink-0 p-4 pt-2 border-t border-[var(--t-border-subtle)] space-y-1">
             {/* Terminal button - only show if admin OR unlocked */}
             {(isAdmin || !terminalLocked) && (
               <button
@@ -2219,6 +2230,7 @@ const deleteTutorial = (id: string) => {
               <Heart className="w-3 h-3" />
               <span>Made by xalhexi-sch</span>
             </a>
+          </div>
           </div>
         </aside>
 
