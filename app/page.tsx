@@ -1361,7 +1361,7 @@ function StepModal({
 }
 
 export default function ITPTutorial() {
-  const [tutorials, setTutorials] = useState<Tutorial[]>(defaultTutorials);
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [toast, setToast] = useState({ message: "", visible: false });
@@ -1417,9 +1417,10 @@ export default function ITPTutorial() {
           setTutorials(data.tutorials);
           setSelectedTutorial(data.tutorials[0].id);
         }
-        // If fetch fails, defaultTutorials remain as fallback
+        // If fetch fails, use defaults as fallback
       } catch {
-        // Server unavailable, keep defaults
+        setTutorials(defaultTutorials);
+        setSelectedTutorial(defaultTutorials[0]?.id || null);
       } finally {
         setIsLoadingTutorials(false);
       }
@@ -2112,51 +2113,14 @@ const deleteTutorial = (id: string) => {
             {/* Tutorials list */}
             {activeTab === "tutorials" && (
             <nav className="space-y-1">
-              {filteredTutorials.map((tutorial) => (
+              {!isLoadingTutorials && filteredTutorials.map((tutorial) => (
                 <div
                   key={tutorial.id}
-                  draggable={isAdmin}
-                  onDragStart={() => isAdmin && handleDragStart(tutorial.id)}
-                  onDragOver={handleDragOver}
-                  onDrop={() => isAdmin && handleDrop(tutorial.id)}
-                  className={`flex items-center gap-1 rounded-md transition-colors ${
+                  className={`group flex items-center rounded-md transition-colors cursor-pointer ${
                     selectedTutorial === tutorial.id
                       ? "bg-[#21262d] text-[#e6edf3]"
                       : "text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3]"
-                  } ${draggedTutorial === tutorial.id ? "opacity-50" : ""}`}
-                >
-                  {isAdmin && (
-                    <div className="cursor-grab active:cursor-grabbing p-1 shrink-0">
-                      <GripVertical className="w-3.5 h-3.5 text-[#484f58]" />
-                    </div>
-                  )}
-                  {isAdmin && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleLock(tutorial.id);
-                      }}
-                      className="p-1 shrink-0 hover:text-[#f0883e] transition-colors"
-                      title={tutorial.locked ? "Unlock tutorial" : "Lock tutorial"}
-                    >
-                      {tutorial.locked ? (
-                        <Lock className="w-3.5 h-3.5 text-[#f0883e]" />
-                      ) : (
-                        <Unlock className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      setSelectedTutorial(tutorial.id);
-                      setSidebarOpen(false);
-                    }}
-                    className="flex-1 flex items-center gap-2 py-2 pr-3 text-left text-sm"
-                  >
-                    <ChevronRight
-                      className={`w-4 h-4 shrink-0 transition-transform ${
-                        selectedTutorial === tutorial.id ? "rotate-90 text-[#58a6ff]" : ""
-                      }`}
+                  }`}
                     />
                     <span className="truncate" title={tutorial.title}>{tutorial.title}</span>
                   </button>
@@ -2296,8 +2260,30 @@ const deleteTutorial = (id: string) => {
         <div className={`flex-1 min-w-0 flex ${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? '' : 'justify-center'}`}>
           <main className={`${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? 'w-1/2' : 'w-full max-w-4xl'} min-w-0 p-4 lg:p-6 overflow-y-auto`}>
 
-          {/* Repository View */}
-          {activeTab === "repositories" ? (
+          {/* Loading skeleton for main content */}
+          {activeTab === "tutorials" && isLoadingTutorials ? (
+            <div className="max-w-3xl mx-auto">
+              {/* Title skeleton */}
+              <div className="mb-6">
+                <div className="skeleton-shimmer h-7 w-2/5 mb-3" />
+                <div className="skeleton-shimmer h-4 w-3/5" />
+              </div>
+              {/* Step skeletons */}
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden mb-4">
+                  <div className="px-4 py-3 border-b border-[#30363d]">
+                    <div className="skeleton-shimmer h-5 w-1/3" />
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div className="skeleton-shimmer h-4 w-full" />
+                    <div className="skeleton-shimmer h-4 w-4/5" />
+                    <div className="skeleton-shimmer h-4 w-3/5" />
+                    <div className="skeleton-shimmer h-20 w-full mt-2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : activeTab === "repositories" ? (
             <div className="max-w-3xl mx-auto">
               {!selectedRepo ? (
                 /* Repo list view */
