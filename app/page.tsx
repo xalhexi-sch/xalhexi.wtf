@@ -2121,7 +2121,11 @@ const deleteTutorial = (id: string) => {
                       ? "bg-[#21262d] text-[#e6edf3]"
                       : "text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3]"
                   }`}
-                    />
+                >
+                  <button
+                    onClick={() => setSelectedTutorial(tutorial.id)}
+                    className="flex-1 flex items-center gap-2 px-3 py-2 text-sm text-left min-w-0"
+                  >
                     <span className="truncate" title={tutorial.title}>{tutorial.title}</span>
                   </button>
                 </div>
