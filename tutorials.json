@@ -8,7 +8,16 @@
         "id": "10-1",
         "heading": "Go to Home Directory",
         "explanation": "Start by navigating to your home directory.",
-        "code": "cd ~"
+        "code": "cd ~",
+        "images": [
+          {
+            "id": "img-1771712369468",
+            "url": "https://raw.githubusercontent.com/xalhexi-sch/xalhexi.wtf/main/tutorial-images/Screenshot-2026-02-22-061901-1771712605237.png",
+            "position": "after",
+            "caption": "",
+            "captionPosition": "bottom"
+          }
+        ]
       },
       {
         "id": "10-2",
