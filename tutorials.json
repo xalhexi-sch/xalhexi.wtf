@@ -532,5 +532,27 @@
       }
     ],
     "locked": true
+  },
+  {
+    "id": "4mxvtlif6",
+    "title": "test",
+    "description": "test",
+    "steps": [
+      {
+        "id": "du6q32spe",
+        "heading": "test",
+        "explanation": "test",
+        "code": "test",
+        "images": [
+          {
+            "id": "img-1771668526696",
+            "url": "https://raw.githubusercontent.com/xalhexi-sch/xalhexi-sch.github.io/main/tutorial-images/Screenshot-2026-02-19-230042-1771668805539.png?token=BV3JOQLAK7HGEOIENN6D6SDJTGCYE",
+            "position": "after",
+            "caption": "",
+            "captionPosition": "bottom"
+          }
+        ]
+      }
+    ]
   }
 ]
