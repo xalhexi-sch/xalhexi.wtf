@@ -1,30 +1,44 @@
-# Dashboard tutorial names
+# xalhexi.wtf
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A tutorial and repository browser for [xalhexi-sch](https://github.com/xalhexi-sch). Built with Next.js and styled like GitHub Dark.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/maykelbanassch-gmailcoms-projects/v0-xalhexi-com)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/nnJryPMnT34)
+## What is this?
 
-## Overview
+A web app that serves as a central hub for:
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+- **Tutorials** -- Step-by-step guides with syntax-highlighted code blocks, screenshots, and copy-to-clipboard. Topics include Git, SSH, Python, Ubuntu, and more.
+- **Repository Browser** -- Browse all public repositories from [xalhexi-sch](https://github.com/xalhexi-sch) directly in the app. View files, folders, and code with VS Code-style syntax highlighting.
 
-## Deployment
+## Features
 
-Your project is live at:
+- GitHub as a database -- tutorials are stored in `tutorials.json` in this repo and synced via the GitHub API
+- Admin panel -- create, edit, delete, and reorder tutorials (password-protected)
+- Push/Pull to GitHub -- save tutorials to GitHub or sync the latest version, updating the site globally for all users
+- Syntax highlighting -- VS Code Dark+ inspired colors for 20+ languages
+- Image uploads -- upload screenshots directly to the repo via the GitHub API
+- Copy code -- one-click copy on all code blocks
+- Responsive -- works on desktop and mobile with tab switching
+- Resizable sidebar -- drag to resize the tutorial/repo list
 
-**[https://vercel.com/maykelbanassch-gmailcoms-projects/v0-xalhexi-com](https://vercel.com/maykelbanassch-gmailcoms-projects/v0-xalhexi-com)**
+## How to use
 
-## Build your app
+### As a visitor
+1. Open the site
+2. Browse tutorials in the sidebar or switch to Repositories
+3. Click any tutorial to read it, or click a repo to browse its files
+4. Use the search bar to find tutorials by keyword
 
-Continue building your app on:
+### As an admin
+1. Click the lock icon in the header and enter the admin password
+2. Create/edit/delete tutorials using the sidebar controls
+3. Upload images from your PC when editing tutorial steps
+4. Click **Save to GitHub** to push changes live for everyone
+5. Click **Sync from GitHub** to pull the latest tutorials from the repo
 
-**[https://v0.app/chat/nnJryPMnT34](https://v0.app/chat/nnJryPMnT34)**
+## Tech Stack
 
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- [Next.js](https://nextjs.org) -- App Router, API routes
+- [Tailwind CSS](https://tailwindcss.com) -- Styling
+- [highlight.js](https://highlightjs.org) -- Syntax highlighting
+- [Lucide React](https://lucide.dev) -- Icons
+- [GitHub API](https://docs.github.com/en/rest) -- Tutorials storage, repo browsing, image uploads

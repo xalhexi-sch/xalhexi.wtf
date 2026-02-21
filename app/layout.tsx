@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Xalhexi's App",
-  description: 'Tutorial Docs by Xalhexi',
+  title: "xalhexi.wtf - Tutorials & Repos",
+  description: 'Tutorials, guides, and repository browser by xalhexi-sch',
   generator: 'v0.app',
   icons: {
     icon: '/favicon.png',

@@ -78,6 +78,7 @@ interface GithubRepo {
   name: string;
   description: string;
   language: string | null;
+  languages: string[];
   updated_at: string;
   html_url: string;
   default_branch: string;
@@ -747,88 +748,18 @@ function StepImageDisplay({ img, altText }: { img: StepImage; altText: string })
 }
 
 // Syntax highlighting helper
-function highlightSyntax(code: string): React.ReactNode[] {
-  const lines = code.split('\n');
-  return lines.map((line, lineIndex) => {
-    // Parse each line for syntax highlighting
-    const parts: React.ReactNode[] = [];
-    let remaining = line;
-    let keyIndex = 0;
-
-    // Comment (starts with #)
-    if (remaining.trim().startsWith('#')) {
-      parts.push(<span key={keyIndex++} className="text-[#8b949e] italic">{remaining}</span>);
-      remaining = '';
-    }
-
-    // Process keywords and patterns
-    while (remaining.length > 0) {
-      // String patterns (double or single quotes)
-      const stringMatch = remaining.match(/^("[^"]*"|'[^']*')/);
-      if (stringMatch) {
-        parts.push(<span key={keyIndex++} className="text-[#a5d6ff]">{stringMatch[0]}</span>);
-        remaining = remaining.slice(stringMatch[0].length);
-        continue;
-      }
-
-      // Git/SSH commands (at start of line or after space)
-      const cmdMatch = remaining.match(/^(git|ssh|cd|ls|mkdir|rm|cp|mv|cat|echo|npm|yarn|pnpm|node|python|pip|sudo|apt|brew|chmod|chown|touch|nano|vim|code)\b/);
-      if (cmdMatch && (parts.length === 0 || remaining === line.slice(line.indexOf(cmdMatch[0])))) {
-        parts.push(<span key={keyIndex++} className="text-[#ff7b72]">{cmdMatch[0]}</span>);
-        remaining = remaining.slice(cmdMatch[0].length);
-        continue;
-      }
-
-      // Git subcommands
-      const gitSubMatch = remaining.match(/^(init|clone|add|commit|push|pull|fetch|merge|rebase|branch|checkout|status|log|diff|remote|stash|reset|config)\b/);
-      if (gitSubMatch) {
-        parts.push(<span key={keyIndex++} className="text-[#d2a8ff]">{gitSubMatch[0]}</span>);
-        remaining = remaining.slice(gitSubMatch[0].length);
-        continue;
-      }
-
-      // Flags (-x or --xxx)
-      const flagMatch = remaining.match(/^(-{1,2}[a-zA-Z][\w-]*)/);
-      if (flagMatch) {
-        parts.push(<span key={keyIndex++} className="text-[#79c0ff]">{flagMatch[0]}</span>);
-        remaining = remaining.slice(flagMatch[0].length);
-        continue;
-      }
-
-      // URLs and paths with @
-      const urlMatch = remaining.match(/^([a-zA-Z0-9_-]+@[\w.-]+)/);
-      if (urlMatch) {
-        parts.push(<span key={keyIndex++} className="text-[#7ee787]">{urlMatch[0]}</span>);
-        remaining = remaining.slice(urlMatch[0].length);
-        continue;
-      }
-
-      // Numbers
-      const numMatch = remaining.match(/^\b(\d+)\b/);
-      if (numMatch) {
-        parts.push(<span key={keyIndex++} className="text-[#f0883e]">{numMatch[0]}</span>);
-        remaining = remaining.slice(numMatch[0].length);
-        continue;
-      }
-
-      // Default: take one character
-      parts.push(<span key={keyIndex++} className="text-[#c9d1d9]">{remaining[0]}</span>);
-      remaining = remaining.slice(1);
-    }
-
-    return (
-      <React.Fragment key={lineIndex}>
-        {parts}
-        {lineIndex < lines.length - 1 && '\n'}
-      </React.Fragment>
-    );
-  });
-}
-
-// Code block with copy and syntax highlighting
+// Code block with copy and hljs syntax highlighting
 function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => void }) {
   const [copied, setCopied] = useState(false);
   const [animating, setAnimating] = useState(false);
+
+  const highlighted = useMemo(() => {
+    try {
+      return hljs.highlightAuto(code).value;
+    } catch {
+      return code;
+    }
+  }, [code]);
 
   const handleCopy = () => {
     onCopy(code);
@@ -842,9 +773,9 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
     <div className="relative rounded-md overflow-hidden border border-[#30363d] bg-[#0d1117] group">
       <button
         onClick={handleCopy}
-        className={`absolute top-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md transition-all duration-200 border ${
-          copied 
-            ? 'bg-[#238636] border-[#238636] text-white scale-105' 
+        className={`absolute top-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md transition-all duration-200 border z-10 ${
+          copied
+            ? 'bg-[#238636] border-[#238636] text-white scale-105'
             : 'bg-[#21262d] text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#30363d] border-[#30363d]'
         } ${animating ? 'scale-110' : ''}`}
       >
@@ -854,7 +785,7 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
         <span className="font-medium">{copied ? "Copied!" : "Copy"}</span>
       </button>
       <pre className="p-4 pr-24 text-sm font-mono overflow-x-auto leading-relaxed">
-        <code>{highlightSyntax(code)}</code>
+        <code className="hljs" dangerouslySetInnerHTML={{ __html: highlighted }} />
       </pre>
     </div>
   );
@@ -1361,7 +1292,7 @@ function StepModal({
 }
 
 export default function ITPTutorial() {
-  const [tutorials, setTutorials] = useState<Tutorial[]>(defaultTutorials);
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [toast, setToast] = useState({ message: "", visible: false });
@@ -1379,11 +1310,11 @@ export default function ITPTutorial() {
   const [terminalFullscreen, setTerminalFullscreen] = useState(false);
   const [terminalLocked, setTerminalLocked] = useState(true); // Terminal is locked by default
   const [draggedTutorial, setDraggedTutorial] = useState<string | null>(null);
-  const [sidebarWidth, setSidebarWidth] = useState(288); // 18rem = 288px default
+  const [sidebarWidth, setSidebarWidth] = useState(320); // 20rem = 320px default
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
   const MIN_SIDEBAR_WIDTH = 200;
-  const MAX_SIDEBAR_WIDTH = 450;
+  const MAX_SIDEBAR_WIDTH = 500;
   const [isSyncing, setIsSyncing] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
   const [isLoadingTutorials, setIsLoadingTutorials] = useState(true);
@@ -1417,9 +1348,10 @@ export default function ITPTutorial() {
           setTutorials(data.tutorials);
           setSelectedTutorial(data.tutorials[0].id);
         }
-        // If fetch fails, defaultTutorials remain as fallback
+        // If fetch fails, use defaults as fallback
       } catch {
-        // Server unavailable, keep defaults
+        setTutorials(defaultTutorials);
+        setSelectedTutorial(defaultTutorials[0]?.id || null);
       } finally {
         setIsLoadingTutorials(false);
       }
@@ -1949,10 +1881,15 @@ const deleteTutorial = (id: string) => {
             >
               <Menu className="w-5 h-5 text-[#8b949e]" />
             </button>
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-[#58a6ff]" />
-              <span className="font-semibold text-[#e6edf3]">ITP Subject Tutorial</span>
-            </div>
+  <a
+    href="https://github.com/xalhexi-sch"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+  >
+    <Github className="w-5 h-5 text-[#e6edf3]" />
+    <span className="font-semibold text-[#e6edf3]">xalhexi.wtf</span>
+  </a>
           </div>
 
           {/* Mobile tab switcher */}
@@ -2112,52 +2049,19 @@ const deleteTutorial = (id: string) => {
             {/* Tutorials list */}
             {activeTab === "tutorials" && (
             <nav className="space-y-1">
-              {filteredTutorials.map((tutorial) => (
+              {!isLoadingTutorials && filteredTutorials.map((tutorial) => (
                 <div
                   key={tutorial.id}
-                  draggable={isAdmin}
-                  onDragStart={() => isAdmin && handleDragStart(tutorial.id)}
-                  onDragOver={handleDragOver}
-                  onDrop={() => isAdmin && handleDrop(tutorial.id)}
-                  className={`flex items-center gap-1 rounded-md transition-colors ${
+                  className={`group flex items-center rounded-md transition-colors cursor-pointer ${
                     selectedTutorial === tutorial.id
                       ? "bg-[#21262d] text-[#e6edf3]"
                       : "text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3]"
-                  } ${draggedTutorial === tutorial.id ? "opacity-50" : ""}`}
+                  }`}
                 >
-                  {isAdmin && (
-                    <div className="cursor-grab active:cursor-grabbing p-1 shrink-0">
-                      <GripVertical className="w-3.5 h-3.5 text-[#484f58]" />
-                    </div>
-                  )}
-                  {isAdmin && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleLock(tutorial.id);
-                      }}
-                      className="p-1 shrink-0 hover:text-[#f0883e] transition-colors"
-                      title={tutorial.locked ? "Unlock tutorial" : "Lock tutorial"}
-                    >
-                      {tutorial.locked ? (
-                        <Lock className="w-3.5 h-3.5 text-[#f0883e]" />
-                      ) : (
-                        <Unlock className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  )}
                   <button
-                    onClick={() => {
-                      setSelectedTutorial(tutorial.id);
-                      setSidebarOpen(false);
-                    }}
-                    className="flex-1 flex items-center gap-2 py-2 pr-3 text-left text-sm"
+                    onClick={() => setSelectedTutorial(tutorial.id)}
+                    className="flex-1 flex items-center gap-2 px-3 py-2 text-sm text-left min-w-0"
                   >
-                    <ChevronRight
-                      className={`w-4 h-4 shrink-0 transition-transform ${
-                        selectedTutorial === tutorial.id ? "rotate-90 text-[#58a6ff]" : ""
-                      }`}
-                    />
                     <span className="truncate" title={tutorial.title}>{tutorial.title}</span>
                   </button>
                 </div>
@@ -2202,15 +2106,22 @@ const deleteTutorial = (id: string) => {
                     {repo.description && (
                       <p className="text-[11px] text-[#484f58] mt-0.5 ml-6 truncate">{repo.description}</p>
                     )}
-                    {repo.language && (
-                      <div className="flex items-center gap-1.5 mt-1 ml-6">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: langColor[repo.language] || "#8b949e" }} />
-                        <span className="text-[10px] text-[#484f58]">{repo.language}</span>
-                      </div>
-                    )}
-                  </button>
-                ))}
-                {!isLoadingRepos && repos.length === 0 && (
+  {repo.languages && repo.languages.length > 0 && (
+  <div className="flex items-center gap-2 mt-1 ml-6 flex-wrap">
+    {repo.languages.slice(0, 4).map((lang) => (
+      <div key={lang} className="flex items-center gap-1">
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: langColor[lang] || "#8b949e" }} />
+        <span className="text-[10px] text-[#484f58]">{lang}</span>
+      </div>
+    ))}
+    {repo.languages.length > 4 && (
+      <span className="text-[10px] text-[#484f58]">+{repo.languages.length - 4}</span>
+    )}
+  </div>
+  )}
+  </button>
+  ))}
+  {!isLoadingRepos && repos.length === 0 && (
                   <p className="text-sm text-[#484f58] text-center py-4">No public repos found</p>
                 )}
               </nav>
@@ -2296,8 +2207,30 @@ const deleteTutorial = (id: string) => {
         <div className={`flex-1 min-w-0 flex ${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? '' : 'justify-center'}`}>
           <main className={`${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? 'w-1/2' : 'w-full max-w-4xl'} min-w-0 p-4 lg:p-6 overflow-y-auto`}>
 
-          {/* Repository View */}
-          {activeTab === "repositories" ? (
+          {/* Loading skeleton for main content */}
+          {activeTab === "tutorials" && isLoadingTutorials ? (
+            <div className="max-w-3xl mx-auto">
+              {/* Title skeleton */}
+              <div className="mb-6">
+                <div className="skeleton-shimmer h-7 w-2/5 mb-3" />
+                <div className="skeleton-shimmer h-4 w-3/5" />
+              </div>
+              {/* Step skeletons */}
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden mb-4">
+                  <div className="px-4 py-3 border-b border-[#30363d]">
+                    <div className="skeleton-shimmer h-5 w-1/3" />
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div className="skeleton-shimmer h-4 w-full" />
+                    <div className="skeleton-shimmer h-4 w-4/5" />
+                    <div className="skeleton-shimmer h-4 w-3/5" />
+                    <div className="skeleton-shimmer h-20 w-full mt-2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : activeTab === "repositories" ? (
             <div className="max-w-3xl mx-auto">
               {!selectedRepo ? (
                 /* Repo list view */
@@ -2331,16 +2264,20 @@ const deleteTutorial = (id: string) => {
                           {repo.description && (
                             <p className="text-sm text-[#8b949e] mb-2 ml-6">{repo.description}</p>
                           )}
-                          <div className="flex items-center gap-4 ml-6">
-                            {repo.language && (
-                              <div className="flex items-center gap-1.5">
-                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: langColor[repo.language] || "#8b949e" }} />
-                                <span className="text-xs text-[#8b949e]">{repo.language}</span>
-                              </div>
-                            )}
-                            <span className="text-xs text-[#484f58]">
-                              Updated {new Date(repo.updated_at).toLocaleDateString()}
-                            </span>
+  <div className="flex items-center gap-4 ml-6 flex-wrap">
+  {repo.languages && repo.languages.length > 0 && (
+    <div className="flex items-center gap-2 flex-wrap">
+      {repo.languages.map((lang) => (
+        <div key={lang} className="flex items-center gap-1">
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: langColor[lang] || "#8b949e" }} />
+          <span className="text-xs text-[#8b949e]">{lang}</span>
+        </div>
+      ))}
+    </div>
+  )}
+  <span className="text-xs text-[#484f58]">
+  Updated {new Date(repo.updated_at).toLocaleDateString()}
+  </span>
                           </div>
                         </button>
                       ))}
@@ -2593,7 +2530,27 @@ const deleteTutorial = (id: string) => {
                         {result.step.explanation && (
                           <p className="text-sm text-[#8b949e]">{result.step.explanation}</p>
                         )}
+                        {/* Show images before code */}
+                        {result.step.images?.filter(img => img.position === "before").map((img) => (
+                          <div key={img.id} className="rounded-md overflow-hidden border border-[#30363d]">
+                            <img src={img.url} alt={img.caption || "Step image"} className="max-w-full h-auto" />
+                            {img.caption && <p className="text-xs text-[#8b949e] p-2 bg-[#0d1117]">{img.caption}</p>}
+                          </div>
+                        ))}
+                        {/* Legacy single image */}
+                        {result.step.image && !result.step.images?.length && (
+                          <div className="rounded-md overflow-hidden border border-[#30363d]">
+                            <img src={result.step.image} alt="Step screenshot" className="max-w-full h-auto" />
+                          </div>
+                        )}
                         {result.step.code && <CodeBlock code={result.step.code} onCopy={handleCopy} />}
+                        {/* Show images after code */}
+                        {result.step.images?.filter(img => img.position === "after").map((img) => (
+                          <div key={img.id} className="rounded-md overflow-hidden border border-[#30363d]">
+                            <img src={img.url} alt={img.caption || "Step image"} className="max-w-full h-auto" />
+                            {img.caption && <p className="text-xs text-[#8b949e] p-2 bg-[#0d1117]">{img.caption}</p>}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}

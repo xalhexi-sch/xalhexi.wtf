@@ -21,14 +21,34 @@ export async function GET() {
 
     const repos = await response.json();
 
-    const simplified = repos.map((repo: Record<string, unknown>) => ({
-      name: repo.name,
-      description: repo.description || "",
-      language: repo.language || null,
-      updated_at: repo.updated_at,
-      html_url: repo.html_url,
-      default_branch: repo.default_branch || "main",
-    }));
+    // Fetch languages for each repo in parallel
+    const simplified = await Promise.all(
+      repos.map(async (repo: Record<string, unknown>) => {
+        let languages: string[] = [];
+        try {
+          const langResp = await fetch(
+            `https://api.github.com/repos/${GITHUB_USER}/${repo.name}/languages`,
+            { headers: { Accept: "application/vnd.github.v3+json" }, cache: "no-store" }
+          );
+          if (langResp.ok) {
+            const langData = await langResp.json();
+            languages = Object.keys(langData);
+          }
+        } catch {
+          // fallback to primary language
+          if (repo.language) languages = [repo.language as string];
+        }
+        return {
+          name: repo.name,
+          description: repo.description || "",
+          language: repo.language || null,
+          languages,
+          updated_at: repo.updated_at,
+          html_url: repo.html_url,
+          default_branch: repo.default_branch || "main",
+        };
+      })
+    );
 
     return NextResponse.json({ repos: simplified });
   } catch (error) {
