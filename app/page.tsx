@@ -40,6 +40,9 @@ import {
   FileIcon,
   ChevronLeft,
   GitBranch,
+  Sun,
+  Moon,
+  Zap,
 } from "lucide-react";
 
 interface StepImage {
@@ -572,7 +575,7 @@ function generateId() {
 function Toast({ message, visible }: { message: string; visible: boolean }) {
   return (
     <div
-      className={`fixed bottom-5 left-1/2 -translate-x-1/2 bg-[#238636] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all duration-300 z-50 ${
+      className={`fixed bottom-5 left-1/2 -translate-x-1/2 bg-[var(--t-accent-green)] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all duration-300 z-50 ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
       }`}
     >
@@ -705,10 +708,10 @@ function StepImageDisplay({ img, altText }: { img: StepImage; altText: string })
 
   return (
     <>
-      <div className="rounded-md border border-[#30363d] overflow-hidden bg-[#0d1117]">
+      <div className="rounded-md border border-[var(--t-border)] overflow-hidden bg-[var(--t-bg-primary)]">
         {showTopCaption && (
-          <div className="px-3 py-2 border-b border-[#30363d] bg-[#161b22]">
-            <p className="text-xs text-[#8b949e] italic">{img.caption}</p>
+          <div className="px-3 py-2 border-b border-[var(--t-border)] bg-[var(--t-bg-secondary)]">
+            <p className="text-xs text-[var(--t-text-muted)] italic">{img.caption}</p>
           </div>
         )}
         <div className="p-2">
@@ -731,8 +734,8 @@ function StepImageDisplay({ img, altText }: { img: StepImage; altText: string })
           )}
         </div>
         {showBottomCaption && (
-          <div className="px-3 py-2 border-t border-[#30363d] bg-[#161b22]">
-            <p className="text-xs text-[#8b949e] italic">{img.caption}</p>
+          <div className="px-3 py-2 border-t border-[var(--t-border)] bg-[var(--t-bg-secondary)]">
+            <p className="text-xs text-[var(--t-text-muted)] italic">{img.caption}</p>
           </div>
         )}
       </div>
@@ -770,13 +773,13 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
   };
 
   return (
-    <div className="relative rounded-md overflow-hidden border border-[#30363d] bg-[#0d1117] group">
+    <div className="relative rounded-md overflow-hidden border border-[var(--t-border)] bg-[var(--t-bg-primary)] group">
       <button
         onClick={handleCopy}
         className={`absolute top-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md transition-all duration-200 border z-10 ${
           copied
-            ? 'bg-[#238636] border-[#238636] text-white scale-105'
-            : 'bg-[#21262d] text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#30363d] border-[#30363d]'
+            ? 'bg-[var(--t-accent-green)] border-[#238636] text-white scale-105'
+            : 'bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-secondary)] hover:bg-[var(--t-bg-hover)] border-[var(--t-border)]'
         } ${animating ? 'scale-110' : ''}`}
       >
         <span className={`transition-transform duration-200 ${animating ? 'scale-125' : ''}`}>
@@ -804,13 +807,13 @@ function CopyableCommand({ command, onCopy }: { command: string; onCopy: (text: 
   return (
     <button
       onClick={handleCopy}
-      className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-left hover:border-[#484f58] transition-colors group"
+      className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-left hover:border-[var(--t-text-faint)] transition-colors group"
     >
       <code className="text-xs font-mono text-[#7ee787] truncate">{command}</code>
       {copied ? (
-        <Check className="w-4 h-4 text-[#3fb950] shrink-0" />
+        <Check className="w-4 h-4 text-[var(--t-accent-green-text)] shrink-0" />
       ) : (
-        <Copy className="w-4 h-4 text-[#484f58] group-hover:text-[#8b949e] shrink-0" />
+        <Copy className="w-4 h-4 text-[var(--t-text-faint)] group-hover:text-[var(--t-text-muted)] shrink-0" />
       )}
     </button>
   );
@@ -846,11 +849,11 @@ function LoginModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] w-full max-w-sm p-6">
+      <div className="bg-[var(--t-bg-secondary)] rounded-lg border border-[var(--t-border)] w-full max-w-sm p-6">
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg font-semibold text-[#e6edf3]">Admin Login</h2>
-          <button onClick={onClose} className="p-1 hover:bg-[#30363d] rounded">
-            <X className="w-5 h-5 text-[#8b949e]" />
+          <h2 className="text-lg font-semibold text-[var(--t-text-primary)]">Admin Login</h2>
+          <button onClick={onClose} className="p-1 hover:bg-[var(--t-bg-hover)] rounded">
+            <X className="w-5 h-5 text-[var(--t-text-muted)]" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -859,19 +862,19 @@ function LoginModal({
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Username"
-            className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#484f58] focus:ring-2 focus:ring-[#1f6feb] focus:border-transparent outline-none"
+            className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] focus:border-transparent outline-none"
           />
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
-            className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#484f58] focus:ring-2 focus:ring-[#1f6feb] focus:border-transparent outline-none"
+            className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] focus:border-transparent outline-none"
           />
           {error && <p className="text-[#f85149] text-sm">{error}</p>}
           <button
             type="submit"
-            className="w-full bg-[#238636] hover:bg-[#2ea043] text-white font-medium py-2 rounded-md transition-colors"
+            className="w-full bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white font-medium py-2 rounded-md transition-colors"
           >
             Sign in
           </button>
@@ -905,13 +908,13 @@ function TutorialModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--t-bg-secondary)] rounded-lg border border-[var(--t-border)] w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg font-semibold text-[#e6edf3]">
+          <h2 className="text-lg font-semibold text-[var(--t-text-primary)]">
             {tutorial ? "Edit Tutorial" : "New Tutorial"}
           </h2>
-          <button onClick={onClose} className="p-1 hover:bg-[#30363d] rounded">
-            <X className="w-5 h-5 text-[#8b949e]" />
+          <button onClick={onClose} className="p-1 hover:bg-[var(--t-bg-hover)] rounded">
+            <X className="w-5 h-5 text-[var(--t-text-muted)]" />
           </button>
         </div>
         <form
@@ -925,37 +928,37 @@ function TutorialModal({
           className="space-y-4"
         >
           <div>
-            <label className="block text-xs text-[#8b949e] mb-1.5">Title</label>
+            <label className="block text-xs text-[var(--t-text-muted)] mb-1.5">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Tutorial title"
-              className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#484f58] focus:ring-2 focus:ring-[#1f6feb] outline-none"
+              className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] outline-none"
               required
             />
           </div>
           <div>
-            <label className="block text-xs text-[#8b949e] mb-1.5">Description</label>
+            <label className="block text-xs text-[var(--t-text-muted)] mb-1.5">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description"
               rows={2}
-              className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#484f58] focus:ring-2 focus:ring-[#1f6feb] outline-none resize-none"
+              className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] outline-none resize-none"
             />
           </div>
           <div className="flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 border border-[#30363d] text-[#c9d1d9] rounded-md hover:bg-[#21262d] transition-colors"
+              className="flex-1 py-2 border border-[var(--t-border)] text-[var(--t-text-secondary)] rounded-md hover:bg-[var(--t-bg-tertiary)] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors"
+              className="flex-1 py-2 bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white rounded-md transition-colors"
             >
               Save
             </button>
@@ -1045,13 +1048,13 @@ function StepModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--t-bg-secondary)] rounded-lg border border-[var(--t-border)] w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg font-semibold text-[#e6edf3]">
+          <h2 className="text-lg font-semibold text-[var(--t-text-primary)]">
             {step ? "Edit Step" : "New Step"}
           </h2>
-          <button onClick={onClose} className="p-1 hover:bg-[#30363d] rounded">
-            <X className="w-5 h-5 text-[#8b949e]" />
+          <button onClick={onClose} className="p-1 hover:bg-[var(--t-bg-hover)] rounded">
+            <X className="w-5 h-5 text-[var(--t-text-muted)]" />
           </button>
         </div>
         <form
@@ -1066,48 +1069,48 @@ function StepModal({
           className="space-y-4"
         >
           <div>
-            <label className="block text-xs text-[#8b949e] mb-1.5">Step Heading</label>
+            <label className="block text-xs text-[var(--t-text-muted)] mb-1.5">Step Heading</label>
             <input
               type="text"
               value={heading}
               onChange={(e) => setHeading(e.target.value)}
               placeholder="e.g., Initialize Repository"
-              className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#484f58] focus:ring-2 focus:ring-[#1f6feb] outline-none"
+              className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] outline-none"
               required
             />
           </div>
           <div>
-            <label className="block text-xs text-[#8b949e] mb-1.5">Explanation</label>
+            <label className="block text-xs text-[var(--t-text-muted)] mb-1.5">Explanation</label>
             <textarea
               value={explanation}
               onChange={(e) => setExplanation(e.target.value)}
               placeholder="Explain what this step does..."
               rows={2}
-              className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#484f58] focus:ring-2 focus:ring-[#1f6feb] outline-none resize-none"
+              className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] outline-none resize-none"
             />
           </div>
           <div>
-            <label className="block text-xs text-[#8b949e] mb-1.5">Code / Command</label>
+            <label className="block text-xs text-[var(--t-text-muted)] mb-1.5">Code / Command</label>
             <textarea
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="git init"
               rows={4}
-              className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#484f58] focus:ring-2 focus:ring-[#1f6feb] focus:border-[#1f6feb] outline-none resize-none font-mono text-sm"
+              className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] focus:border-[var(--t-accent-blue)] outline-none resize-none font-mono text-sm"
             />
           </div>
 
           {/* Screenshots Section */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-[#8b949e] flex items-center gap-1.5">
+              <label className="text-xs text-[var(--t-text-muted)] flex items-center gap-1.5">
                 <ImageIcon className="w-3.5 h-3.5" />
-                Screenshots <span className="text-[#484f58]">(optional)</span>
+                Screenshots <span className="text-[var(--t-text-faint)]">(optional)</span>
               </label>
               <button
                 type="button"
                 onClick={addImage}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] hover:text-[#e6edf3] rounded transition-colors"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)] rounded transition-colors"
               >
                 <Plus className="w-3 h-3" />
                 Add Image
@@ -1115,22 +1118,22 @@ function StepModal({
             </div>
 
             {images.length === 0 && (
-              <div className="text-center py-6 border border-dashed border-[#30363d] rounded-md">
-                <ImageIcon className="w-8 h-8 mx-auto text-[#484f58] mb-2" />
-                <p className="text-xs text-[#484f58]">No screenshots added yet</p>
-                <p className="text-[10px] text-[#484f58] mt-1">Paste a URL or upload from your PC (PNG, JPEG, WEBP)</p>
+              <div className="text-center py-6 border border-dashed border-[var(--t-border)] rounded-md">
+                <ImageIcon className="w-8 h-8 mx-auto text-[var(--t-text-faint)] mb-2" />
+                <p className="text-xs text-[var(--t-text-faint)]">No screenshots added yet</p>
+                <p className="text-[10px] text-[var(--t-text-faint)] mt-1">Paste a URL or upload from your PC (PNG, JPEG, WEBP)</p>
               </div>
             )}
 
             <div className="space-y-3">
               {images.map((img, index) => (
-                <div key={img.id} className="bg-[#0d1117] border border-[#30363d] rounded-lg p-3">
+                <div key={img.id} className="bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-lg p-3">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <span className="text-xs text-[#8b949e] font-medium">Image {index + 1}</span>
+                    <span className="text-xs text-[var(--t-text-muted)] font-medium">Image {index + 1}</span>
                     <button
                       type="button"
                       onClick={() => removeImage(img.id)}
-                      className="p-1 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#f85149] transition-colors"
+                      className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[#f85149] transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -1143,7 +1146,7 @@ function StepModal({
                       value={img.url}
                       onChange={(e) => updateImage(img.id, { url: e.target.value })}
                       placeholder="Paste URL or upload from PC"
-                      className="flex-1 px-2.5 py-1.5 bg-[#161b22] border border-[#30363d] rounded text-sm text-[#e6edf3] placeholder-[#484f58] focus:ring-1 focus:ring-[#1f6feb] outline-none"
+                      className="flex-1 px-2.5 py-1.5 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded text-sm text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-1 focus:ring-[var(--t-accent-blue)] outline-none"
                     />
                     <input
                       type="file"
@@ -1160,7 +1163,7 @@ function StepModal({
                       type="button"
                       onClick={() => fileInputRefs.current[img.id]?.click()}
                       disabled={uploadingImageId === img.id}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded text-xs text-[#c9d1d9] transition-colors disabled:opacity-50 shrink-0"
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] border border-[var(--t-border)] rounded text-xs text-[var(--t-text-secondary)] transition-colors disabled:opacity-50 shrink-0"
                       title="Upload from PC"
                     >
                       {uploadingImageId === img.id ? (
@@ -1174,7 +1177,7 @@ function StepModal({
 
                   {/* Image Preview */}
                   {img.url && (
-                    <div className="mb-3 rounded border border-[#30363d] overflow-hidden bg-[#161b22] p-1">
+                    <div className="mb-3 rounded border border-[var(--t-border)] overflow-hidden bg-[var(--t-bg-secondary)] p-1">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={img.url || "/placeholder.svg"}
@@ -1192,7 +1195,7 @@ function StepModal({
                   <div className="grid grid-cols-2 gap-2">
                     {/* Position */}
                     <div>
-                      <label className="block text-[10px] text-[#484f58] mb-1">Position</label>
+                      <label className="block text-[10px] text-[var(--t-text-faint)] mb-1">Position</label>
                       <div className="flex gap-1">
                         <button
                           type="button"
@@ -1200,7 +1203,7 @@ function StepModal({
                           className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs rounded transition-colors ${
                             img.position === "before"
                               ? "bg-[#1f6feb] text-white"
-                              : "bg-[#21262d] text-[#8b949e] hover:text-[#e6edf3]"
+                              : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
                           }`}
                         >
                           <ArrowUp className="w-3 h-3" />
@@ -1211,8 +1214,8 @@ function StepModal({
                           onClick={() => updateImage(img.id, { position: "after" })}
                           className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs rounded transition-colors ${
                             img.position === "after"
-                              ? "bg-[#238636] text-white"
-                              : "bg-[#21262d] text-[#8b949e] hover:text-[#e6edf3]"
+                              ? "bg-[var(--t-accent-green)] text-white"
+                              : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
                           }`}
                         >
                           <ArrowDown className="w-3 h-3" />
@@ -1223,7 +1226,7 @@ function StepModal({
 
                     {/* Caption Position */}
                     <div>
-                      <label className="block text-[10px] text-[#484f58] mb-1">Caption Position</label>
+                      <label className="block text-[10px] text-[var(--t-text-faint)] mb-1">Caption Position</label>
                       <div className="flex gap-1">
                         <button
                           type="button"
@@ -1231,7 +1234,7 @@ function StepModal({
                           className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
                             img.captionPosition === "top"
                               ? "bg-[#8957e5] text-white"
-                              : "bg-[#21262d] text-[#8b949e] hover:text-[#e6edf3]"
+                              : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
                           }`}
                         >
                           Top
@@ -1242,7 +1245,7 @@ function StepModal({
                           className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
                             img.captionPosition === "bottom" || !img.captionPosition
                               ? "bg-[#8957e5] text-white"
-                              : "bg-[#21262d] text-[#8b949e] hover:text-[#e6edf3]"
+                              : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
                           }`}
                         >
                           Bottom
@@ -1254,15 +1257,15 @@ function StepModal({
                   {/* Caption */}
                   <div className="mt-2">
                     <div className="flex items-center gap-1 mb-1">
-                      <Type className="w-3 h-3 text-[#484f58]" />
-                      <label className="text-[10px] text-[#484f58]">Caption</label>
+                      <Type className="w-3 h-3 text-[var(--t-text-faint)]" />
+                      <label className="text-[10px] text-[var(--t-text-faint)]">Caption</label>
                     </div>
                     <input
                       type="text"
                       value={img.caption || ""}
                       onChange={(e) => updateImage(img.id, { caption: e.target.value })}
                       placeholder="After running this command, you should see..."
-                      className="w-full px-2.5 py-1.5 bg-[#161b22] border border-[#30363d] rounded text-xs text-[#e6edf3] placeholder-[#484f58] focus:ring-1 focus:ring-[#1f6feb] outline-none"
+                      className="w-full px-2.5 py-1.5 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded text-xs text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-1 focus:ring-[var(--t-accent-blue)] outline-none"
                     />
                   </div>
                 </div>
@@ -1274,13 +1277,13 @@ function StepModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 border border-[#30363d] text-[#c9d1d9] rounded-md hover:bg-[#21262d] transition-colors"
+              className="flex-1 py-2 border border-[var(--t-border)] text-[var(--t-text-secondary)] rounded-md hover:bg-[var(--t-bg-tertiary)] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors"
+              className="flex-1 py-2 bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white rounded-md transition-colors"
             >
               Save
             </button>
@@ -1317,6 +1320,7 @@ export default function ITPTutorial() {
   const MAX_SIDEBAR_WIDTH = 500;
   const [isSyncing, setIsSyncing] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
+  const [colorTheme, setColorTheme] = useState<"dark" | "light" | "cyber">("dark");
   const [isLoadingTutorials, setIsLoadingTutorials] = useState(true);
   const [activeTab, setActiveTab] = useState<"tutorials" | "repositories">("tutorials");
   const [repos, setRepos] = useState<GithubRepo[]>([]);
@@ -1337,6 +1341,8 @@ export default function ITPTutorial() {
       if (savedTerminalUrl) setTerminalUrl(savedTerminalUrl);
       const savedTerminalLocked = localStorage.getItem("terminalLocked");
       if (savedTerminalLocked !== null) setTerminalLocked(savedTerminalLocked === "true");
+      const savedTheme = localStorage.getItem("colorTheme") as "dark" | "light" | "cyber" | null;
+      if (savedTheme) setColorTheme(savedTheme);
     }
 
     // Fetch tutorials from the server cache (backed by GitHub)
@@ -1370,6 +1376,14 @@ export default function ITPTutorial() {
       localStorage.setItem("terminalLocked", String(terminalLocked));
     }
   }, [terminalLocked]);
+
+  // Apply color theme
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.remove("dark", "light", "cyber");
+    html.classList.add(colorTheme);
+    localStorage.setItem("colorTheme", colorTheme);
+  }, [colorTheme]);
 
   // Sidebar resize handlers
   const startResizing = useCallback((e: React.MouseEvent) => {
@@ -1870,16 +1884,16 @@ const deleteTutorial = (id: string) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-[#e6edf3]">
+    <div className="min-h-screen bg-[var(--t-bg-primary)] text-[var(--t-text-primary)]">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[#161b22] border-b border-[#30363d]">
+      <header className="sticky top-0 z-40 bg-[var(--t-bg-secondary)] border-b border-[var(--t-border)]">
         <div className="px-4 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 hover:bg-[#21262d] rounded-md"
+              className="lg:hidden p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md"
             >
-              <Menu className="w-5 h-5 text-[#8b949e]" />
+              <Menu className="w-5 h-5 text-[var(--t-text-muted)]" />
             </button>
   <a
     href="https://github.com/xalhexi-sch"
@@ -1887,8 +1901,8 @@ const deleteTutorial = (id: string) => {
     rel="noopener noreferrer"
     className="flex items-center gap-2 hover:opacity-80 transition-opacity"
   >
-    <Github className="w-5 h-5 text-[#e6edf3]" />
-    <span className="font-semibold text-[#e6edf3]">xalhexi.wtf</span>
+    <Github className="w-5 h-5 text-[var(--t-text-primary)]" />
+    <span className="font-semibold text-[var(--t-text-primary)]">xalhexi.wtf</span>
   </a>
           </div>
 
@@ -1898,8 +1912,8 @@ const deleteTutorial = (id: string) => {
               onClick={() => switchTab("tutorials")}
               className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${
                 activeTab === "tutorials"
-                  ? "bg-[#238636] text-white"
-                  : "bg-[#21262d] text-[#8b949e]"
+                  ? "bg-[var(--t-accent-green)] text-white"
+                  : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)]"
               }`}
             >
               Tutorials
@@ -1908,8 +1922,8 @@ const deleteTutorial = (id: string) => {
               onClick={() => switchTab("repositories")}
               className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${
                 activeTab === "repositories"
-                  ? "bg-[#238636] text-white"
-                  : "bg-[#21262d] text-[#8b949e]"
+                  ? "bg-[var(--t-accent-green)] text-white"
+                  : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)]"
               }`}
             >
               Repos
@@ -1918,13 +1932,13 @@ const deleteTutorial = (id: string) => {
 
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#484f58]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--t-text-faint)]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search tutorials..."
-                className="w-full pl-9 pr-3 py-1.5 bg-[#0d1117] border border-[#30363d] rounded-md text-sm text-[#e6edf3] placeholder-[#484f58] focus:ring-1 focus:ring-[#1f6feb] focus:border-[#1f6feb] outline-none"
+                className="w-full pl-9 pr-3 py-1.5 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-sm text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-1 focus:ring-[var(--t-accent-blue)] focus:border-[var(--t-accent-blue)] outline-none"
               />
             </div>
           </div>
@@ -1934,45 +1948,45 @@ const deleteTutorial = (id: string) => {
   {terminalUrl && (isAdmin || !terminalLocked) && (
     <button
       onClick={() => setShowTerminal(true)}
-      className="p-2 hover:bg-[#21262d] rounded-md transition-colors"
+      className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
       title="Open Terminal"
     >
-      <Monitor className="w-5 h-5 text-[#58a6ff]" />
+      <Monitor className="w-5 h-5 text-[var(--t-accent-blue)]" />
     </button>
   )}
-  <a
-  href="https://github.com/xalhexi-sch"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="p-2 hover:bg-[#21262d] rounded-md transition-colors"
-  title="GitHub"
+  <button
+    onClick={() => setColorTheme(colorTheme === "dark" ? "light" : colorTheme === "light" ? "cyber" : "dark")}
+    className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
+    title={`Theme: ${colorTheme} (click to switch)`}
   >
-  <Github className="w-5 h-5 text-[#8b949e]" />
-  </a>
+    {colorTheme === "dark" && <Moon className="w-5 h-5 text-[var(--t-text-muted)]" />}
+    {colorTheme === "light" && <Sun className="w-5 h-5 text-[var(--t-accent-orange)]" />}
+    {colorTheme === "cyber" && <Zap className="w-5 h-5 text-[#a855f7]" />}
+  </button>
   {isAdmin ? (
     <>
       <button
         onClick={() => setTerminalSettingsOpen(true)}
-        className="p-2 hover:bg-[#21262d] rounded-md transition-colors"
+        className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
         title="Terminal Settings"
       >
-        <Terminal className="w-5 h-5 text-[#8b949e]" />
+        <Terminal className="w-5 h-5 text-[var(--t-text-muted)]" />
       </button>
       <button
         onClick={handleLogout}
-        className="p-2 hover:bg-[#21262d] rounded-md transition-colors"
+        className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
         title="Logout"
       >
-        <LogOut className="w-5 h-5 text-[#8b949e]" />
+        <LogOut className="w-5 h-5 text-[var(--t-text-muted)]" />
       </button>
     </>
   ) : (
   <button
   onClick={() => setLoginModalOpen(true)}
-  className="p-2 hover:bg-[#21262d] rounded-md transition-colors"
+  className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
   title="Admin"
   >
-  <Settings className="w-4 h-4 text-[#484f58]" />
+  <Settings className="w-4 h-4 text-[var(--t-text-faint)]" />
   </button>
   )}
           </div>
@@ -1981,13 +1995,13 @@ const deleteTutorial = (id: string) => {
         {/* Mobile search */}
         <div className="px-4 pb-3 sm:hidden">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#484f58]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--t-text-faint)]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tutorials..."
-              className="w-full pl-9 pr-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-sm text-[#e6edf3] placeholder-[#484f58] focus:ring-1 focus:ring-[#1f6feb] focus:border-[#1f6feb] outline-none"
+              className="w-full pl-9 pr-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-sm text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-1 focus:ring-[var(--t-accent-blue)] focus:border-[var(--t-accent-blue)] outline-none"
             />
           </div>
         </div>
@@ -1998,7 +2012,7 @@ const deleteTutorial = (id: string) => {
         <aside
           ref={sidebarRef}
           style={{ width: sidebarWidth }}
-          className={`fixed lg:sticky top-14 left-0 z-30 h-[calc(100vh-3.5rem)] bg-[#161b22] border-r border-[#30363d] overflow-y-auto transition-transform lg:translate-x-0 shrink-0 ${
+          className={`fixed lg:sticky top-14 left-0 z-30 h-[calc(100vh-3.5rem)] bg-[var(--t-bg-secondary)] border-r border-[var(--t-border)] overflow-y-auto transition-transform lg:translate-x-0 shrink-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -2016,8 +2030,8 @@ const deleteTutorial = (id: string) => {
                 onClick={() => switchTab("tutorials")}
                 className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${
                   activeTab === "tutorials"
-                    ? "bg-[#238636] text-white"
-                    : "bg-[#21262d] text-[#8b949e] hover:bg-[#30363d] hover:text-[#e6edf3]"
+                    ? "bg-[var(--t-accent-green)] text-white"
+                    : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
                 }`}
               >
                 Tutorials
@@ -2026,8 +2040,8 @@ const deleteTutorial = (id: string) => {
                 onClick={() => switchTab("repositories")}
                 className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${
                   activeTab === "repositories"
-                    ? "bg-[#238636] text-white"
-                    : "bg-[#21262d] text-[#8b949e] hover:bg-[#30363d] hover:text-[#e6edf3]"
+                    ? "bg-[var(--t-accent-green)] text-white"
+                    : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
                 }`}
               >
                 Repositories
@@ -2038,7 +2052,7 @@ const deleteTutorial = (id: string) => {
                     setEditingTutorial(null);
                     setTutorialModalOpen(true);
                   }}
-                  className="ml-auto p-1 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#e6edf3]"
+                  className="ml-auto p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
                   title="Add Tutorial"
                 >
                   <Plus className="w-4 h-4" />
@@ -2054,8 +2068,8 @@ const deleteTutorial = (id: string) => {
                   key={tutorial.id}
                   className={`group flex items-center rounded-md transition-colors cursor-pointer ${
                     selectedTutorial === tutorial.id
-                      ? "bg-[#21262d] text-[#e6edf3]"
-                      : "text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3]"
+                      ? "bg-[var(--t-bg-tertiary)] text-[var(--t-text-primary)]"
+                      : "text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)]"
                   }`}
                 >
                   <button
@@ -2064,6 +2078,19 @@ const deleteTutorial = (id: string) => {
                   >
                     <span className="truncate" title={tutorial.title}>{tutorial.title}</span>
                   </button>
+                  {isAdmin && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleLock(tutorial.id); }}
+                      className="shrink-0 p-1.5 mr-1 opacity-0 group-hover:opacity-100 hover:bg-[var(--t-bg-hover)] rounded transition-all"
+                      title={tutorial.locked ? "Unlock tutorial" : "Lock tutorial"}
+                    >
+                      {tutorial.locked ? (
+                        <Lock className="w-3.5 h-3.5 text-[var(--t-accent-orange)]" />
+                      ) : (
+                        <Unlock className="w-3.5 h-3.5 text-[var(--t-accent-green-text)]" />
+                      )}
+                    </button>
+                  )}
                 </div>
               ))}
               {isLoadingTutorials && (
@@ -2074,7 +2101,7 @@ const deleteTutorial = (id: string) => {
                 </div>
               )}
               {!isLoadingTutorials && filteredTutorials.length === 0 && (
-                <p className="text-sm text-[#484f58] text-center py-4">No tutorials found</p>
+                <p className="text-sm text-[var(--t-text-faint)] text-center py-4">No tutorials found</p>
               )}
             </nav>
             )}
@@ -2095,41 +2122,41 @@ const deleteTutorial = (id: string) => {
                     onClick={() => openRepo(repo.name)}
                     className={`w-full text-left px-3 py-2.5 rounded-md transition-colors ${
                       selectedRepo === repo.name
-                        ? "bg-[#21262d] text-[#e6edf3]"
-                        : "text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3]"
+                        ? "bg-[var(--t-bg-tertiary)] text-[var(--t-text-primary)]"
+                        : "text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)]"
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <GitBranch className="w-3.5 h-3.5 shrink-0 text-[#8b949e]" />
+                      <GitBranch className="w-3.5 h-3.5 shrink-0 text-[var(--t-text-muted)]" />
                       <span className="text-sm font-medium truncate">{repo.name}</span>
                     </div>
                     {repo.description && (
-                      <p className="text-[11px] text-[#484f58] mt-0.5 ml-6 truncate">{repo.description}</p>
+                      <p className="text-[11px] text-[var(--t-text-faint)] mt-0.5 ml-6 truncate">{repo.description}</p>
                     )}
   {repo.languages && repo.languages.length > 0 && (
   <div className="flex items-center gap-2 mt-1 ml-6 flex-wrap">
     {repo.languages.slice(0, 4).map((lang) => (
       <div key={lang} className="flex items-center gap-1">
         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: langColor[lang] || "#8b949e" }} />
-        <span className="text-[10px] text-[#484f58]">{lang}</span>
+        <span className="text-[10px] text-[var(--t-text-faint)]">{lang}</span>
       </div>
     ))}
     {repo.languages.length > 4 && (
-      <span className="text-[10px] text-[#484f58]">+{repo.languages.length - 4}</span>
+      <span className="text-[10px] text-[var(--t-text-faint)]">+{repo.languages.length - 4}</span>
     )}
   </div>
   )}
   </button>
   ))}
   {!isLoadingRepos && repos.length === 0 && (
-                  <p className="text-sm text-[#484f58] text-center py-4">No public repos found</p>
+                  <p className="text-sm text-[var(--t-text-faint)] text-center py-4">No public repos found</p>
                 )}
               </nav>
             )}
           </div>
 
           {/* Sidebar footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#30363d] bg-[#161b22]">
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[var(--t-border)] bg-[var(--t-bg-secondary)]">
             {isAdmin && activeTab === "tutorials" && (
               <>
                 {/* GitHub Push/Pull */}
@@ -2137,7 +2164,7 @@ const deleteTutorial = (id: string) => {
                   <button
                     onClick={pushToGithub}
                     disabled={isPushing}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors disabled:opacity-50"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white rounded-md transition-colors disabled:opacity-50"
                   >
                     <Upload className={`w-3.5 h-3.5 ${isPushing ? "animate-pulse" : ""}`} />
                     {isPushing ? "Saving..." : "Save to GitHub"}
@@ -2155,14 +2182,14 @@ const deleteTutorial = (id: string) => {
                 <div className="flex gap-2 mb-3">
                   <button
                     onClick={exportTutorials}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] border border-[#30363d] rounded-md transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
                   >
                     <Download className="w-3 h-3" />
                     Export File
                   </button>
                   <button
                     onClick={importTutorials}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] border border-[#30363d] rounded-md transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
                   >
                     <Upload className="w-3 h-3" />
                     Import File
@@ -2174,12 +2201,12 @@ const deleteTutorial = (id: string) => {
             {(isAdmin || !terminalLocked) && (
               <button
                 onClick={() => setShowTerminal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[#58a6ff] hover:bg-[#21262d] transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--t-accent-blue)] hover:bg-[var(--t-bg-tertiary)] transition-colors"
               >
                 <Terminal className="w-4 h-4" />
                 <span>Terminal</span>
                 {terminalLocked && isAdmin && (
-                  <Lock className="w-3 h-3 text-[#f0883e] ml-auto" />
+                  <Lock className="w-3 h-3 text-[var(--t-accent-orange)] ml-auto" />
                 )}
               </button>
             )}
@@ -2187,7 +2214,7 @@ const deleteTutorial = (id: string) => {
               href="https://github.com/xalhexi-sch"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-xs text-[#484f58] hover:text-[#8b949e] transition-colors"
+              className="flex items-center gap-2 text-xs text-[var(--t-text-faint)] hover:text-[var(--t-text-muted)] transition-colors"
             >
               <Heart className="w-3 h-3" />
               <span>Made by xalhexi-sch</span>
@@ -2217,8 +2244,8 @@ const deleteTutorial = (id: string) => {
               </div>
               {/* Step skeletons */}
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden mb-4">
-                  <div className="px-4 py-3 border-b border-[#30363d]">
+                <div key={i} className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden mb-4">
+                  <div className="px-4 py-3 border-b border-[var(--t-border)]">
                     <div className="skeleton-shimmer h-5 w-1/3" />
                   </div>
                   <div className="p-4 space-y-3">
@@ -2236,13 +2263,13 @@ const deleteTutorial = (id: string) => {
                 /* Repo list view */
                 <div>
                   <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-[#e6edf3] mb-1">Public Repositories</h1>
-                    <p className="text-[#8b949e] text-sm">Public repositories from xalhexi-sch</p>
+                    <h1 className="text-2xl font-bold text-[var(--t-text-primary)] mb-1">Public Repositories</h1>
+                    <p className="text-[var(--t-text-muted)] text-sm">Public repositories from xalhexi-sch</p>
                   </div>
                   {isLoadingRepos ? (
                     <div className="space-y-3">
                       {[1, 2, 3].map((i) => (
-                        <div key={i} className="p-4 bg-[#161b22] border border-[#30363d] rounded-lg">
+                        <div key={i} className="p-4 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg">
                           <div className="skeleton-shimmer h-5 w-2/5 mb-3" />
                           <div className="skeleton-shimmer h-4 w-4/5 mb-2 ml-6" />
                           <div className="skeleton-shimmer h-3 w-1/4 ml-6" />
@@ -2255,14 +2282,14 @@ const deleteTutorial = (id: string) => {
                         <button
                           key={repo.name}
                           onClick={() => openRepo(repo.name)}
-                          className="w-full text-left p-4 bg-[#161b22] border border-[#30363d] rounded-lg hover:border-[#484f58] transition-colors"
+                          className="w-full text-left p-4 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg hover:border-[var(--t-text-faint)] transition-colors"
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <GitBranch className="w-4 h-4 text-[#8b949e]" />
-                            <span className="text-[#58a6ff] font-semibold text-sm hover:underline">{repo.name}</span>
+                            <GitBranch className="w-4 h-4 text-[var(--t-text-muted)]" />
+                            <span className="text-[var(--t-accent-blue)] font-semibold text-sm hover:underline">{repo.name}</span>
                           </div>
                           {repo.description && (
-                            <p className="text-sm text-[#8b949e] mb-2 ml-6">{repo.description}</p>
+                            <p className="text-sm text-[var(--t-text-muted)] mb-2 ml-6">{repo.description}</p>
                           )}
   <div className="flex items-center gap-4 ml-6 flex-wrap">
   {repo.languages && repo.languages.length > 0 && (
@@ -2270,12 +2297,12 @@ const deleteTutorial = (id: string) => {
       {repo.languages.map((lang) => (
         <div key={lang} className="flex items-center gap-1">
           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: langColor[lang] || "#8b949e" }} />
-          <span className="text-xs text-[#8b949e]">{lang}</span>
+          <span className="text-xs text-[var(--t-text-muted)]">{lang}</span>
         </div>
       ))}
     </div>
   )}
-  <span className="text-xs text-[#484f58]">
+  <span className="text-xs text-[var(--t-text-faint)]">
   Updated {new Date(repo.updated_at).toLocaleDateString()}
   </span>
                           </div>
@@ -2290,16 +2317,16 @@ const deleteTutorial = (id: string) => {
                   <div className="flex items-center gap-2 mb-4">
                     <button
                       onClick={goBack}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Back
                     </button>
-                    <div className="flex items-center gap-1.5 text-sm text-[#8b949e] min-w-0">
-                      <button onClick={backToRepoList} className="text-[#58a6ff] hover:underline shrink-0">{selectedRepo}</button>
+                    <div className="flex items-center gap-1.5 text-sm text-[var(--t-text-muted)] min-w-0">
+                      <button onClick={backToRepoList} className="text-[var(--t-accent-blue)] hover:underline shrink-0">{selectedRepo}</button>
                       {repoPath.map((part, i) => (
                         <React.Fragment key={i}>
-                          <span className="text-[#484f58]">/</span>
+                          <span className="text-[var(--t-text-faint)]">/</span>
                           <button
                             onClick={() => {
                               const newPath = repoPath.slice(0, i + 1);
@@ -2307,18 +2334,18 @@ const deleteTutorial = (id: string) => {
                               setViewingFile(null);
                               loadRepoContents(selectedRepo, newPath.join("/"));
                             }}
-                            className="text-[#58a6ff] hover:underline"
+                            className="text-[var(--t-accent-blue)] hover:underline"
                           >
                             {part}
                           </button>
                         </React.Fragment>
                       ))}
-                      <span className="text-[#484f58]">/</span>
-                      <span className="text-[#e6edf3] truncate">{viewingFile.name}</span>
+                      <span className="text-[var(--t-text-faint)]">/</span>
+                      <span className="text-[var(--t-text-primary)] truncate">{viewingFile.name}</span>
                     </div>
                   </div>
                   {isLoadingFile ? (
-                    <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 space-y-3">
+                    <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg p-4 space-y-3">
                       <div className="skeleton-shimmer h-4 w-3/5" />
                       <div className="skeleton-shimmer h-4 w-full" />
                       <div className="skeleton-shimmer h-4 w-4/5" />
@@ -2327,20 +2354,20 @@ const deleteTutorial = (id: string) => {
                       <div className="skeleton-shimmer h-4 w-1/2" />
                     </div>
                   ) : (
-                  <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
-                    <div className="px-4 py-2 border-b border-[#30363d] flex items-center justify-between">
+                  <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
+                    <div className="px-4 py-2 border-b border-[var(--t-border)] flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <FileIcon className="w-4 h-4 text-[#8b949e]" />
-                        <span className="text-sm font-medium text-[#e6edf3]">{viewingFile.name}</span>
+                        <FileIcon className="w-4 h-4 text-[var(--t-text-muted)]" />
+                        <span className="text-sm font-medium text-[var(--t-text-primary)]">{viewingFile.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-[#484f58]">{formatSize(viewingFile.size)}</span>
+                        <span className="text-xs text-[var(--t-text-faint)]">{formatSize(viewingFile.size)}</span>
                         {viewingFile.content && (
                           <button
                             onClick={() => copyFileContent(viewingFile.content!)}
-                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors"
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
                           >
-                            {fileCopied ? <Check className="w-3.5 h-3.5 text-[#3fb950]" /> : <Copy className="w-3.5 h-3.5" />}
+                            {fileCopied ? <Check className="w-3.5 h-3.5 text-[var(--t-accent-green-text)]" /> : <Copy className="w-3.5 h-3.5" />}
                             {fileCopied ? "Copied!" : "Copy"}
                           </button>
                         )}
@@ -2350,13 +2377,13 @@ const deleteTutorial = (id: string) => {
                       <pre className="p-4 text-sm overflow-x-auto font-mono leading-relaxed whitespace-pre"><code dangerouslySetInnerHTML={{ __html: highlightCode(viewingFile.content, viewingFile.name) }} /></pre>
                     ) : (
                       <div className="p-6 text-center">
-                        <p className="text-[#8b949e] mb-2">File too large to display inline</p>
+                        <p className="text-[var(--t-text-muted)] mb-2">File too large to display inline</p>
                         {viewingFile.download_url && (
                           <a
                             href={viewingFile.download_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#21262d] hover:bg-[#30363d] text-[#58a6ff] border border-[#30363d] rounded-md transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors"
                           >
                             <Download className="w-4 h-4" />
                             Download
@@ -2374,7 +2401,7 @@ const deleteTutorial = (id: string) => {
                     {repoPath.length > 0 ? (
                       <button
                         onClick={goBack}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         Back
@@ -2382,24 +2409,24 @@ const deleteTutorial = (id: string) => {
                     ) : (
                       <button
                         onClick={backToRepoList}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] rounded-md transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         All Repos
                       </button>
                     )}
-                    <div className="flex items-center gap-1.5 text-sm text-[#8b949e] min-w-0">
-                      <button onClick={backToRepoList} className="text-[#58a6ff] hover:underline font-semibold shrink-0">{selectedRepo}</button>
+                    <div className="flex items-center gap-1.5 text-sm text-[var(--t-text-muted)] min-w-0">
+                      <button onClick={backToRepoList} className="text-[var(--t-accent-blue)] hover:underline font-semibold shrink-0">{selectedRepo}</button>
                       {repoPath.map((part, i) => (
                         <React.Fragment key={i}>
-                          <span className="text-[#484f58]">/</span>
+                          <span className="text-[var(--t-text-faint)]">/</span>
                           <button
                             onClick={() => {
                               const newPath = repoPath.slice(0, i + 1);
                               setRepoPath(newPath);
                               loadRepoContents(selectedRepo, newPath.join("/"));
                             }}
-                            className={`hover:underline ${i === repoPath.length - 1 ? "text-[#e6edf3] font-semibold" : "text-[#58a6ff]"}`}
+                            className={`hover:underline ${i === repoPath.length - 1 ? "text-[var(--t-text-primary)] font-semibold" : "text-[var(--t-accent-blue)]"}`}
                           >
                             {part}
                           </button>
@@ -2409,16 +2436,16 @@ const deleteTutorial = (id: string) => {
                   </div>
 
                   {isLoadingContents ? (
-                    <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
+                    <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
                       {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${i < 5 ? "border-b border-[#21262d]" : ""}`}>
+                        <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${i < 5 ? "border-b border-[var(--t-border-subtle)]" : ""}`}>
                           <div className="skeleton-shimmer h-4 w-4 shrink-0" />
                           <div className="skeleton-shimmer h-4" style={{ width: `${30 + i * 10}%` }} />
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
+                    <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
                       {repoContents.map((item, i) => (
                         <button
                           key={item.path}
@@ -2429,25 +2456,25 @@ const deleteTutorial = (id: string) => {
                               loadFileContent(selectedRepo, item.path);
                             }
                           }}
-                          className={`w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-[#21262d] transition-colors ${
-                            i < repoContents.length - 1 ? "border-b border-[#21262d]" : ""
+                          className={`w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--t-bg-tertiary)] transition-colors ${
+                            i < repoContents.length - 1 ? "border-b border-[var(--t-border-subtle)]" : ""
                           }`}
                         >
                           {item.type === "dir" ? (
                             <FolderIcon className="w-4 h-4 text-[#54aeff] shrink-0" />
                           ) : (
-                            <FileIcon className="w-4 h-4 text-[#8b949e] shrink-0" />
+                            <FileIcon className="w-4 h-4 text-[var(--t-text-muted)] shrink-0" />
                           )}
-                          <span className={`text-sm ${item.type === "dir" ? "text-[#e6edf3]" : "text-[#c9d1d9]"}`}>
+                          <span className={`text-sm ${item.type === "dir" ? "text-[var(--t-text-primary)]" : "text-[var(--t-text-secondary)]"}`}>
                             {item.name}
                           </span>
                           {item.type === "file" && item.size > 0 && (
-                            <span className="text-xs text-[#484f58] ml-auto">{formatSize(item.size)}</span>
+                            <span className="text-xs text-[var(--t-text-faint)] ml-auto">{formatSize(item.size)}</span>
                           )}
                         </button>
                       ))}
                       {repoContents.length === 0 && (
-                        <p className="text-sm text-[#484f58] text-center py-6">Empty directory</p>
+                        <p className="text-sm text-[var(--t-text-faint)] text-center py-6">Empty directory</p>
                       )}
                     </div>
                   )}
@@ -2455,25 +2482,25 @@ const deleteTutorial = (id: string) => {
               )}
 
               {/* GitHub Attribution Footer */}
-              <div className="mt-8 pt-4 border-t border-[#21262d] text-center space-y-1">
-                <p className="text-xs text-[#484f58]">
+              <div className="mt-8 pt-4 border-t border-[var(--t-border-subtle)] text-center space-y-1">
+                <p className="text-xs text-[var(--t-text-faint)]">
                   Repositories from{" "}
                   <a
                     href="https://github.com/xalhexi-sch"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#58a6ff] hover:underline"
+                    className="text-[var(--t-accent-blue)] hover:underline"
                   >
                     xalhexi-sch
                   </a>
                 </p>
                 {selectedRepo && (
-                  <p className="text-xs text-[#484f58]">
+                  <p className="text-xs text-[var(--t-text-faint)]">
                     <a
                       href={`https://github.com/xalhexi-sch/${selectedRepo}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#58a6ff] hover:underline"
+                      className="text-[var(--t-accent-blue)] hover:underline"
                     >
                       View this repository on GitHub
                     </a>
@@ -2486,17 +2513,17 @@ const deleteTutorial = (id: string) => {
             <div className={`${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? '' : 'max-w-3xl mx-auto'}`}>
               <div className="mb-6">
                 <div className="flex items-center justify-between gap-4 mb-2">
-                  <h1 className="text-xl font-bold text-[#e6edf3]">
+                  <h1 className="text-xl font-bold text-[var(--t-text-primary)]">
                     Search Results for "{searchQuery}"
                   </h1>
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="px-3 py-1.5 text-sm border border-[#30363d] rounded-md text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3] transition-colors"
+                    className="px-3 py-1.5 text-sm border border-[var(--t-border)] rounded-md text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
                   >
                     Clear search
                   </button>
                 </div>
-                <p className="text-[#8b949e] text-sm">
+                <p className="text-[var(--t-text-muted)] text-sm">
                   Found {searchResults.length} matching {searchResults.length === 1 ? "result" : "results"}
                 </p>
               </div>
@@ -2506,19 +2533,19 @@ const deleteTutorial = (id: string) => {
                   {searchResults.map((result, index) => (
                     <div
                       key={`${result.tutorialId}-${result.step.id}-${index}`}
-                      className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden"
+                      className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden"
                     >
                       {/* Result header with tutorial name */}
-                      <div className="px-4 py-2 border-b border-[#30363d] bg-[#21262d] flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-[#8b949e] min-w-0 flex-1">
+                      <div className="px-4 py-2 border-b border-[var(--t-border)] bg-[var(--t-bg-tertiary)] flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs text-[var(--t-text-muted)] min-w-0 flex-1">
                           <BookOpen className="w-3.5 h-3.5 shrink-0" />
                           <span className="truncate max-w-[120px]" title={result.tutorialTitle}>{result.tutorialTitle}</span>
-                          <span className="text-[#484f58] shrink-0">/</span>
-                          <span className="text-[#58a6ff] truncate" title={result.step.heading}>{result.step.heading}</span>
+                          <span className="text-[var(--t-text-faint)] shrink-0">/</span>
+                          <span className="text-[var(--t-accent-blue)] truncate" title={result.step.heading}>{result.step.heading}</span>
                         </div>
                         <button
                           onClick={() => clearSearchAndGoToTutorial(result.tutorialId)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs bg-[#238636] hover:bg-[#2ea043] text-white rounded transition-colors"
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white rounded transition-colors"
                         >
                           <ChevronRight className="w-3 h-3" />
                           View full tutorial
@@ -2528,27 +2555,27 @@ const deleteTutorial = (id: string) => {
                       {/* Step content */}
                       <div className="p-4 space-y-3">
                         {result.step.explanation && (
-                          <p className="text-sm text-[#8b949e]">{result.step.explanation}</p>
+                          <p className="text-sm text-[var(--t-text-muted)]">{result.step.explanation}</p>
                         )}
                         {/* Show images before code */}
                         {result.step.images?.filter(img => img.position === "before").map((img) => (
-                          <div key={img.id} className="rounded-md overflow-hidden border border-[#30363d]">
+                          <div key={img.id} className="rounded-md overflow-hidden border border-[var(--t-border)]">
                             <img src={img.url} alt={img.caption || "Step image"} className="max-w-full h-auto" />
-                            {img.caption && <p className="text-xs text-[#8b949e] p-2 bg-[#0d1117]">{img.caption}</p>}
+                            {img.caption && <p className="text-xs text-[var(--t-text-muted)] p-2 bg-[var(--t-bg-primary)]">{img.caption}</p>}
                           </div>
                         ))}
                         {/* Legacy single image */}
                         {result.step.image && !result.step.images?.length && (
-                          <div className="rounded-md overflow-hidden border border-[#30363d]">
+                          <div className="rounded-md overflow-hidden border border-[var(--t-border)]">
                             <img src={result.step.image} alt="Step screenshot" className="max-w-full h-auto" />
                           </div>
                         )}
                         {result.step.code && <CodeBlock code={result.step.code} onCopy={handleCopy} />}
                         {/* Show images after code */}
                         {result.step.images?.filter(img => img.position === "after").map((img) => (
-                          <div key={img.id} className="rounded-md overflow-hidden border border-[#30363d]">
+                          <div key={img.id} className="rounded-md overflow-hidden border border-[var(--t-border)]">
                             <img src={img.url} alt={img.caption || "Step image"} className="max-w-full h-auto" />
-                            {img.caption && <p className="text-xs text-[#8b949e] p-2 bg-[#0d1117]">{img.caption}</p>}
+                            {img.caption && <p className="text-xs text-[var(--t-text-muted)] p-2 bg-[var(--t-bg-primary)]">{img.caption}</p>}
                           </div>
                         ))}
                       </div>
@@ -2556,7 +2583,7 @@ const deleteTutorial = (id: string) => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 text-[#484f58]">
+                <div className="text-center py-12 text-[var(--t-text-faint)]">
                   <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p className="text-lg mb-1">No results found</p>
                   <p className="text-sm">Try searching for different keywords</p>
@@ -2569,7 +2596,7 @@ const deleteTutorial = (id: string) => {
               {/* Tutorial header */}
               <div className="mb-6">
                 <div className="flex items-start justify-between gap-4 mb-2">
-                  <h1 className="text-2xl font-bold text-[#e6edf3] truncate" title={currentTutorial.title}>{currentTutorial.title}</h1>
+                  <h1 className="text-2xl font-bold text-[var(--t-text-primary)] truncate" title={currentTutorial.title}>{currentTutorial.title}</h1>
                   {isAdmin && (
                     <div className="flex items-center gap-1 shrink-0">
                       <button
@@ -2577,14 +2604,14 @@ const deleteTutorial = (id: string) => {
                           setEditingTutorial(currentTutorial);
                           setTutorialModalOpen(true);
                         }}
-                        className="p-1.5 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#e6edf3]"
+                        className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
                         title="Edit"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => deleteTutorial(currentTutorial.id)}
-                        className="p-1.5 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#f85149]"
+                        className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[#f85149]"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -2592,7 +2619,7 @@ const deleteTutorial = (id: string) => {
                     </div>
                   )}
                 </div>
-                <p className="text-[#8b949e]">{currentTutorial.description}</p>
+                <p className="text-[var(--t-text-muted)]">{currentTutorial.description}</p>
               </div>
 
               {/* Steps */}
@@ -2600,28 +2627,28 @@ const deleteTutorial = (id: string) => {
                 {currentTutorial.steps.map((step, index) => (
                   <div
                     key={step.id}
-                    className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden"
+                    className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden"
                   >
-                    <div className="px-4 py-3 border-b border-[#30363d] flex items-center justify-between">
+                    <div className="px-4 py-3 border-b border-[var(--t-border)] flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#238636] text-white text-xs font-bold">
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--t-accent-green)] text-white text-xs font-bold">
                           {index + 1}
                         </span>
-                        <h3 className="font-semibold text-[#e6edf3]">{step.heading}</h3>
+                        <h3 className="font-semibold text-[var(--t-text-primary)]">{step.heading}</h3>
                       </div>
                       {isAdmin && (
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => moveStep(currentTutorial.id, step.id, "up")}
                             disabled={index === 0}
-                            className="p-1 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#e6edf3] disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
                           >
                             <ArrowUp className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => moveStep(currentTutorial.id, step.id, "down")}
                             disabled={index === currentTutorial.steps.length - 1}
-                            className="p-1 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#e6edf3] disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
                           >
                             <ArrowDown className="w-3.5 h-3.5" />
                           </button>
@@ -2630,13 +2657,13 @@ const deleteTutorial = (id: string) => {
                               setEditingStep({ tutorialId: currentTutorial.id, step });
                               setStepModalOpen(true);
                             }}
-                            className="p-1 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#e6edf3]"
+                            className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => deleteStep(currentTutorial.id, step.id)}
-                            className="p-1 hover:bg-[#21262d] rounded text-[#8b949e] hover:text-[#f85149]"
+                            className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[#f85149]"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2645,7 +2672,7 @@ const deleteTutorial = (id: string) => {
                     </div>
                     <div className="p-4 space-y-3">
                       {step.explanation && (
-                        <p className="text-sm text-[#8b949e]">{step.explanation}</p>
+                        <p className="text-sm text-[var(--t-text-muted)]">{step.explanation}</p>
                       )}
 
                       {/* Images BEFORE code */}
@@ -2683,7 +2710,7 @@ const deleteTutorial = (id: string) => {
                       setEditingStep({ tutorialId: currentTutorial.id, step: null });
                       setStepModalOpen(true);
                     }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[#30363d] rounded-lg text-[#8b949e] hover:border-[#484f58] hover:text-[#e6edf3] transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--t-border)] rounded-lg text-[var(--t-text-muted)] hover:border-[var(--t-text-faint)] hover:text-[var(--t-text-primary)] transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                     Add Step
@@ -2691,7 +2718,7 @@ const deleteTutorial = (id: string) => {
                 )}
 
                 {currentTutorial.steps.length === 0 && !isAdmin && (
-                  <div className="text-center py-12 text-[#484f58]">
+                  <div className="text-center py-12 text-[var(--t-text-faint)]">
                     <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>No steps in this tutorial yet</p>
                   </div>
@@ -2700,38 +2727,38 @@ const deleteTutorial = (id: string) => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-              <BookOpen className="w-16 h-16 text-[#30363d] mb-4" />
-              <h2 className="text-xl font-semibold text-[#e6edf3] mb-2">Select a Tutorial</h2>
-              <p className="text-[#8b949e]">Choose a tutorial from the sidebar to get started</p>
+              <BookOpen className="w-16 h-16 text-[var(--t-bg-hover)] mb-4" />
+              <h2 className="text-xl font-semibold text-[var(--t-text-primary)] mb-2">Select a Tutorial</h2>
+              <p className="text-[var(--t-text-muted)]">Choose a tutorial from the sidebar to get started</p>
             </div>
           )}
         </main>
 
           {/* Terminal Panel - Split Screen Right Side (only show if admin OR unlocked) */}
           {showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) && (
-            <div className="w-1/2 border-l border-[#30363d] flex flex-col bg-[#0d1117]">
+            <div className="w-1/2 border-l border-[var(--t-border)] flex flex-col bg-[var(--t-bg-primary)]">
               {/* Terminal Header */}
-              <div className="flex items-center justify-between px-3 py-2 bg-[#161b22] border-b border-[#30363d]">
+              <div className="flex items-center justify-between px-3 py-2 bg-[var(--t-bg-secondary)] border-b border-[var(--t-border)]">
                 <div className="flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-[#58a6ff]" />
-                  <span className="text-xs text-[#e6edf3] font-mono">
+                  <Terminal className="w-4 h-4 text-[var(--t-accent-blue)]" />
+                  <span className="text-xs text-[var(--t-text-primary)] font-mono">
                     {terminalUrl ? "student@itp-server" : "Terminal"}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setTerminalFullscreen(true)}
-                    className="p-1.5 hover:bg-[#21262d] rounded transition-colors"
+                    className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
                     title="Fullscreen"
                   >
-                    <Maximize2 className="w-4 h-4 text-[#8b949e]" />
+                    <Maximize2 className="w-4 h-4 text-[var(--t-text-muted)]" />
                   </button>
                   <button
                     onClick={() => setShowTerminal(false)}
-                    className="p-1.5 hover:bg-[#21262d] rounded transition-colors"
+                    className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
                     title="Close"
                   >
-                    <X className="w-4 h-4 text-[#8b949e]" />
+                    <X className="w-4 h-4 text-[var(--t-text-muted)]" />
                   </button>
                 </div>
               </div>
@@ -2749,16 +2776,16 @@ const deleteTutorial = (id: string) => {
               ) : (
                 <div className="flex-1 p-4 font-mono text-sm">
                   <div className="text-[#f85149] mb-2">$ connect --server itp-vps</div>
-                  <div className="text-[#8b949e] mb-4">Error: No Linux VPS available</div>
-                  <div className="text-[#484f58] mb-2">-------------------------------------------</div>
-                  <div className="text-[#8b949e] mb-1">The web terminal is not configured yet.</div>
+                  <div className="text-[var(--t-text-muted)] mb-4">Error: No Linux VPS available</div>
+                  <div className="text-[var(--t-text-faint)] mb-2">-------------------------------------------</div>
+                  <div className="text-[var(--t-text-muted)] mb-1">The web terminal is not configured yet.</div>
                   {isAdmin ? (
-                    <div className="text-[#58a6ff]">
-                      <span className="text-[#8b949e]">Admin: </span>
+                    <div className="text-[var(--t-accent-blue)]">
+                      <span className="text-[var(--t-text-muted)]">Admin: </span>
                       Click the Terminal icon in header to configure.
                     </div>
                   ) : (
-                    <div className="text-[#8b949e]">Contact administrator to enable terminal.</div>
+                    <div className="text-[var(--t-text-muted)]">Contact administrator to enable terminal.</div>
                   )}
                   <div className="mt-4 text-[#27c93f] animate-pulse">$ _</div>
                 </div>
@@ -2771,20 +2798,20 @@ const deleteTutorial = (id: string) => {
         <aside className="hidden xl:block w-80 shrink-0 p-4 lg:p-6">
           <div className="sticky top-20 space-y-4">
             {/* SSH Connection Card */}
-            <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
-              <div className="px-4 py-3 border-b border-[#30363d] flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-[#f0883e]" />
-                <h3 className="font-semibold text-sm text-[#e6edf3]">SSH Connection</h3>
+            <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
+              <div className="px-4 py-3 border-b border-[var(--t-border)] flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-[var(--t-accent-orange)]" />
+                <h3 className="font-semibold text-sm text-[var(--t-text-primary)]">SSH Connection</h3>
               </div>
               <div className="p-4 space-y-3">
                 <div>
-                  <p className="text-xs text-[#8b949e] mb-1.5">Connect to server:</p>
+                  <p className="text-xs text-[var(--t-text-muted)] mb-1.5">Connect to server:</p>
                   <CopyableCommand
                     command="ssh it21_lastname@172.17.100.15 -p 9898"
                     onCopy={handleCopy}
                   />
                 </div>
-                <div className="flex items-center gap-2 text-xs text-[#8b949e]">
+                <div className="flex items-center gap-2 text-xs text-[var(--t-text-muted)]">
                   <Server className="w-3.5 h-3.5" />
                   <span>Port: 9898</span>
                 </div>
@@ -2792,17 +2819,17 @@ const deleteTutorial = (id: string) => {
             </div>
 
             {/* Quick Links Card */}
-            <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
-              <div className="px-4 py-3 border-b border-[#30363d] flex items-center gap-2">
-                <Link2 className="w-4 h-4 text-[#58a6ff]" />
-                <h3 className="font-semibold text-sm text-[#e6edf3]">Quick Links</h3>
+            <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
+              <div className="px-4 py-3 border-b border-[var(--t-border)] flex items-center gap-2">
+                <Link2 className="w-4 h-4 text-[var(--t-accent-blue)]" />
+                <h3 className="font-semibold text-sm text-[var(--t-text-primary)]">Quick Links</h3>
               </div>
               <div className="p-2">
                 <a
                   href="http://172.17.107.168/PORTS.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3] rounded-md transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] rounded-md transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                   <span>Port List</span>
@@ -2811,7 +2838,7 @@ const deleteTutorial = (id: string) => {
                   href="http://172.17.107.168/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3] rounded-md transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] rounded-md transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                   <span>Class Resources</span>
@@ -2820,7 +2847,7 @@ const deleteTutorial = (id: string) => {
                   href="https://github.com/xalhexi-sch"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3] rounded-md transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] rounded-md transition-colors"
                 >
                   <Github className="w-4 h-4" />
                   <span>xalhexi-sch</span>
@@ -2853,39 +2880,39 @@ const deleteTutorial = (id: string) => {
       {/* Terminal Settings Modal (Admin) */}
       {terminalSettingsOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#161b22] rounded-lg border border-[#30363d] w-full max-w-md p-6">
+          <div className="bg-[var(--t-bg-secondary)] rounded-lg border border-[var(--t-border)] w-full max-w-md p-6">
             <div className="flex justify-between items-center mb-5">
-              <h2 className="text-lg font-semibold text-[#e6edf3]">Terminal Settings</h2>
-              <button onClick={() => setTerminalSettingsOpen(false)} className="p-1 hover:bg-[#30363d] rounded">
-                <X className="w-5 h-5 text-[#8b949e]" />
+              <h2 className="text-lg font-semibold text-[var(--t-text-primary)]">Terminal Settings</h2>
+              <button onClick={() => setTerminalSettingsOpen(false)} className="p-1 hover:bg-[var(--t-bg-hover)] rounded">
+                <X className="w-5 h-5 text-[var(--t-text-muted)]" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs text-[#8b949e] mb-1.5">Terminal URL (ttyd/gotty)</label>
+                <label className="block text-xs text-[var(--t-text-muted)] mb-1.5">Terminal URL (ttyd/gotty)</label>
                 <input
                   type="text"
                   value={terminalUrl}
                   onChange={(e) => setTerminalUrl(e.target.value)}
                   placeholder="http://your-vps-ip:7681"
-                  className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#e6edf3] placeholder-[#484f58] focus:ring-2 focus:ring-[#1f6feb] outline-none text-sm"
+                  className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] outline-none text-sm"
                 />
-                <p className="text-xs text-[#484f58] mt-1">Enter the URL where ttyd is running on your VPS</p>
+                <p className="text-xs text-[var(--t-text-faint)] mt-1">Enter the URL where ttyd is running on your VPS</p>
               </div>
               
               {/* Lock/Unlock Toggle */}
-              <div className="flex items-center justify-between gap-4 p-3 bg-[#0d1117] border border-[#30363d] rounded-md">
+              <div className="flex items-center justify-between gap-4 p-3 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md">
                 <div className="flex items-center gap-3 min-w-0">
                   {terminalLocked ? (
-                    <Lock className="w-5 h-5 text-[#f0883e] shrink-0" />
+                    <Lock className="w-5 h-5 text-[var(--t-accent-orange)] shrink-0" />
                   ) : (
-                    <Unlock className="w-5 h-5 text-[#3fb950] shrink-0" />
+                    <Unlock className="w-5 h-5 text-[var(--t-accent-green-text)] shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-[#e6edf3]">
+                    <p className="text-sm font-medium text-[var(--t-text-primary)]">
                       {terminalLocked ? "Terminal Locked" : "Terminal Unlocked"}
                     </p>
-                    <p className="text-xs text-[#484f58]">
+                    <p className="text-xs text-[var(--t-text-faint)]">
                       {terminalLocked 
                         ? "Only admins can access" 
                         : "All users can access"}
@@ -2900,7 +2927,7 @@ const deleteTutorial = (id: string) => {
                   }}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 shrink-0 cursor-pointer ${
                     terminalLocked
-                      ? "bg-[#238636] hover:bg-[#2ea043] text-white"
+                      ? "bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white"
                       : "bg-[#da3633] hover:bg-[#f85149] text-white"
                   }`}
                 >
@@ -2926,7 +2953,7 @@ const deleteTutorial = (id: string) => {
                     setTerminalSettingsOpen(false);
                     showToast("Terminal URL cleared");
                   }}
-                  className="flex-1 py-2 border border-[#30363d] text-[#c9d1d9] rounded-md hover:bg-[#21262d] transition-colors"
+                  className="flex-1 py-2 border border-[var(--t-border)] text-[var(--t-text-secondary)] rounded-md hover:bg-[var(--t-bg-tertiary)] transition-colors"
                 >
                   Clear
                 </button>
@@ -2935,7 +2962,7 @@ const deleteTutorial = (id: string) => {
                     setTerminalSettingsOpen(false);
                     showToast("Terminal URL saved");
                   }}
-                  className="flex-1 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors"
+                  className="flex-1 py-2 bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white rounded-md transition-colors"
                 >
                   Save
                 </button>
@@ -2947,30 +2974,30 @@ const deleteTutorial = (id: string) => {
 
       {/* Terminal Fullscreen View (only show if admin OR unlocked) */}
       {showTerminal && terminalFullscreen && (isAdmin || !terminalLocked) && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-[#0d1117]">
+        <div className="fixed inset-0 z-50 flex flex-col bg-[var(--t-bg-primary)]">
           {/* Fullscreen Terminal Header */}
-          <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
+          <div className="flex items-center justify-between px-4 py-2 bg-[var(--t-bg-secondary)] border-b border-[var(--t-border)]">
             <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-[#58a6ff]" />
-              <span className="text-sm text-[#e6edf3] font-mono">
+              <Terminal className="w-4 h-4 text-[var(--t-accent-blue)]" />
+              <span className="text-sm text-[var(--t-text-primary)] font-mono">
                 {terminalUrl ? "student@itp-server: ~" : "Terminal"}
               </span>
-              <span className="text-xs text-[#484f58]">(Only 1 user at a time)</span>
+              <span className="text-xs text-[var(--t-text-faint)]">(Only 1 user at a time)</span>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setTerminalFullscreen(false)}
-                className="p-1.5 hover:bg-[#21262d] rounded transition-colors"
+                className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
                 title="Exit Fullscreen"
               >
-                <Minimize2 className="w-4 h-4 text-[#8b949e]" />
+                <Minimize2 className="w-4 h-4 text-[var(--t-text-muted)]" />
               </button>
               <button
                 onClick={() => { setShowTerminal(false); setTerminalFullscreen(false); }}
-                className="p-1.5 hover:bg-[#21262d] rounded transition-colors"
+                className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
                 title="Close"
               >
-                <X className="w-4 h-4 text-[#8b949e]" />
+                <X className="w-4 h-4 text-[var(--t-text-muted)]" />
               </button>
             </div>
           </div>
@@ -2988,19 +3015,19 @@ const deleteTutorial = (id: string) => {
           ) : (
             <div className="flex-1 p-6 font-mono text-sm">
               <div className="text-[#f85149] mb-2">$ connect --server itp-vps</div>
-              <div className="text-[#8b949e] mb-4">Error: No Linux VPS available</div>
-              <div className="text-[#484f58] mb-2">-------------------------------------------</div>
-              <div className="text-[#8b949e] mb-1">The web terminal is not configured yet.</div>
+              <div className="text-[var(--t-text-muted)] mb-4">Error: No Linux VPS available</div>
+              <div className="text-[var(--t-text-faint)] mb-2">-------------------------------------------</div>
+              <div className="text-[var(--t-text-muted)] mb-1">The web terminal is not configured yet.</div>
               {isAdmin ? (
-                <div className="text-[#58a6ff]">
-                  <span className="text-[#8b949e]">Admin: </span>
+                <div className="text-[var(--t-accent-blue)]">
+                  <span className="text-[var(--t-text-muted)]">Admin: </span>
                   Click the Terminal icon in header to configure VPS URL.
                   <br />
-                  <span className="text-[#8b949e]">See locked tutorial: </span>
-                  <span className="text-[#f0883e]">&quot;Setting Up Web Terminal&quot;</span>
+                  <span className="text-[var(--t-text-muted)]">See locked tutorial: </span>
+                  <span className="text-[var(--t-accent-orange)]">&quot;Setting Up Web Terminal&quot;</span>
                 </div>
               ) : (
-                <div className="text-[#8b949e]">Contact administrator to enable terminal access.</div>
+                <div className="text-[var(--t-text-muted)]">Contact administrator to enable terminal access.</div>
               )}
               <div className="mt-4 text-[#27c93f] animate-pulse">$ _</div>
             </div>
