@@ -3,7 +3,7 @@ import { revalidateTag } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
-const REPO = "xalhexi-sch/xalhexi-sch.github.io";
+const REPO = process.env.GITHUB_REPO || "xalhexi-sch/xalhexi-sch.github.io";
 const FILE_PATH = "tutorials.json";
 
 export async function POST(req: NextRequest) {
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Bust the server cache so all users immediately see the new tutorials
-    revalidateTag("tutorials");
+    revalidateTag("tutorials", "max");
 
     return NextResponse.json({ success: true });
   } catch (error) {
