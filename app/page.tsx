@@ -44,6 +44,7 @@ import {
   Moon,
   Zap,
   Star,
+  GripVertical,
 } from "lucide-react";
 
 interface StepImage {
