@@ -576,6 +576,12 @@
         "heading": "killing ports",
         "explanation": "",
         "code": "kill -9 <ID>"
+      },
+      {
+        "id": "oxwn0kq08",
+        "heading": "Open your website:",
+        "explanation": "",
+        "code": "http://172.17.100.15:9899/it21_lastname/webapps/app3/\n\n# when it's error try to open again and put the 9899"
       }
     ]
   }
