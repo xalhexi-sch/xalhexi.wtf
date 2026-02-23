@@ -5,12 +5,6 @@
     "description": "",
     "steps": [
       {
-        "id": "pzfx2redt",
-        "heading": "go to root user",
-        "explanation": "",
-        "code": "cd ~"
-      },
-      {
         "id": "9mmpk1qk3",
         "heading": "activate your virt",
         "explanation": "",
