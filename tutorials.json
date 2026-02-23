@@ -1,7 +1,7 @@
 [
   {
     "id": "2lximt1zh",
-    "title": "IMPORTANT",
+    "title": "📌 IMPORTANT",
     "description": "",
     "steps": [
       {
@@ -19,13 +19,13 @@
       {
         "id": "27i0pltdn",
         "heading": "activate website",
-        "explanation": "",
+        "explanation": "❗ CHANGE 5000 TO YOUR PORT",
         "code": "gunicorn --bind 127.0.0.1:5000 app:app"
       },
       {
         "id": "jd644gvb2",
         "heading": "show running ports",
-        "explanation": "",
+        "explanation": "❗ CHANGE 5000 TO YOUR PORT",
         "code": "lsof -i :5000"
       },
       {
@@ -43,7 +43,7 @@
       {
         "id": "oxwn0kq08",
         "heading": "Open your website:",
-        "explanation": "",
+        "explanation": "❗ CHANGE lastname TO YOUR last name",
         "code": "http://172.17.100.15:9899/it21_lastname/webapps/app4"
       }
     ],
