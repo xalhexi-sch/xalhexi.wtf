@@ -1,7 +1,5 @@
 "use client";
 
-// Fix: force rebuild to clear stale cache
-
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import hljs from "highlight.js";
 import { Minus } from "lucide-react";
