@@ -39,6 +39,12 @@
         "heading": "Open your website:",
         "explanation": "❗ CHANGE lastname TO YOUR last name",
         "code": "http://172.17.100.15:9899/it21_lastname/webapps/app4"
+      },
+      {
+        "id": "55r9w7qrl",
+        "heading": "Chat ai soon",
+        "explanation": "",
+        "code": "With store feature"
       }
     ],
     "starred": true
