@@ -32,7 +32,6 @@ import {
   Type,
   Lock,
   Unlock,
-  GripVertical,
   Monitor,
   Maximize2,
   Minimize2,
