@@ -7,8 +7,11 @@ const REPO = process.env.GITHUB_REPO || "xalhexi-sch/xalhexi-sch.github.io";
 const FILE_PATH = "tutorials.json";
 
 export async function POST(req: NextRequest) {
+  console.log("[v0] Push route handler called");
   try {
     const GITHUB_TOKEN = process.env.GITHUB_TUTORIALS_TOKEN;
+    console.log("[v0] GITHUB_TUTORIALS_TOKEN exists:", !!GITHUB_TOKEN);
+    console.log("[v0] GITHUB_REPO:", process.env.GITHUB_REPO);
     const { tutorials } = await req.json();
 
     if (!GITHUB_TOKEN) {

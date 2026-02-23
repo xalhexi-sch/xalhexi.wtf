@@ -5,8 +5,8 @@ export const dynamic = "force-dynamic";
 
 // Admin action: revalidate (sync) tutorials from GitHub
 export async function POST() {
+  console.log("[v0] Pull route handler called");
   try {
-    // Bust the server cache -- next request to /api/tutorials will re-fetch from GitHub
     revalidateTag("tutorials", "max");
 
     return NextResponse.json({
