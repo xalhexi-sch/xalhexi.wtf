@@ -70,7 +70,9 @@
         "explanation": "Access your app through the server URL. The exact URL depends on your server/proxy setup.",
         "code": "# Example URL (depends on your server setup):\n# http://172.17.100.15:9899/it21_banas/webapps/app1\n\n# Final folder structure:\n# webapps/\n# └── app1/\n#     ├── app.py\n#     └── templates/\n#         └── home.html"
       }
-    ]
+    ],
+    "starred": true,
+    "locked": true
   },
   {
     "id": "res3oiwu3",
