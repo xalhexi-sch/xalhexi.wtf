@@ -1568,6 +1568,10 @@ const deleteTutorial = (id: string) => {
     );
   };
 
+  const toggleTerminalLock = () => {
+    setTerminalLocked((prev) => !prev);
+  };
+
   const toggleStar = (id: string) => {
     setTutorials((prev) =>
       prev.map((t) => (t.id === id ? { ...t, starred: !t.starred } : t))
@@ -2243,16 +2247,28 @@ const deleteTutorial = (id: string) => {
             )}
             {/* Terminal button */}
             {(isAdmin || !terminalLocked) && (
-              <button
-                onClick={() => setShowTerminal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--t-accent-blue)] hover:bg-[var(--t-bg-tertiary)] transition-colors"
-              >
-                <Terminal className="w-4 h-4" />
-                <span>Terminal</span>
-                {terminalLocked && isAdmin && (
-                  <Lock className="w-3 h-3 text-[var(--t-accent-orange)] ml-auto" />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowTerminal(true)}
+                  className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--t-accent-blue)] hover:bg-[var(--t-bg-tertiary)] transition-colors"
+                >
+                  <Terminal className="w-4 h-4" />
+                  <span>Terminal</span>
+                </button>
+                {isAdmin && (
+                  <button
+                    onClick={toggleTerminalLock}
+                    className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-all"
+                    title={terminalLocked ? "Unlock terminal" : "Lock terminal"}
+                  >
+                    {terminalLocked ? (
+                      <Lock className="w-3.5 h-3.5 text-[var(--t-accent-orange)]" />
+                    ) : (
+                      <Unlock className="w-3.5 h-3.5 text-[var(--t-accent-green-text)]" />
+                    )}
+                  </button>
                 )}
-              </button>
+              </div>
             )}
             <a
               href="https://github.com/xalhexi-sch"
