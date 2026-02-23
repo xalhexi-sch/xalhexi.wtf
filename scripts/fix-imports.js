@@ -1,7 +1,29 @@
 const fs = require('fs');
 const path = require('path');
 
-const filePath = path.join(__dirname, '..', 'app', 'page.tsx');
+try { console.log('/code contents:', fs.readdirSync('/code')); } catch(e) { console.log('/code not found'); }
+try { console.log('/code/app:', fs.readdirSync('/code/app')); } catch(e) { console.log('/code/app not found'); }
+try { console.log('/tmp:', fs.readdirSync('/tmp').slice(0,10)); } catch(e) {}
+
+function findFile(dir, name, depth = 0) {
+  if (depth > 4) return null;
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isFile() && entry.name === name) return fullPath;
+      if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+        const result = findFile(fullPath, name, depth + 1);
+        if (result) return result;
+      }
+    }
+  } catch(e) {}
+  return null;
+}
+
+const filePath = findFile('/code', 'page.tsx') || findFile('/tmp', 'page.tsx');
+if (!filePath) { console.error('Could not find page.tsx!'); process.exit(1); }
+console.log('Found:', filePath);
 let content = fs.readFileSync(filePath, 'utf-8');
 
 console.log('=== BEFORE FIX ===');
