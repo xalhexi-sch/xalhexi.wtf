@@ -1,5 +1,5 @@
 "use client";
-// v1 - Clear cache, fix duplicates
+// v2 - Clean rebuild, remove all stale cache
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import hljs from "highlight.js";
