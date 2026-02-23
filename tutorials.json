@@ -563,13 +563,13 @@
         "id": "27i0pltdn",
         "heading": "activate website",
         "explanation": "",
-        "code": "gunicorn --bind 127.0.0.1:5065 app:app"
+        "code": "gunicorn --bind 127.0.0.1:5000 app:app"
       },
       {
         "id": "jd644gvb2",
         "heading": "kill: running ports",
         "explanation": "",
-        "code": "lsof -i :5065"
+        "code": "lsof -i :5000"
       },
       {
         "id": "sxyf11a07",
