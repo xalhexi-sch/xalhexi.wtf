@@ -6,8 +6,13 @@ export const dynamic = "force-dynamic";
 // Admin action: revalidate (sync) tutorials from GitHub
 export async function POST() {
   try {
+    // Bust the server cache -- next request to /api/tutorials will re-fetch from GitHub
     revalidateTag("tutorials", "max");
-    return NextResponse.json({ success: true, message: "Synced from GitHub. All users will see the latest." });
+
+    return NextResponse.json({
+      success: true,
+      message: "Cache revalidated. All users will now see the latest tutorials from GitHub."
+    });
   } catch (error) {
     console.error("Sync error:", error);
     return NextResponse.json(
