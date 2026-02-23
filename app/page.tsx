@@ -1571,12 +1571,6 @@ const deleteTutorial = (id: string) => {
     setTerminalLocked((prev) => !prev);
   };
 
-  const toggleStar = (id: string) => {
-    setTutorials((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, starred: !t.starred } : t))
-    );
-  };
-
 
 
   const saveStep = (heading: string, explanation: string, code: string, images: StepImage[]) => {
