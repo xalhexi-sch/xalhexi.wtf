@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const REPO = "xalhexi-sch/xalhexi-sch.github.io";
+const REPO = process.env.GITHUB_REPO || "xalhexi-sch/xalhexi-sch.github.io";
 const FILE_PATH = "tutorials.json";
 
 export async function GET() {

@@ -8,16 +8,7 @@
         "id": "10-1",
         "heading": "Go to Home Directory",
         "explanation": "Start by navigating to your home directory.",
-        "code": "cd ~",
-        "images": [
-          {
-            "id": "img-1771712369468",
-            "url": "https://raw.githubusercontent.com/xalhexi-sch/xalhexi.wtf/main/tutorial-images/Screenshot-2026-02-22-061901-1771712605237.png",
-            "position": "after",
-            "caption": "",
-            "captionPosition": "bottom"
-          }
-        ]
+        "code": "cd ~"
       },
       {
         "id": "10-2",
@@ -109,8 +100,8 @@
   },
   {
     "id": "1h5r70vne",
-    "title": "App3",
-    "description": "tuts",
+    "title": "app3",
+    "description": "",
     "steps": [
       {
         "id": "znj0s2gt4",
@@ -543,45 +534,24 @@
     "locked": true
   },
   {
-    "id": "2lximt1zh",
-    "title": "IMPORTANT",
-    "description": "",
+    "id": "4mxvtlif6",
+    "title": "test",
+    "description": "test",
     "steps": [
       {
-        "id": "pzfx2redt",
-        "heading": "go to root user",
-        "explanation": "",
-        "code": "cd ~"
-      },
-      {
-        "id": "9mmpk1qk3",
-        "heading": "activate your virt",
-        "explanation": "",
-        "code": "source ~/virt/bin/activate"
-      },
-      {
-        "id": "27i0pltdn",
-        "heading": "activate website",
-        "explanation": "",
-        "code": "gunicorn --bind 127.0.0.1:5000 app:app"
-      },
-      {
-        "id": "jd644gvb2",
-        "heading": "kill: running ports",
-        "explanation": "",
-        "code": "lsof -i :5000"
-      },
-      {
-        "id": "sxyf11a07",
-        "heading": "killing ports",
-        "explanation": "",
-        "code": "kill -9 <ID>"
-      },
-      {
-        "id": "oxwn0kq08",
-        "heading": "Open your website:",
-        "explanation": "",
-        "code": "http://172.17.100.15:9899/it21_lastname/webapps/app3/\n\n# when it's error try to open again and put the 9899"
+        "id": "du6q32spe",
+        "heading": "test",
+        "explanation": "test",
+        "code": "test",
+        "images": [
+          {
+            "id": "img-1771668526696",
+            "url": "https://raw.githubusercontent.com/xalhexi-sch/xalhexi-sch.github.io/main/tutorial-images/Screenshot-2026-02-19-230042-1771668805539.png?token=BV3JOQLAK7HGEOIENN6D6SDJTGCYE",
+            "position": "after",
+            "caption": "",
+            "captionPosition": "bottom"
+          }
+        ]
       }
     ]
   }

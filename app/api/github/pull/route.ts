@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function POST() {
   try {
     // Bust the server cache -- next request to /api/tutorials will re-fetch from GitHub
-    revalidateTag("tutorials");
+    revalidateTag("tutorials", "max");
 
     return NextResponse.json({ success: true, message: "Cache revalidated. All users will now see the latest tutorials from GitHub." });
   } catch (error) {

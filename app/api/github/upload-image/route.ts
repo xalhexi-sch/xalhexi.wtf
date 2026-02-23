@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const REPO = "xalhexi-sch/xalhexi-sch.github.io";
+const REPO = process.env.GITHUB_REPO || "xalhexi-sch/xalhexi-sch.github.io";
 const IMAGE_FOLDER = "tutorial-images";
 
 export async function POST(req: NextRequest) {
