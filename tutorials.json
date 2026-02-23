@@ -558,6 +558,24 @@
         "heading": "activate your virt",
         "explanation": "",
         "code": "source ~/virt/bin/activate"
+      },
+      {
+        "id": "27i0pltdn",
+        "heading": "activate website",
+        "explanation": "",
+        "code": "gunicorn --bind 127.0.0.1:5065 app:app"
+      },
+      {
+        "id": "jd644gvb2",
+        "heading": "kill: running ports",
+        "explanation": "",
+        "code": "lsof -i :5065"
+      },
+      {
+        "id": "sxyf11a07",
+        "heading": "killing ports",
+        "explanation": "",
+        "code": "kill -9 <ID>"
       }
     ]
   }
