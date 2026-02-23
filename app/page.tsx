@@ -1684,12 +1684,17 @@ const deleteTutorial = (id: string) => {
 
     setIsPushing(true);
     try {
+      console.log("[v0] Pushing to /api/github/push...");
       const resp = await fetch("/api/github/push", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tutorials }),
       });
-      const data = await resp.json();
+      console.log("[v0] Push response status:", resp.status, resp.statusText);
+      const text = await resp.text();
+      console.log("[v0] Push response body:", text.substring(0, 500));
+      let data;
+      try { data = JSON.parse(text); } catch { throw new Error(`Server returned non-JSON (status ${resp.status}): ${text.substring(0, 200)}`); }
       if (!resp.ok) {
         throw new Error(data.error || `HTTP ${resp.status}`);
       }
@@ -1708,9 +1713,14 @@ const deleteTutorial = (id: string) => {
     setIsSyncing(true);
     try {
       // Step 1: Tell the server to bust the cache and re-fetch from GitHub
+      console.log("[v0] Pulling from /api/github/pull...");
       const revalidateResp = await fetch("/api/github/pull", { method: "POST" });
+      console.log("[v0] Pull response status:", revalidateResp.status, revalidateResp.statusText);
+      const pullText = await revalidateResp.text();
+      console.log("[v0] Pull response body:", pullText.substring(0, 500));
       if (!revalidateResp.ok) {
-        const err = await revalidateResp.json();
+        let err;
+        try { err = JSON.parse(pullText); } catch { throw new Error(`Server returned non-JSON (status ${revalidateResp.status}): ${pullText.substring(0, 200)}`); }
         throw new Error(err.error || "Failed to revalidate");
       }
 
