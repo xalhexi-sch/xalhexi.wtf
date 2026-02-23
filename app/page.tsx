@@ -1,5 +1,5 @@
 "use client";
-// v1 - Clear cache, fix duplicates
+// v4 - Force full rebuild and clear stale cache
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import hljs from "highlight.js";
@@ -44,6 +44,7 @@ import {
   Moon,
   Zap,
   Star,
+  GripVertical,
 } from "lucide-react";
 
 interface StepImage {
@@ -69,7 +70,6 @@ interface Tutorial {
   description: string;
   steps: Step[];
   locked?: boolean;
-  starred?: boolean;
 }
 
 interface SearchResult {
@@ -1568,10 +1568,8 @@ const deleteTutorial = (id: string) => {
     );
   };
 
-  const toggleStar = (id: string) => {
-    setTutorials((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, starred: !t.starred } : t))
-    );
+  const toggleTerminalLock = () => {
+    setTerminalLocked((prev) => !prev);
   };
 
 
@@ -2081,59 +2079,32 @@ const deleteTutorial = (id: string) => {
               {!isLoadingTutorials && filteredTutorials.map((tutorial) => (
                 <div
                   key={tutorial.id}
-                  draggable={isAdmin}
-                  onDragStart={() => isAdmin && handleDragStart(tutorial.id)}
-                  onDragOver={(e) => { if (isAdmin) handleDragOver(e); }}
-                  onDrop={() => isAdmin && handleDrop(tutorial.id)}
-                  onDragEnd={() => setDraggedTutorial(null)}
                   className={`group flex items-center rounded-md transition-colors cursor-pointer ${
                     selectedTutorial === tutorial.id
                       ? "bg-[var(--t-bg-tertiary)] text-[var(--t-text-primary)]"
                       : "text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)]"
                   }`}
                 >
-                  {/* Drag handle for admin */}
-                  {isAdmin && (
-                    <div className="shrink-0 pl-1 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-60 transition-opacity">
-                      <GripVertical className="w-3.5 h-3.5" />
-                    </div>
-                  )}
                   <button
                     onClick={() => setSelectedTutorial(tutorial.id)}
-                    className={`flex-1 flex items-center gap-2 ${isAdmin ? "pl-1 pr-1" : "px-3"} py-2 text-sm text-left min-w-0`}
+                    className="flex-1 flex items-center gap-2 px-3 py-2 text-sm text-left min-w-0"
                   >
-                    {/* Star indicator */}
-                    {tutorial.starred && (
-                      <Star className="w-3 h-3 shrink-0 fill-yellow-400 text-yellow-400" />
-                    )}
                     <span className="truncate" title={tutorial.title}>{tutorial.title}</span>
                   </button>
-                  {/* Admin action buttons */}
                   {isAdmin && (
-                    <div className="flex items-center shrink-0 mr-1">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleStar(tutorial.id); }}
-                        className={`p-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${
-                          tutorial.starred ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}
-                        title={tutorial.starred ? "Unstar" : "Star as priority"}
-                      >
-                        <Star className={`w-3 h-3 ${tutorial.starred ? "fill-yellow-400 text-yellow-400" : "text-[var(--t-text-faint)]"}`} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleLock(tutorial.id); }}
-                        className={`p-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${
-                          tutorial.locked ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}
-                        title={tutorial.locked ? "Unlock tutorial" : "Lock tutorial"}
-                      >
-                        {tutorial.locked ? (
-                          <Lock className="w-3 h-3 text-[var(--t-accent-orange)]" />
-                        ) : (
-                          <Unlock className="w-3 h-3 text-[var(--t-accent-green-text)]" />
-                        )}
-                      </button>
-                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleLock(tutorial.id); }}
+                      className={`shrink-0 p-1.5 mr-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${
+                        tutorial.locked ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      }`}
+                      title={tutorial.locked ? "Unlock tutorial" : "Lock tutorial"}
+                    >
+                      {tutorial.locked ? (
+                        <Lock className="w-3.5 h-3.5 text-[var(--t-accent-orange)]" />
+                      ) : (
+                        <Unlock className="w-3.5 h-3.5 text-[var(--t-accent-green-text)]" />
+                      )}
+                    </button>
                   )}
                 </div>
               ))}
@@ -2243,16 +2214,28 @@ const deleteTutorial = (id: string) => {
             )}
             {/* Terminal button */}
             {(isAdmin || !terminalLocked) && (
-              <button
-                onClick={() => setShowTerminal(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--t-accent-blue)] hover:bg-[var(--t-bg-tertiary)] transition-colors"
-              >
-                <Terminal className="w-4 h-4" />
-                <span>Terminal</span>
-                {terminalLocked && isAdmin && (
-                  <Lock className="w-3 h-3 text-[var(--t-accent-orange)] ml-auto" />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowTerminal(true)}
+                  className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--t-accent-blue)] hover:bg-[var(--t-bg-tertiary)] transition-colors"
+                >
+                  <Terminal className="w-4 h-4" />
+                  <span>Terminal</span>
+                </button>
+                {isAdmin && (
+                  <button
+                    onClick={toggleTerminalLock}
+                    className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-all"
+                    title={terminalLocked ? "Unlock terminal" : "Lock terminal"}
+                  >
+                    {terminalLocked ? (
+                      <Lock className="w-3.5 h-3.5 text-[var(--t-accent-orange)]" />
+                    ) : (
+                      <Unlock className="w-3.5 h-3.5 text-[var(--t-accent-green-text)]" />
+                    )}
+                  </button>
                 )}
-              </button>
+              </div>
             )}
             <a
               href="https://github.com/xalhexi-sch"
