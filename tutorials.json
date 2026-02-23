@@ -1,5 +1,55 @@
 [
   {
+    "id": "2lximt1zh",
+    "title": "IMPORTANT",
+    "description": "",
+    "steps": [
+      {
+        "id": "pzfx2redt",
+        "heading": "go to root user",
+        "explanation": "",
+        "code": "cd ~"
+      },
+      {
+        "id": "9mmpk1qk3",
+        "heading": "activate your virt",
+        "explanation": "",
+        "code": "source ~/virt/bin/activate"
+      },
+      {
+        "id": "27i0pltdn",
+        "heading": "activate website",
+        "explanation": "",
+        "code": "gunicorn --bind 127.0.0.1:5000 app:app"
+      },
+      {
+        "id": "jd644gvb2",
+        "heading": "show running ports",
+        "explanation": "",
+        "code": "lsof -i :5000"
+      },
+      {
+        "id": "ibma1c29g",
+        "heading": "show running ports",
+        "explanation": "⚠️ WARNING: Using this command needs to fully understand what you are doing",
+        "code": "ps aux | grep gunicorn"
+      },
+      {
+        "id": "sxyf11a07",
+        "heading": "killing ports",
+        "explanation": "",
+        "code": "kill -9 <ID>"
+      },
+      {
+        "id": "oxwn0kq08",
+        "heading": "Open your website:",
+        "explanation": "",
+        "code": "http://172.17.100.15:9899/it21_lastname/webapps/app4"
+      }
+    ],
+    "starred": true
+  },
+  {
     "id": "10",
     "title": "App1",
     "description": "Build a plain Python WSGI app using Jinja2 and Gunicorn inside a virtual environment",
@@ -8,7 +58,16 @@
         "id": "10-1",
         "heading": "Go to Home Directory",
         "explanation": "Start by navigating to your home directory.",
-        "code": "cd ~"
+        "code": "cd ~",
+        "images": [
+          {
+            "id": "img-1771712369468",
+            "url": "https://raw.githubusercontent.com/xalhexi-sch/xalhexi.wtf/main/tutorial-images/Screenshot-2026-02-22-061901-1771712605237.png",
+            "position": "after",
+            "caption": "",
+            "captionPosition": "bottom"
+          }
+        ]
       },
       {
         "id": "10-2",
@@ -71,8 +130,7 @@
         "code": "# Example URL (depends on your server setup):\n# http://172.17.100.15:9899/it21_banas/webapps/app1\n\n# Final folder structure:\n# webapps/\n# └── app1/\n#     ├── app.py\n#     └── templates/\n#         └── home.html"
       }
     ],
-    "starred": true,
-    "locked": true
+    "locked": false
   },
   {
     "id": "res3oiwu3",
@@ -102,8 +160,8 @@
   },
   {
     "id": "1h5r70vne",
-    "title": "app3",
-    "description": "",
+    "title": "App3",
+    "description": "tuts",
     "steps": [
       {
         "id": "znj0s2gt4",
@@ -534,27 +592,5 @@
       }
     ],
     "locked": true
-  },
-  {
-    "id": "4mxvtlif6",
-    "title": "test",
-    "description": "test",
-    "steps": [
-      {
-        "id": "du6q32spe",
-        "heading": "test",
-        "explanation": "test",
-        "code": "test",
-        "images": [
-          {
-            "id": "img-1771668526696",
-            "url": "https://raw.githubusercontent.com/xalhexi-sch/xalhexi-sch.github.io/main/tutorial-images/Screenshot-2026-02-19-230042-1771668805539.png?token=BV3JOQLAK7HGEOIENN6D6SDJTGCYE",
-            "position": "after",
-            "caption": "",
-            "captionPosition": "bottom"
-          }
-        ]
-      }
-    ]
   }
 ]
