@@ -1751,31 +1751,53 @@ const deleteTutorial = (id: string) => {
   };
 
   // Fetch public repos when switching to repositories tab
-  const loadRepos = async () => {
-    if (reposLoaded) return;
+  // - default: uses server-side cache (5min) to avoid GitHub rate limits
+  // - force=true (admin-only button): bypasses cache and pulls fresh from GitHub
+  const loadRepos = async (force: boolean = false): Promise<boolean> => {
+    if (!force && reposLoaded) return true;
     setIsLoadingRepos(true);
     try {
-      const resp = await fetch("/api/github/repos");
+      const url = force
+        ? `/api/github/repos?force=1&ts=${Date.now()}`
+        : "/api/github/repos";
+      const resp = await fetch(url, force ? { cache: "no-store" } : undefined);
       const data = await resp.json();
       if (resp.ok && Array.isArray(data.repos)) {
         setRepos(data.repos);
         setReposLoaded(true);
+        return true;
       } else {
         showToast(data.error || "Failed to load repositories");
+        return false;
       }
     } catch {
       showToast("Failed to load repositories");
+      return false;
     } finally {
       setIsLoadingRepos(false);
     }
   };
 
+  // Admin-only: refresh repos RIGHT NOW (bypass cache)
+  const refreshReposNow = async () => {
+    const ok = await loadRepos(true);
+    if (!ok) return;
+    // If user is already browsing a repo, refresh the current directory too
+    if (selectedRepo) {
+      await loadRepoContents(selectedRepo, repoPath.join("/"), true);
+    }
+    showToast("Repositories refreshed!");
+  };
+
   // Fetch contents of a repo directory
-  const loadRepoContents = async (repo: string, path: string = "") => {
+  const loadRepoContents = async (repo: string, path: string = "", force: boolean = false) => {
     setIsLoadingContents(true);
     setViewingFile(null);
     try {
-      const resp = await fetch(`/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}`);
+      const url = `/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}${
+        force ? `&force=1&ts=${Date.now()}` : ""
+      }`;
+      const resp = await fetch(url, force ? { cache: "no-store" } : undefined);
       const data = await resp.json();
       if (resp.ok && data.type === "dir") {
         setRepoContents(data.items);
@@ -1788,10 +1810,13 @@ const deleteTutorial = (id: string) => {
   };
 
   // Fetch a single file's content
-  const loadFileContent = async (repo: string, path: string) => {
+  const loadFileContent = async (repo: string, path: string, force: boolean = false) => {
     setIsLoadingFile(true);
     try {
-      const resp = await fetch(`/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}`);
+      const url = `/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}${
+        force ? `&force=1&ts=${Date.now()}` : ""
+      }`;
+      const resp = await fetch(url, force ? { cache: "no-store" } : undefined);
       const data = await resp.json();
       if (resp.ok && data.type === "file") {
         setViewingFile(data);
@@ -2256,6 +2281,20 @@ const deleteTutorial = (id: string) => {
                   </button>
                 </div>
               </>
+            )}
+
+            {isAdmin && activeTab === "repositories" && (
+              <div className="flex gap-2">
+                <button
+                  onClick={refreshReposNow}
+                  disabled={isLoadingRepos || isLoadingContents || isLoadingFile}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#1f6feb] hover:bg-[#388bfd] text-white rounded-md transition-colors disabled:opacity-50"
+                  title="Admin: bypass cache and pull fresh repos/contents from GitHub"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${(isLoadingRepos || isLoadingContents || isLoadingFile) ? "animate-spin" : ""}`} />
+                  {(isLoadingRepos || isLoadingContents || isLoadingFile) ? "Refreshing..." : "Refresh Repos Now"}
+                </button>
+              </div>
             )}
             {/* Terminal button */}
             {(isAdmin || !terminalLocked) && (
