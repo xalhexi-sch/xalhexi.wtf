@@ -32,6 +32,16 @@
         "id": "a-1771931105036",
         "role": "assistant",
         "content": "Enabling virtualization is necessary before installing Docker.\n"
+      },
+      {
+        "id": "u-1771931131283",
+        "role": "user",
+        "content": "from django.http import Http404 from django.shortcuts import render, get_object_or_404 from polls.models import Poll  def detail(request, poll_id):     # Using try-except block to handle missing object     try:         p = Poll.objects.get(pk=poll_id)     except Poll.DoesNotExist:         raise Http404(\"Poll does not exist\") # Raises the Http404 error      # A common shortcut is to use get_object_or_404()     # p = get_object_or_404(Poll, pk=poll_id)      return render(request, \"polls/detail.html\", {\"poll\": p})"
+      },
+      {
+        "id": "a-1771931131283",
+        "role": "assistant",
+        "content": "```python\nfrom django.shortcuts import render, get_object_or_404\nfrom polls.models import Poll\n\ndef detail(request, poll_id):\n    p = get_object_or_404(Poll, pk=poll_id)\n    return render(request, \"polls/detail.html\", {\"poll\": p})\n```\n\n`get_object_or_404` simplifies object retrieval and handles the `Http404` exception.\n"
       }
     ],
     "createdAt": 1771931085158
