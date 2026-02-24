@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import hljs from "highlight.js";
+import AIAssistant from "@/components/ai-assistant";
 import {
   Minus,
   Search,
@@ -1318,9 +1319,6 @@ export default function ITPTutorial() {
   const [terminalFullscreen, setTerminalFullscreen] = useState(false);
   const [terminalLocked, setTerminalLocked] = useState(true); // Terminal is locked by default
   const [showAIChat, setShowAIChat] = useState(false);
-  const [aiChatFullscreen, setAIChatFullscreen] = useState(false);
-  const [aiChatMode, setAIChatMode] = useState<"chat" | "debug" | "explain">("chat");
-  const aiChatEndRef = useRef<HTMLDivElement>(null);
   const [draggedTutorial, setDraggedTutorial] = useState<string | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState(320); // 20rem = 320px default
   const [isResizing, setIsResizing] = useState(false);
@@ -1463,157 +1461,8 @@ export default function ITPTutorial() {
     showToast("Copied!");
   };
 
-  // --- AI Chat ---
   const currentTutorial = tutorials.find((t) => t.id === selectedTutorial) || tutorials[0] || null;
   const currentStepForAI = currentTutorial?.steps?.[0] || null;
-
-  interface ChatMessage { id: string; role: "user" | "assistant"; content: string; }
-  const [aiMessages, setAIMessages] = useState<ChatMessage[]>([]);
-  const [aiInput, setAIInput] = useState("");
-  const [aiStatus, setAIStatus] = useState<"ready" | "streaming">("ready");
-  const aiAbortRef = useRef<AbortController | null>(null);
-
-  const handleAISend = useCallback(async (textOverride?: string) => {
-    const text = (textOverride || aiInput).trim();
-    if (!text || aiStatus === "streaming") return;
-    if (!textOverride) setAIInput("");
-
-    const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: "user", content: text };
-    const assistantMsg: ChatMessage = { id: `a-${Date.now()}`, role: "assistant", content: "" };
-
-    setAIMessages((prev) => [...prev, userMsg, assistantMsg]);
-    setAIStatus("streaming");
-
-    const allMessages = [...aiMessages, userMsg].map((m) => ({ role: m.role, content: m.content }));
-
-    try {
-      aiAbortRef.current = new AbortController();
-      const resp = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: allMessages,
-          tutorialTitle: currentTutorial?.title || "",
-          tutorialDescription: currentTutorial?.description || "",
-          currentStepTitle: currentStepForAI?.heading || "",
-          currentStepContent: currentStepForAI?.explanation || "",
-          mode: aiChatMode,
-        }),
-        signal: aiAbortRef.current.signal,
-      });
-
-      if (!resp.ok) {
-        const err = await resp.text();
-        setAIMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: `Error: ${err}` } : m));
-        setAIStatus("ready");
-        return;
-      }
-
-      const reader = resp.body?.getReader();
-      const decoder = new TextDecoder();
-      if (!reader) { setAIStatus("ready"); return; }
-
-      let fullContent = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        // Parse SSE format
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          const trimmed = line.trim();
-          // Handle data-stream format: 0:"text chunk"
-          if (/^\d+:/.test(trimmed)) {
-            const colonIdx = trimmed.indexOf(":");
-            const type = trimmed.substring(0, colonIdx);
-            const payload = trimmed.substring(colonIdx + 1);
-            if (type === "0") {
-              // Text delta - payload is a JSON string
-              try {
-                const text = JSON.parse(payload);
-                if (typeof text === "string") {
-                  fullContent += text;
-                  setAIMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: fullContent } : m));
-                }
-              } catch { /* skip */ }
-            }
-          }
-        }
-      }
-    } catch (e: unknown) {
-      if (e instanceof Error && e.name !== "AbortError") {
-        setAIMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: `Error: ${e.message}` } : m));
-      }
-    } finally {
-      setAIStatus("ready");
-      aiAbortRef.current = null;
-    }
-  }, [aiInput, aiStatus, aiMessages, currentTutorial?.title, currentTutorial?.description, currentStepForAI?.heading, currentStepForAI?.explanation, aiChatMode]);
-
-  const handleAIQuickPrompt = (prompt: string, mode: "chat" | "debug" | "explain" = "chat") => {
-    setAIChatMode(mode);
-    if (!showAIChat) setShowAIChat(true);
-    setTimeout(() => {
-      handleAISend(prompt);
-    }, 100);
-  };
-
-  // Auto-scroll AI chat to bottom
-  useEffect(() => {
-    aiChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [aiMessages]);
-
-  // Render markdown-style code blocks in AI responses
-  function renderAIContent(text: string) {
-    const parts = text.split(/(```[\s\S]*?```)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith("```")) {
-        const match = part.match(/```(\w+)?\n?([\s\S]*?)```/);
-        if (match) {
-          const lang = match[1] || "";
-          const code = match[2].trim();
-          let highlighted = code;
-          try {
-            highlighted = lang
-              ? hljs.highlight(code, { language: lang }).value
-              : hljs.highlightAuto(code).value;
-          } catch { /* fallback */ }
-          return (
-            <div key={i} className="my-2 rounded-md overflow-hidden border border-[var(--t-border)]">
-              <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--t-bg-tertiary)] text-xs text-[var(--t-text-faint)]">
-                <span>{lang || "code"}</span>
-                <button
-                  onClick={() => handleCopy(code)}
-                  className="flex items-center gap-1 hover:text-[var(--t-text-primary)] transition-colors"
-                >
-                  <Copy className="w-3 h-3" />
-                  Copy
-                </button>
-              </div>
-              <pre className="p-3 bg-[var(--t-bg-primary)] overflow-x-auto text-xs">
-                <code dangerouslySetInnerHTML={{ __html: highlighted }} />
-              </pre>
-            </div>
-          );
-        }
-      }
-      // Render inline code with backticks
-      const inlineParts = part.split(/(`[^`]+`)/g);
-      return (
-        <span key={i}>
-          {inlineParts.map((ip, j) =>
-            ip.startsWith("`") && ip.endsWith("`") ? (
-              <code key={j} className="px-1.5 py-0.5 bg-[var(--t-bg-tertiary)] rounded text-[var(--t-accent-blue)] text-xs font-mono">
-                {ip.slice(1, -1)}
-              </code>
-            ) : (
-              <span key={j}>{ip}</span>
-            )
-          )}
-        </span>
-      );
-    });
-  }
 
   const handleLogin = (u: string, p: string) => {
     if (u === "admin" && p === "1234") {
@@ -2467,17 +2316,9 @@ const deleteTutorial = (id: string) => {
           />
         )}
 
-        {/* Main Content + Terminal/AI Split */}
-        <div className={`flex-1 min-w-0 flex ${
-          (showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) || (showAIChat && !aiChatFullscreen)
-            ? ''
-            : 'justify-center'
-        }`}>
-          <main className={`${
-            (showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) || (showAIChat && !aiChatFullscreen)
-              ? 'w-1/2'
-              : 'w-full max-w-4xl'
-          } min-w-0 p-4 lg:p-6 overflow-y-auto`}>
+        {/* Main Content + Terminal Split */}
+        <div className={`flex-1 min-w-0 flex ${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? '' : 'justify-center'}`}>
+          <main className={`${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? 'w-1/2' : 'w-full max-w-4xl'} min-w-0 p-4 lg:p-6 overflow-y-auto`}>
 
           {/* Loading skeleton for main content */}
           {activeTab === "tutorials" && isLoadingTutorials ? (
@@ -2755,7 +2596,7 @@ const deleteTutorial = (id: string) => {
             </div>
           ) : isSearching ? (
             /* Search Results View */
-            <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) || (showAIChat && !aiChatFullscreen) ? '' : 'max-w-3xl mx-auto'}`}>
+            <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) ? '' : 'max-w-3xl mx-auto'}`}>
               <div className="mb-6">
                 <div className="flex items-center justify-between gap-4 mb-2">
                   <h1 className="text-xl font-bold text-[var(--t-text-primary)]">
@@ -2837,7 +2678,7 @@ const deleteTutorial = (id: string) => {
             </div>
           ) : currentTutorial ? (
             /* Normal Tutorial View */
-            <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) || (showAIChat && !aiChatFullscreen) ? '' : 'max-w-3xl mx-auto'}`}>
+            <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) ? '' : 'max-w-3xl mx-auto'}`}>
               {/* Tutorial header */}
               <div className="mb-6">
                 <div className="flex items-start justify-between gap-4 mb-2">
@@ -3038,163 +2879,7 @@ const deleteTutorial = (id: string) => {
             </div>
           )}
 
-          {/* AI Chat Split Panel */}
-          {showAIChat && !aiChatFullscreen && (
-            <div className="w-1/2 border-l border-[var(--t-border)] flex flex-col bg-[var(--t-bg-primary)] sticky top-0 h-screen">
-              {/* AI Chat Header */}
-              <div className="flex items-center justify-between px-3 py-2 bg-[var(--t-bg-secondary)] border-b border-[var(--t-border)]">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-[var(--t-accent-purple,#a78bfa)]" />
-                  <span className="text-xs text-[var(--t-text-primary)] font-semibold">AI Assistant</span>
-                  {currentTutorial && (
-                    <span className="text-xs text-[var(--t-text-faint)] truncate max-w-[150px]" title={currentTutorial.title}>
-                      &middot; {currentTutorial.title}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1">
-                  {isAdmin && aiMessages.length > 0 && (
-                    <button
-                      onClick={() => { setAIMessages([]); showToast("Chat cleared"); }}
-                      className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
-                      title="Clear chat (Admin)"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-[var(--t-text-muted)]" />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setAIChatFullscreen(true)}
-                    className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
-                    title="Fullscreen"
-                  >
-                    <Maximize2 className="w-4 h-4 text-[var(--t-text-muted)]" />
-                  </button>
-                  <button
-                    onClick={() => setShowAIChat(false)}
-                    className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
-                    title="Close"
-                  >
-                    <X className="w-4 h-4 text-[var(--t-text-muted)]" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Quick Prompt Chips */}
-              <div className="flex gap-1.5 px-3 py-2 border-b border-[var(--t-border)] overflow-x-auto">
-                <button
-                  onClick={() => handleAIQuickPrompt(`Explain the current step "${currentStepForAI?.heading || "this step"}" in simple terms for a beginner.`, "explain")}
-                  className="shrink-0 px-2.5 py-1 text-xs rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
-                >
-                  Explain this step
-                </button>
-                <button
-                  onClick={() => { setAIChatMode("debug"); setAIInput(""); if (!showAIChat) setShowAIChat(true); }}
-                  className={`shrink-0 px-2.5 py-1 text-xs rounded-full border transition-colors ${
-                    aiChatMode === "debug"
-                      ? "border-[#f85149] text-[#f85149] bg-[#f85149]/10"
-                      : "border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)]"
-                  }`}
-                >
-                  Debug an error
-                </button>
-                <button
-                  onClick={() => handleAIQuickPrompt(`Give me a practical example related to "${currentTutorial?.title || "this tutorial"}".`, "chat")}
-                  className="shrink-0 px-2.5 py-1 text-xs rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
-                >
-                  Give example
-                </button>
-                <button
-                  onClick={() => handleAIQuickPrompt(`What are common mistakes students make with "${currentTutorial?.title || "this topic"}"?`, "chat")}
-                  className="shrink-0 px-2.5 py-1 text-xs rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
-                >
-                  Common mistakes
-                </button>
-              </div>
-
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                {aiMessages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                    <Zap className="w-8 h-8 text-[var(--t-accent-purple,#a78bfa)] mb-3 opacity-50" />
-                    <p className="text-sm text-[var(--t-text-muted)] mb-1">Ask me anything about this tutorial</p>
-                    <p className="text-xs text-[var(--t-text-faint)]">
-                      I can explain steps, debug errors, and give examples
-                    </p>
-                  </div>
-                )}
-                {aiMessages.map((msg) => {
-                  if (!msg.content) return null;
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                          msg.role === "user"
-                            ? "bg-[var(--t-accent-blue)] text-white"
-                            : "bg-[var(--t-bg-secondary)] border border-[var(--t-border)] text-[var(--t-text-primary)]"
-                        }`}
-                      >
-                        {msg.role === "user" ? (
-                          <p className="whitespace-pre-wrap">{msg.content}</p>
-                        ) : (
-                          <div className="whitespace-pre-wrap leading-relaxed">{renderAIContent(msg.content)}</div>
-                        )}
-                        {msg.role === "assistant" && msg.content && (
-                          <button
-                            onClick={() => handleCopy(msg.content)}
-                            className="mt-1.5 flex items-center gap-1 text-xs text-[var(--t-text-faint)] hover:text-[var(--t-text-muted)] transition-colors"
-                          >
-                            <Copy className="w-3 h-3" />
-                            Copy
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-                {aiStatus === "streaming" && (
-                  <div className="flex justify-start">
-                    <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg px-3 py-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-[var(--t-accent-purple,#a78bfa)]" />
-                    </div>
-                  </div>
-                )}
-                <div ref={aiChatEndRef} />
-              </div>
-
-              {/* Input Area */}
-              <div className="border-t border-[var(--t-border)] p-3">
-                {aiChatMode === "debug" && (
-                  <div className="flex items-center gap-1.5 mb-2 text-xs text-[#f85149]">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>Debug Mode - Paste your error below</span>
-                    <button onClick={() => setAIChatMode("chat")} className="ml-auto text-[var(--t-text-faint)] hover:text-[var(--t-text-muted)]">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                )}
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={aiInput}
-                    onChange={(e) => setAIInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAISend(); } }}
-                    placeholder={aiChatMode === "debug" ? "Paste your error message here..." : "Ask about this tutorial..."}
-                    className="flex-1 px-3 py-2 text-sm bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder:text-[var(--t-text-faint)] focus:outline-none focus:border-[var(--t-accent-blue)] transition-colors"
-                  />
-                  <button
-                    onClick={handleAISend}
-                    disabled={!aiInput.trim() || aiStatus === "streaming"}
-                    className="p-2 bg-[var(--t-accent-blue)] hover:bg-[var(--t-accent-blue)]/80 text-white rounded-md disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* AI Chat - rendered as full-screen overlay via portal */}
         </div>
 
         {/* Right Sidebar - Connection Info (hidden when AI chat is open) */}
@@ -3438,176 +3123,18 @@ const deleteTutorial = (id: string) => {
         </div>
       )}
 
-      {/* AI Chat Fullscreen */}
-      {showAIChat && aiChatFullscreen && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-[var(--t-bg-primary)]">
-          {/* Fullscreen Header */}
-          <div className="flex items-center justify-between px-4 py-2 bg-[var(--t-bg-secondary)] border-b border-[var(--t-border)]">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[var(--t-accent-purple,#a78bfa)]" />
-              <span className="text-sm text-[var(--t-text-primary)] font-semibold">AI Assistant</span>
-              {currentTutorial && (
-                <span className="text-xs text-[var(--t-text-faint)]">
-                  &middot; {currentTutorial.title}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              {isAdmin && aiMessages.length > 0 && (
-                <button
-                  onClick={() => { setAIMessages([]); showToast("Chat cleared"); }}
-                  className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
-                  title="Clear chat (Admin)"
-                >
-                  <Trash2 className="w-4 h-4 text-[var(--t-text-muted)]" />
-                </button>
-              )}
-              <button
-                onClick={() => setAIChatFullscreen(false)}
-                className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
-                title="Exit Fullscreen"
-              >
-                <Minimize2 className="w-4 h-4 text-[var(--t-text-muted)]" />
-              </button>
-              <button
-                onClick={() => { setShowAIChat(false); setAIChatFullscreen(false); }}
-                className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors"
-                title="Close"
-              >
-                <X className="w-4 h-4 text-[var(--t-text-muted)]" />
-              </button>
-            </div>
-          </div>
-
-          {/* Fullscreen Quick Prompts */}
-          <div className="flex gap-2 px-4 py-2.5 border-b border-[var(--t-border)] overflow-x-auto">
-            <button
-              onClick={() => handleAIQuickPrompt(`Explain the current step "${currentStepForAI?.heading || "this step"}" in simple terms for a beginner.`, "explain")}
-              className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
-            >
-              Explain this step
-            </button>
-            <button
-              onClick={() => { setAIChatMode("debug"); setAIInput(""); }}
-              className={`shrink-0 px-3 py-1.5 text-xs rounded-full border transition-colors ${
-                aiChatMode === "debug"
-                  ? "border-[#f85149] text-[#f85149] bg-[#f85149]/10"
-                  : "border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)]"
-              }`}
-            >
-              Debug an error
-            </button>
-            <button
-              onClick={() => handleAIQuickPrompt(`Give me a practical example related to "${currentTutorial?.title || "this tutorial"}".`, "chat")}
-              className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
-            >
-              Give example
-            </button>
-            <button
-              onClick={() => handleAIQuickPrompt(`What are common mistakes students make with "${currentTutorial?.title || "this topic"}"?`, "chat")}
-              className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
-            >
-              Common mistakes
-            </button>
-            <button
-              onClick={() => handleAIQuickPrompt("Simplify everything you just said. Use very simple language.", "chat")}
-              className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
-            >
-              Simplify
-            </button>
-            <button
-              onClick={() => handleAIQuickPrompt("Why does this work? Explain the reasoning behind this approach.", "chat")}
-              className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-[var(--t-border)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
-            >
-              Why this works
-            </button>
-          </div>
-
-          {/* Fullscreen Messages */}
-          <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full space-y-4">
-            {aiMessages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <Zap className="w-12 h-12 text-[var(--t-accent-purple,#a78bfa)] mb-4 opacity-40" />
-                <p className="text-lg text-[var(--t-text-muted)] mb-2">AI Tutorial Assistant</p>
-                <p className="text-sm text-[var(--t-text-faint)] max-w-md">
-                  Ask questions about the current tutorial, debug errors, or get explanations.
-                  I have context about what you are learning.
-                </p>
-              </div>
-            )}
-            {aiMessages.map((msg) => {
-              if (!msg.content) return null;
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[75%] rounded-lg px-4 py-3 text-sm ${
-                      msg.role === "user"
-                        ? "bg-[var(--t-accent-blue)] text-white"
-                        : "bg-[var(--t-bg-secondary)] border border-[var(--t-border)] text-[var(--t-text-primary)]"
-                    }`}
-                  >
-                    {msg.role === "user" ? (
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
-                    ) : (
-                      <div className="whitespace-pre-wrap leading-relaxed">{renderAIContent(msg.content)}</div>
-                    )}
-                    {msg.role === "assistant" && msg.content && (
-                      <button
-                        onClick={() => handleCopy(msg.content)}
-                        className="mt-2 flex items-center gap-1 text-xs text-[var(--t-text-faint)] hover:text-[var(--t-text-muted)] transition-colors"
-                      >
-                        <Copy className="w-3 h-3" />
-                        Copy response
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-            {aiStatus === "streaming" && (
-              <div className="flex justify-start">
-                <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg px-4 py-3">
-                  <Loader2 className="w-4 h-4 animate-spin text-[var(--t-accent-purple,#a78bfa)]" />
-                </div>
-              </div>
-            )}
-            <div ref={aiChatEndRef} />
-          </div>
-
-          {/* Fullscreen Input */}
-          <div className="border-t border-[var(--t-border)] p-4 max-w-4xl mx-auto w-full">
-            {aiChatMode === "debug" && (
-              <div className="flex items-center gap-1.5 mb-2 text-xs text-[#f85149]">
-                <AlertCircle className="w-3 h-3" />
-                <span>Debug Mode - Paste your error below</span>
-                <button onClick={() => setAIChatMode("chat")} className="ml-auto text-[var(--t-text-faint)] hover:text-[var(--t-text-muted)]">
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            )}
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={aiInput}
-                onChange={(e) => setAIInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAISend(); } }}
-                placeholder={aiChatMode === "debug" ? "Paste your error message here..." : "Ask about this tutorial..."}
-                className="flex-1 px-4 py-2.5 text-sm bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder:text-[var(--t-text-faint)] focus:outline-none focus:border-[var(--t-accent-blue)] transition-colors"
-              />
-              <button
-                onClick={handleAISend}
-                disabled={!aiInput.trim() || aiStatus === "streaming"}
-                className="px-4 py-2.5 bg-[var(--t-accent-blue)] hover:bg-[var(--t-accent-blue)]/80 text-white rounded-md disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                <span className="text-sm">Send</span>
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* AI Assistant - Full-screen overlay */}
+      {showAIChat && (
+        <AIAssistant
+          isAdmin={isAdmin}
+          tutorialTitle={currentTutorial?.title}
+          tutorialDescription={currentTutorial?.description}
+          currentStepTitle={currentStepForAI?.heading}
+          currentStepContent={currentStepForAI?.explanation}
+          onClose={() => setShowAIChat(false)}
+          onOpenTutorials={() => setShowAIChat(false)}
+          showToast={showToast}
+        />
       )}
 
       <Toast message={toast.message} visible={toast.visible} />

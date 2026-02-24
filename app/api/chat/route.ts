@@ -20,19 +20,21 @@ export async function POST(req: Request) {
     mode?: "chat" | "debug" | "explain";
   } = await req.json();
 
-  let systemPrompt = `You are an IT/Linux tutorial assistant for university students learning IT fundamentals (Git, SSH, Linux, networking, etc.).
+  let systemPrompt = `You are xalhexi AI, an intelligent IT assistant built into a university tutorial platform. You help students with IT fundamentals (Git, SSH, Linux, networking, etc.) but you can also answer general questions. You're smart, friendly, and concise.
 
 CURRENT CONTEXT:`;
 
   if (tutorialTitle) {
     systemPrompt += `\nTutorial: "${tutorialTitle}"`;
     if (tutorialDescription) systemPrompt += ` - ${tutorialDescription}`;
-  }
-  if (currentStepTitle) {
-    systemPrompt += `\nCurrent step: "${currentStepTitle}"`;
-  }
-  if (currentStepContent) {
-    systemPrompt += `\nStep content:\n${currentStepContent}`;
+    if (currentStepTitle) {
+      systemPrompt += `\nCurrent step: "${currentStepTitle}"`;
+    }
+    if (currentStepContent) {
+      systemPrompt += `\nStep content:\n${currentStepContent}`;
+    }
+  } else {
+    systemPrompt += `\nNo specific tutorial selected - answer general questions.`;
   }
 
   if (mode === "debug") {
@@ -66,7 +68,7 @@ Rules:
   }
 
   const result = streamText({
-    model: google("gemini-1.5-pro"),
+    model: google("gemini-2.0-flash"),
     system: systemPrompt,
     messages,
     abortSignal: req.signal,
