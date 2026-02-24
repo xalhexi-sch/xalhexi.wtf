@@ -197,6 +197,62 @@
     "locked": false
   },
   {
+    "id": "5",
+    "title": "Git Basics: Create Repo & Push",
+    "description": "Create a new repository, add files, commit changes, and push to GitHub",
+    "steps": [
+      {
+        "id": "5-1",
+        "heading": "Create Project Folder",
+        "explanation": "Create a project folder and navigate into it. Use pwd to verify your location.",
+        "code": "mkdir my-project\ncd my-project\n\n# Optional: check where you are\npwd"
+      },
+      {
+        "id": "5-2",
+        "heading": "Initialize Git Repository",
+        "explanation": "Initialize Git in the folder and set the branch to 'main' (recommended).",
+        "code": "git init\n\n# Set branch to main\ngit branch -M main"
+      },
+      {
+        "id": "5-3",
+        "heading": "Create Files",
+        "explanation": "Create a README file using nano. Save with Ctrl+O then Enter, exit with Ctrl+X. You can also create files quickly with echo.",
+        "code": "# Create README with nano\nnano README.md\n\n# Or create file quickly\necho \"Hello world\" > hello.txt\n\n# Check your files\nls"
+      },
+      {
+        "id": "5-4",
+        "heading": "Check Status & Stage Files",
+        "explanation": "Check Git status to see untracked files, then add them to staging area.",
+        "code": "git status\n\n# Add all files\ngit add .\n\n# Or add specific file\ngit add README.md\n\n# Check status again\ngit status"
+      },
+      {
+        "id": "5-5",
+        "heading": "Commit Changes",
+        "explanation": "Commit your staged changes with a descriptive message.",
+        "code": "git commit -m \"Initial commit\""
+      },
+      {
+        "id": "5-6",
+        "heading": "Create GitHub Repo & Connect",
+        "explanation": "On GitHub: Click 'New repository', name it, do NOT initialize with README. Copy the SSH link and connect your local repo.",
+        "code": "# Add remote (replace USERNAME and my-project)\ngit remote add origin git@github.com:USERNAME/my-project.git\n\n# Verify remote\ngit remote -v"
+      },
+      {
+        "id": "5-7",
+        "heading": "Push to GitHub",
+        "explanation": "Push your commits to GitHub. The -u flag sets upstream, so future pushes only need 'git push'.",
+        "code": "git push -u origin main\n\n# Future pushes:\ngit push"
+      },
+      {
+        "id": "5-8",
+        "heading": "Normal Workflow",
+        "explanation": "After initial setup, use this workflow when you make changes: status, add, commit, push.",
+        "code": "git status\ngit add .\ngit commit -m \"Describe what you changed\"\ngit push"
+      }
+    ],
+    "locked": false
+  },
+  {
     "id": "348b9lrsw",
     "title": "Shortcuts",
     "description": "",
@@ -367,62 +423,6 @@
       }
     ],
     "locked": true
-  },
-  {
-    "id": "5",
-    "title": "Git Basics: Create Repo & Push",
-    "description": "Create a new repository, add files, commit changes, and push to GitHub",
-    "steps": [
-      {
-        "id": "5-1",
-        "heading": "Create Project Folder",
-        "explanation": "Create a project folder and navigate into it. Use pwd to verify your location.",
-        "code": "mkdir my-project\ncd my-project\n\n# Optional: check where you are\npwd"
-      },
-      {
-        "id": "5-2",
-        "heading": "Initialize Git Repository",
-        "explanation": "Initialize Git in the folder and set the branch to 'main' (recommended).",
-        "code": "git init\n\n# Set branch to main\ngit branch -M main"
-      },
-      {
-        "id": "5-3",
-        "heading": "Create Files",
-        "explanation": "Create a README file using nano. Save with Ctrl+O then Enter, exit with Ctrl+X. You can also create files quickly with echo.",
-        "code": "# Create README with nano\nnano README.md\n\n# Or create file quickly\necho \"Hello world\" > hello.txt\n\n# Check your files\nls"
-      },
-      {
-        "id": "5-4",
-        "heading": "Check Status & Stage Files",
-        "explanation": "Check Git status to see untracked files, then add them to staging area.",
-        "code": "git status\n\n# Add all files\ngit add .\n\n# Or add specific file\ngit add README.md\n\n# Check status again\ngit status"
-      },
-      {
-        "id": "5-5",
-        "heading": "Commit Changes",
-        "explanation": "Commit your staged changes with a descriptive message.",
-        "code": "git commit -m \"Initial commit\""
-      },
-      {
-        "id": "5-6",
-        "heading": "Create GitHub Repo & Connect",
-        "explanation": "On GitHub: Click 'New repository', name it, do NOT initialize with README. Copy the SSH link and connect your local repo.",
-        "code": "# Add remote (replace USERNAME and my-project)\ngit remote add origin git@github.com:USERNAME/my-project.git\n\n# Verify remote\ngit remote -v"
-      },
-      {
-        "id": "5-7",
-        "heading": "Push to GitHub",
-        "explanation": "Push your commits to GitHub. The -u flag sets upstream, so future pushes only need 'git push'.",
-        "code": "git push -u origin main\n\n# Future pushes:\ngit push"
-      },
-      {
-        "id": "5-8",
-        "heading": "Normal Workflow",
-        "explanation": "After initial setup, use this workflow when you make changes: status, add, commit, push.",
-        "code": "git status\ngit add .\ngit commit -m \"Describe what you changed\"\ngit push"
-      }
-    ],
-    "locked": false
   },
   {
     "id": "6",
