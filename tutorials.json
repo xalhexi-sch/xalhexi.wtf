@@ -214,7 +214,7 @@
         "code": "#!/usr/bin/env bash\nlsof -t -i :5000 | xargs -r kill\necho \"app4 stopped\""
       }
     ],
-    "starred": false
+    "starred": true
   },
   {
     "id": "2",
