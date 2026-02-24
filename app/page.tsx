@@ -1,11 +1,14 @@
 "use client";
-// v4 - Force full rebuild and clear stale cache
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import hljs from "highlight.js";
+import AIAssistant from "@/components/ai-assistant";
 import {
   Minus,
   Search,
+  Send,
+  Loader2,
+  MessageSquare,
   Copy,
   Check,
   Settings,
@@ -1315,6 +1318,7 @@ export default function ITPTutorial() {
   const [showTerminal, setShowTerminal] = useState(false);
   const [terminalFullscreen, setTerminalFullscreen] = useState(false);
   const [terminalLocked, setTerminalLocked] = useState(true); // Terminal is locked by default
+  const [showAIChat, setShowAIChat] = useState(false);
   const [draggedTutorial, setDraggedTutorial] = useState<string | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState(320); // 20rem = 320px default
   const [isResizing, setIsResizing] = useState(false);
@@ -1457,6 +1461,9 @@ export default function ITPTutorial() {
     showToast("Copied!");
   };
 
+  const currentTutorial = tutorials.find((t) => t.id === selectedTutorial) || tutorials[0] || null;
+  const currentStepForAI = currentTutorial?.steps?.[0] || null;
+
   const handleLogin = (u: string, p: string) => {
     if (u === "admin" && p === "1234") {
       setIsAdmin(true);
@@ -1532,8 +1539,6 @@ export default function ITPTutorial() {
   }, [tutorials, searchQuery, isAdmin]);
 
   const isSearching = searchQuery.trim().length > 0;
-
-  const currentTutorial = tutorials.find((t) => t.id === selectedTutorial) || tutorials[0];
 
   const clearSearchAndGoToTutorial = (tutorialId: string) => {
     setSearchQuery("");
@@ -2277,6 +2282,19 @@ const deleteTutorial = (id: string) => {
                 )}
               </div>
             )}
+            {/* AI Assistant button */}
+            <button
+              onClick={() => setShowAIChat(true)}
+              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                showAIChat
+                  ? "bg-[var(--t-accent-blue)]/10 text-[var(--t-accent-blue)]"
+                  : "text-[var(--t-accent-purple,#a78bfa)] hover:bg-[var(--t-bg-tertiary)]"
+              }`}
+            >
+              <Zap className="w-4 h-4" />
+              <span>AI Assistant</span>
+              {showAIChat && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--t-accent-green)]" />}
+            </button>
             <a
               href="https://github.com/xalhexi-sch"
               target="_blank"
@@ -2578,7 +2596,7 @@ const deleteTutorial = (id: string) => {
             </div>
           ) : isSearching ? (
             /* Search Results View */
-            <div className={`${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? '' : 'max-w-3xl mx-auto'}`}>
+            <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) ? '' : 'max-w-3xl mx-auto'}`}>
               <div className="mb-6">
                 <div className="flex items-center justify-between gap-4 mb-2">
                   <h1 className="text-xl font-bold text-[var(--t-text-primary)]">
@@ -2660,7 +2678,7 @@ const deleteTutorial = (id: string) => {
             </div>
           ) : currentTutorial ? (
             /* Normal Tutorial View */
-            <div className={`${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? '' : 'max-w-3xl mx-auto'}`}>
+            <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) ? '' : 'max-w-3xl mx-auto'}`}>
               {/* Tutorial header */}
               <div className="mb-6">
                 <div className="flex items-start justify-between gap-4 mb-2">
@@ -2860,10 +2878,12 @@ const deleteTutorial = (id: string) => {
               )}
             </div>
           )}
+
+          {/* AI Chat - rendered as full-screen overlay via portal */}
         </div>
 
-        {/* Right Sidebar - Connection Info */}
-        <aside className="hidden xl:block w-80 shrink-0 p-4 lg:p-6">
+        {/* Right Sidebar - Connection Info (hidden when AI chat is open) */}
+        <aside className={`${showAIChat ? 'hidden' : 'hidden xl:block'} w-80 shrink-0 p-4 lg:p-6`}>
           <div className="sticky top-20 space-y-4">
             {/* SSH Connection Card */}
             <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
@@ -3101,6 +3121,20 @@ const deleteTutorial = (id: string) => {
             </div>
           )}
         </div>
+      )}
+
+      {/* AI Assistant - Full-screen overlay */}
+      {showAIChat && (
+        <AIAssistant
+          isAdmin={isAdmin}
+          tutorialTitle={currentTutorial?.title}
+          tutorialDescription={currentTutorial?.description}
+          currentStepTitle={currentStepForAI?.heading}
+          currentStepContent={currentStepForAI?.explanation}
+          onClose={() => setShowAIChat(false)}
+          onOpenTutorials={() => setShowAIChat(false)}
+          showToast={showToast}
+        />
       )}
 
       <Toast message={toast.message} visible={toast.visible} />
