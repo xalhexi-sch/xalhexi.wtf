@@ -20,51 +20,40 @@ export async function POST(req: Request) {
     mode?: "chat" | "debug" | "explain";
   } = await req.json();
 
-  let systemPrompt = `You are xalhexi AI, an intelligent IT assistant built into a university tutorial platform. You help students with IT fundamentals (Git, SSH, Linux, networking, etc.) but you can also answer general questions. You're smart, friendly, and concise.
+  // Build chat history summary from previous messages for context
+  const recentHistory = messages.slice(-10).map((m: { role: string; content: string }) =>
+    `${m.role}: ${m.content.substring(0, 200)}`
+  ).join("\n");
 
-CURRENT CONTEXT:`;
+  let systemPrompt = `You are xalhexi AI. You answer ANY question - IT, code, math, general knowledge, anything.
+
+RULES:
+- Be direct. Code first, explanation second.
+- Short answers. No filler. No "Great question!" or "Sure, I'd be happy to help!"
+- When giving code fixes: show the fix immediately, then 1-2 lines explaining why.
+- Use code blocks with language tags for ALL code/commands.
+- You can read the full chat history below to understand context and past errors.
+- If someone had an error before, reference your past fix and build on it.
+- Always give working, copy-paste ready solutions.
+
+CHAT HISTORY (use this for context):
+${recentHistory}`;
 
   if (tutorialTitle) {
+    systemPrompt += `\n\nTUTORIAL CONTEXT (optional, user may or may not be asking about this):`;
     systemPrompt += `\nTutorial: "${tutorialTitle}"`;
     if (tutorialDescription) systemPrompt += ` - ${tutorialDescription}`;
-    if (currentStepTitle) {
-      systemPrompt += `\nCurrent step: "${currentStepTitle}"`;
-    }
-    if (currentStepContent) {
-      systemPrompt += `\nStep content:\n${currentStepContent}`;
-    }
-  } else {
-    systemPrompt += `\nNo specific tutorial selected - answer general questions.`;
+    if (currentStepTitle) systemPrompt += `\nStep: "${currentStepTitle}"`;
+    if (currentStepContent) systemPrompt += `\nContent:\n${currentStepContent}`;
   }
 
   if (mode === "debug") {
-    systemPrompt += `\n\nMODE: DEBUG
-The student is pasting an error or problem. You MUST:
-1. Identify the error in a short summary line
-2. Explain the CAUSE clearly (1-2 sentences)
-3. Provide the FIX with exact commands they can copy-paste
-4. If relevant, explain how to prevent it next time
-
-Format your response with clear sections. Use code blocks with language tags for all commands.`;
+    systemPrompt += `\n\nMODE: DEBUG - User is pasting an error.
+1. One-line: what the error is
+2. The fix (code block, copy-paste ready)
+3. One line: why it happened`;
   } else if (mode === "explain") {
-    systemPrompt += `\n\nMODE: EXPLAIN CODE
-The student wants a code/command explanation. You MUST:
-1. Give a one-line summary of what the code does
-2. Break it down line by line or part by part
-3. Explain each key part in simple terms
-4. Give a real-world analogy if helpful
-
-Keep it beginner-friendly. Use code blocks with language tags.`;
-  } else {
-    systemPrompt += `\n\nMODE: Q&A
-Answer the student's question based on the tutorial context above.
-
-Rules:
-- Keep answers concise and practical (students are beginners)
-- Use code blocks with language tags for ALL commands and code
-- If they ask something outside this tutorial, still help but note it
-- Suggest next steps or related concepts when appropriate
-- Never show API keys, tokens, or sensitive data in examples`;
+    systemPrompt += `\n\nMODE: EXPLAIN - Break down the code/concept briefly. Line by line if code.`;
   }
 
   try {
