@@ -1,0 +1,29 @@
+[
+  {
+    "id": "chat-1771931085158",
+    "title": "hello",
+    "messages": [
+      {
+        "id": "u-1771931085158",
+        "role": "user",
+        "content": "hello"
+      },
+      {
+        "id": "a-1771931085158",
+        "role": "assistant",
+        "content": "Hello. I am xalhexi AI. Ask me anything.\n"
+      },
+      {
+        "id": "u-1771931088652",
+        "role": "user",
+        "content": "Explain \"activate your virt\" briefly."
+      },
+      {
+        "id": "a-1771931088652",
+        "role": "assistant",
+        "content": "\"Activate your virt\" means to enable virtualization features in your computer's BIOS/UEFI settings. This allows you to run virtual machines.\n"
+      }
+    ],
+    "createdAt": 1771931085158
+  }
+]
