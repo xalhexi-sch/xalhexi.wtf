@@ -223,50 +223,15 @@ export default function AIAssistant({
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-
-          // Handle AI SDK data stream format
-          // Text chunks: 0:"text here"
-          // Error: 3:"error message"
-          const colonIdx = trimmed.indexOf(":");
-          if (colonIdx < 1) continue;
-          const typeStr = trimmed.substring(0, colonIdx);
-          const payload = trimmed.substring(colonIdx + 1);
-
-          if (typeStr === "0") {
-            // Text delta
-            try {
-              const parsed = JSON.parse(payload);
-              if (typeof parsed === "string") {
-                fullContent += parsed;
-                setSessions((prev) =>
-                  prev.map((s) =>
-                    s.id === sessionId
-                      ? { ...s, messages: s.messages.map((m) => (m.id === assistantMsg.id ? { ...m, content: fullContent } : m)) }
-                      : s
-                  )
-                );
-              }
-            } catch { /* skip malformed chunk */ }
-          } else if (typeStr === "3") {
-            // Error event from stream
-            try {
-              const errParsed = JSON.parse(payload);
-              const errText = typeof errParsed === "string" ? errParsed : JSON.stringify(errParsed);
-              fullContent += `\n\nError from AI: ${errText}`;
-              setSessions((prev) =>
-                prev.map((s) =>
-                  s.id === sessionId
-                    ? { ...s, messages: s.messages.map((m) => (m.id === assistantMsg.id ? { ...m, content: fullContent } : m)) }
-                    : s
-                )
-              );
-            } catch { /* skip */ }
-          }
-        }
+        // Plain text stream - just append the chunk directly
+        fullContent += chunk;
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === sessionId
+              ? { ...s, messages: s.messages.map((m) => (m.id === assistantMsg.id ? { ...m, content: fullContent } : m)) }
+              : s
+          )
+        );
       }
 
       // If we got nothing at all, show a fallback

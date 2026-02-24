@@ -4,8 +4,6 @@ import { google } from "@ai-sdk/google";
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  console.log("[v0] Chat API called, GOOGLE_GENERATIVE_AI_API_KEY set:", !!process.env.GOOGLE_GENERATIVE_AI_API_KEY);
-
   const {
     messages,
     tutorialTitle,
@@ -77,7 +75,7 @@ Rules:
       abortSignal: req.signal,
     });
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error: unknown) {
     console.error("[v0] Chat API error:", error);
     const message = error instanceof Error ? error.message : "Unknown error occurred";
