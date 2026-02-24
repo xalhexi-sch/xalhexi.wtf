@@ -58,7 +58,7 @@ ${recentHistory}`;
 
   try {
     const result = streamText({
-      model: google("gemini-3-flash-preview"),
+      model: google("gemini-2.0-flash"),
       system: systemPrompt,
       messages,
       abortSignal: req.signal,
