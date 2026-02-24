@@ -22,6 +22,16 @@
         "id": "a-1771931088652",
         "role": "assistant",
         "content": "\"Activate your virt\" means to enable virtualization features in your computer's BIOS/UEFI settings. This allows you to run virtual machines.\n"
+      },
+      {
+        "id": "u-1771931105036",
+        "role": "user",
+        "content": "Give me a quick practical example for \"📌 IMPORTANT\"."
+      },
+      {
+        "id": "a-1771931105036",
+        "role": "assistant",
+        "content": "Enabling virtualization is necessary before installing Docker.\n"
       }
     ],
     "createdAt": 1771931085158
