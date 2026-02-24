@@ -293,18 +293,26 @@ export default function AIAssistant({
           );
         }
       }
-      const inlineParts = part.split(/(`[^`]+`)/g);
+      // Parse inline markdown: bold, italic, inline code
+      const tokens = part.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
       return (
         <span key={i}>
-          {inlineParts.map((ip, j) =>
-            ip.startsWith("`") && ip.endsWith("`") ? (
-              <code key={j} className="px-1.5 py-0.5 bg-[var(--t-bg-tertiary)] rounded text-[var(--t-accent-blue)] text-xs font-mono">
-                {ip.slice(1, -1)}
-              </code>
-            ) : (
-              <span key={j}>{ip}</span>
-            )
-          )}
+          {tokens.map((tk, j) => {
+            if (tk.startsWith("**") && tk.endsWith("**")) {
+              return <strong key={j} className="font-semibold">{tk.slice(2, -2)}</strong>;
+            }
+            if (tk.startsWith("*") && tk.endsWith("*") && !tk.startsWith("**")) {
+              return <em key={j}>{tk.slice(1, -1)}</em>;
+            }
+            if (tk.startsWith("`") && tk.endsWith("`")) {
+              return (
+                <code key={j} className="px-1.5 py-0.5 bg-[var(--t-bg-tertiary)] rounded text-[var(--t-accent-blue)] text-xs font-mono">
+                  {tk.slice(1, -1)}
+                </code>
+              );
+            }
+            return <span key={j}>{tk}</span>;
+          })}
         </span>
       );
     });
@@ -404,7 +412,7 @@ export default function AIAssistant({
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-[var(--t-accent-purple,#a78bfa)]" />
               <span className="text-sm font-semibold text-[var(--t-text-primary)]">xalhexi AI</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--t-accent-purple,#a78bfa)]/10 text-[var(--t-accent-purple,#a78bfa)]">Gemini 2.0</span>
+
             </div>
             {tutorialTitle && (
               <span className="text-xs text-[var(--t-text-faint)] hidden sm:inline truncate max-w-[200px]">
