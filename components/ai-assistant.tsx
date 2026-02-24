@@ -64,26 +64,33 @@ export default function AIAssistant({
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load sessions from localStorage on mount
+  // Load sessions from Supabase on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("xalhexi-ai-sessions");
-      if (saved) {
-        const parsed: ChatSession[] = JSON.parse(saved);
-        setSessions(parsed);
-        if (parsed.length > 0) {
-          setActiveSessionId(parsed[0].id);
+    async function loadChats() {
+      try {
+        const resp = await fetch("/api/chats");
+        if (resp.ok) {
+          const data = await resp.json();
+          if (Array.isArray(data.sessions) && data.sessions.length > 0) {
+            setSessions(data.sessions);
+            setActiveSessionId(data.sessions[0].id);
+          }
         }
-      }
-    } catch { /* ignore */ }
+      } catch { /* fallback: no history */ }
+    }
+    loadChats();
   }, []);
 
-  // Save sessions to localStorage
-  useEffect(() => {
-    if (sessions.length > 0) {
-      localStorage.setItem("xalhexi-ai-sessions", JSON.stringify(sessions.slice(0, 50)));
-    }
-  }, [sessions]);
+  // Helper: save a message to Supabase
+  const saveMessage = useCallback(async (msg: { id: string; session_id: string; role: string; content: string }) => {
+    try {
+      await fetch("/api/chats/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(msg),
+      });
+    } catch { /* silent */ }
+  }, []);
 
   // Auto-scroll
   useEffect(() => {
@@ -98,7 +105,7 @@ export default function AIAssistant({
   const activeSession = sessions.find((s) => s.id === activeSessionId) || null;
   const activeMessages = activeSession?.messages || [];
 
-  const createNewChat = useCallback(() => {
+  const createNewChat = useCallback(async () => {
     const newSession: ChatSession = {
       id: `chat-${Date.now()}`,
       title: "New Chat",
@@ -110,14 +117,19 @@ export default function AIAssistant({
     setActiveSessionId(newSession.id);
     setAIInput("");
     setAIChatMode("chat");
+    // Persist to Supabase
+    try {
+      await fetch("/api/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: newSession.id, title: newSession.title }),
+      });
+    } catch { /* silent */ }
   }, []);
 
-  const deleteSession = useCallback((id: string) => {
+  const deleteSession = useCallback(async (id: string) => {
     setSessions((prev) => {
       const filtered = prev.filter((s) => s.id !== id);
-      if (filtered.length === 0) {
-        localStorage.removeItem("xalhexi-ai-sessions");
-      }
       return filtered;
     });
     if (activeSessionId === id) {
@@ -127,6 +139,14 @@ export default function AIAssistant({
         return prev;
       });
     }
+    // Delete from Supabase (cascade deletes messages)
+    try {
+      await fetch("/api/chats", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+    } catch { /* silent */ }
   }, [activeSessionId]);
 
   const handleCopy = (text: string) => {
@@ -142,28 +162,45 @@ export default function AIAssistant({
     // Create session if none active
     let sessionId = activeSessionId;
     if (!sessionId) {
+      const title = text.length > 40 ? text.substring(0, 40) + "..." : text;
       const newSession: ChatSession = {
         id: `chat-${Date.now()}`,
-        title: text.length > 40 ? text.substring(0, 40) + "..." : text,
+        title,
         messages: [],
         createdAt: Date.now(),
       };
       setSessions((prev) => [newSession, ...prev]);
       setActiveSessionId(newSession.id);
       sessionId = newSession.id;
+      // Persist new session to Supabase
+      fetch("/api/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: newSession.id, title }),
+      }).catch(() => {});
     }
 
     const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: "user", content: text };
     const assistantMsg: ChatMessage = { id: `a-${Date.now()}`, role: "assistant", content: "" };
 
     // Update session title if first message
+    const capturedSessionId = sessionId;
     setSessions((prev) =>
       prev.map((s) => {
-        if (s.id === sessionId) {
+        if (s.id === capturedSessionId) {
           const isFirst = s.messages.length === 0;
+          const newTitle = isFirst ? (text.length > 40 ? text.substring(0, 40) + "..." : text) : s.title;
+          // Update title in Supabase if it changed
+          if (isFirst) {
+            fetch("/api/chats", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: capturedSessionId, title: newTitle }),
+            }).catch(() => {});
+          }
           return {
             ...s,
-            title: isFirst ? (text.length > 40 ? text.substring(0, 40) + "..." : text) : s.title,
+            title: newTitle,
             messages: [...s.messages, userMsg, assistantMsg],
           };
         }
@@ -171,10 +208,13 @@ export default function AIAssistant({
       })
     );
 
+    // Save user message to Supabase
+    saveMessage({ id: userMsg.id, session_id: capturedSessionId, role: userMsg.role, content: userMsg.content });
+
     setAIStatus("streaming");
 
     // Gather all messages for context
-    const currentSession = sessions.find((s) => s.id === sessionId);
+    const currentSession = sessions.find((s) => s.id === capturedSessionId);
     const allMessages = [...(currentSession?.messages || []), userMsg].map((m) => ({
       role: m.role,
       content: m.content,
@@ -205,7 +245,7 @@ export default function AIAssistant({
         } catch { errMsg = `HTTP ${resp.status}`; }
         setSessions((prev) =>
           prev.map((s) =>
-            s.id === sessionId
+            s.id === capturedSessionId
               ? { ...s, messages: s.messages.map((m) => (m.id === assistantMsg.id ? { ...m, content: `Sorry, I encountered an error: ${errMsg}` } : m)) }
               : s
           )
@@ -227,7 +267,7 @@ export default function AIAssistant({
         fullContent += chunk;
         setSessions((prev) =>
           prev.map((s) =>
-            s.id === sessionId
+            s.id === capturedSessionId
               ? { ...s, messages: s.messages.map((m) => (m.id === assistantMsg.id ? { ...m, content: fullContent } : m)) }
               : s
           )
@@ -236,19 +276,22 @@ export default function AIAssistant({
 
       // If we got nothing at all, show a fallback
       if (!fullContent.trim()) {
+        fullContent = "I received an empty response. Please try again.";
         setSessions((prev) =>
           prev.map((s) =>
-            s.id === sessionId
-              ? { ...s, messages: s.messages.map((m) => (m.id === assistantMsg.id ? { ...m, content: "I received an empty response. Please try again." } : m)) }
+            s.id === capturedSessionId
+              ? { ...s, messages: s.messages.map((m) => (m.id === assistantMsg.id ? { ...m, content: fullContent } : m)) }
               : s
           )
         );
       }
+      // Save assistant response to Supabase
+      saveMessage({ id: assistantMsg.id, session_id: capturedSessionId, role: "assistant", content: fullContent });
     } catch (e: unknown) {
       if (e instanceof Error && e.name !== "AbortError") {
         setSessions((prev) =>
           prev.map((s) =>
-            s.id === sessionId
+            s.id === capturedSessionId
               ? { ...s, messages: s.messages.map((m) => (m.id === assistantMsg.id ? { ...m, content: `Error: ${e.message}` } : m)) }
               : s
           )
@@ -258,7 +301,7 @@ export default function AIAssistant({
       setAIStatus("ready");
       aiAbortRef.current = null;
     }
-  }, [aiInput, aiStatus, activeSessionId, sessions, tutorialTitle, tutorialDescription, currentStepTitle, currentStepContent, aiChatMode]);
+  }, [aiInput, aiStatus, activeSessionId, sessions, tutorialTitle, tutorialDescription, currentStepTitle, currentStepContent, aiChatMode, saveMessage]);
 
   const handleQuickPrompt = (prompt: string, mode: "chat" | "debug" | "explain" = "chat") => {
     setAIChatMode(mode);
@@ -360,15 +403,13 @@ export default function AIAssistant({
                       <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-50" />
                       <span className="truncate">{session.title}</span>
                     </button>
-                    {isAdmin && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:text-[#f85149] transition-all shrink-0"
-                        title="Delete chat"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 hover:text-[#f85149] transition-all shrink-0"
+                      title="Delete chat"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -414,11 +455,7 @@ export default function AIAssistant({
               <span className="text-sm font-semibold text-[var(--t-text-primary)]">xalhexi AI</span>
 
             </div>
-            {tutorialTitle && (
-              <span className="text-xs text-[var(--t-text-faint)] hidden sm:inline truncate max-w-[200px]">
-                Context: {tutorialTitle}
-              </span>
-            )}
+
           </div>
           <div className="flex items-center gap-1">
             {isAdmin && activeMessages.length > 0 && (
@@ -443,17 +480,17 @@ export default function AIAssistant({
         {/* Quick Prompt Chips */}
         <div className="flex gap-1.5 px-4 py-2 border-b border-[var(--t-border)] overflow-x-auto">
           {[
-            { label: "Explain this step", mode: "explain" as const, prompt: `Explain the current step "${currentStepTitle || "this step"}" in simple terms for a beginner.` },
             { label: "Debug error", mode: "debug" as const, prompt: "" },
-            { label: "Give example", mode: "chat" as const, prompt: `Give me a practical example related to "${tutorialTitle || "IT fundamentals"}".` },
-            { label: "Common mistakes", mode: "chat" as const, prompt: `What are common mistakes students make with "${tutorialTitle || "this topic"}"?` },
-            { label: "Simplify", mode: "chat" as const, prompt: "Simplify everything you just said. Use very simple language." },
+            ...(currentStepTitle ? [{ label: "Explain this step", mode: "explain" as const, prompt: `Explain "${currentStepTitle}" briefly.` }] : []),
+            { label: "Fix my code", mode: "chat" as const, prompt: "" },
+            { label: "Quick example", mode: "chat" as const, prompt: `Give me a quick practical example${tutorialTitle ? ` for "${tutorialTitle}"` : ""}.` },
+            { label: "Simplify", mode: "chat" as const, prompt: "Simplify your last answer. Shorter." },
           ].map((chip) => (
             <button
               key={chip.label}
               onClick={() => {
-                if (chip.mode === "debug") {
-                  setAIChatMode("debug");
+                if (chip.mode === "debug" || !chip.prompt) {
+                  setAIChatMode(chip.mode === "debug" ? "debug" : "chat");
                   inputRef.current?.focus();
                 } else {
                   handleQuickPrompt(chip.prompt, chip.mode);
@@ -478,7 +515,7 @@ export default function AIAssistant({
                 <Zap className="w-10 h-10 text-[var(--t-accent-purple,#a78bfa)] mb-4 opacity-30" />
                 <p className="text-base text-[var(--t-text-muted)] mb-1">xalhexi AI</p>
                 <p className="text-sm text-[var(--t-text-faint)] max-w-sm">
-                  Ask anything about IT, Linux, Git, SSH, networking, or your tutorials. I can also help debug errors and explain code.
+                  Ask anything. Code fixes, IT help, debugging, general questions. All chats are public and saved.
                 </p>
               </div>
             )}
