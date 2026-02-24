@@ -1,5 +1,5 @@
 "use client";
-
+// rebuild-trigger
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import hljs from "highlight.js";
 import { useChat } from "@ai-sdk/react";
