@@ -14,7 +14,7 @@
         "id": "27i0pltdn",
         "heading": "activate website",
         "explanation": "❗ CHANGE 5000 TO YOUR PORT",
-        "code": "gunicorn --bind 127.0.0.1:5000 app:app"
+        "code": "gunicorn --bind 127.0.0.1:5000 app:app\n\n# PLEASE MAKE SURE NAA KA SA webapps/app4 \n# use this para mo adto kas app4:\ncd ~/webapps/app4"
       },
       {
         "id": "jd644gvb2",
@@ -51,6 +51,12 @@
         "heading": "Refer",
         "explanation": "",
         "code": "https://v0.app/ref/SKRV5S"
+      },
+      {
+        "id": "6wez8sztv",
+        "heading": "start / stop",
+        "explanation": "",
+        "code": "# start \n\n~/run_app4_bg.sh\n\n# stop\n\n~/stop_app4.sh"
       }
     ],
     "starred": true
