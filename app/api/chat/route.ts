@@ -4,6 +4,8 @@ import { google } from "@ai-sdk/google";
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  console.log("[v0] Chat API called, GOOGLE_GENERATIVE_AI_API_KEY set:", !!process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+
   const {
     messages,
     tutorialTitle,
@@ -67,12 +69,21 @@ Rules:
 - Never show API keys, tokens, or sensitive data in examples`;
   }
 
-  const result = streamText({
-    model: google("gemini-2.0-flash"),
-    system: systemPrompt,
-    messages,
-    abortSignal: req.signal,
-  });
+  try {
+    const result = streamText({
+      model: google("gemini-2.0-flash"),
+      system: systemPrompt,
+      messages,
+      abortSignal: req.signal,
+    });
 
-  return result.toDataStreamResponse();
+    return result.toDataStreamResponse();
+  } catch (error: unknown) {
+    console.error("[v0] Chat API error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error occurred";
+    return new Response(message, { status: 500 });
+  }
 }
+
+// Also catch unhandled rejections at module level for import issues
+export const dynamic = "force-dynamic";
