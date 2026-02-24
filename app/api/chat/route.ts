@@ -1,4 +1,5 @@
 import { streamText } from "ai";
+import { google } from "@ai-sdk/google";
 
 export const maxDuration = 30;
 
@@ -65,7 +66,7 @@ Rules:
   }
 
   const result = streamText({
-    model: "openai/gpt-4o-mini",
+    model: google("gemini-1.5-pro"),
     system: systemPrompt,
     messages,
     abortSignal: req.signal,

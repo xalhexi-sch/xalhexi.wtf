@@ -3040,7 +3040,7 @@ const deleteTutorial = (id: string) => {
 
           {/* AI Chat Split Panel */}
           {showAIChat && !aiChatFullscreen && (
-            <div className="w-1/2 border-l border-[var(--t-border)] flex flex-col bg-[var(--t-bg-primary)]">
+            <div className="w-1/2 border-l border-[var(--t-border)] flex flex-col bg-[var(--t-bg-primary)] sticky top-0 h-screen">
               {/* AI Chat Header */}
               <div className="flex items-center justify-between px-3 py-2 bg-[var(--t-bg-secondary)] border-b border-[var(--t-border)]">
                 <div className="flex items-center gap-2">
