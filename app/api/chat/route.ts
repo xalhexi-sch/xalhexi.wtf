@@ -1,9 +1,4 @@
-import {
-  consumeStream,
-  convertToModelMessages,
-  streamText,
-  UIMessage,
-} from "ai";
+import { streamText } from "ai";
 
 export const maxDuration = 30;
 
@@ -16,7 +11,7 @@ export async function POST(req: Request) {
     currentStepContent,
     mode,
   }: {
-    messages: UIMessage[];
+    messages: { role: "user" | "assistant"; content: string }[];
     tutorialTitle?: string;
     tutorialDescription?: string;
     currentStepTitle?: string;
@@ -72,12 +67,9 @@ Rules:
   const result = streamText({
     model: "openai/gpt-4o-mini",
     system: systemPrompt,
-    messages: await convertToModelMessages(messages),
+    messages,
     abortSignal: req.signal,
   });
 
-  return result.toUIMessageStreamResponse({
-    originalMessages: messages,
-    consumeSseStream: consumeStream,
-  });
+  return result.toDataStreamResponse();
 }

@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import hljs from "highlight.js";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import type { UIMessage } from "ai";
 import {
   Minus,
   Search,
@@ -1470,49 +1467,94 @@ export default function ITPTutorial() {
   const currentTutorial = tutorials.find((t) => t.id === selectedTutorial) || tutorials[0] || null;
   const currentStepForAI = currentTutorial?.steps?.[0] || null;
 
-  const aiChatTransport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: "/api/chat",
-        prepareSendMessagesRequest: ({ id, messages }) => ({
-          body: {
-            id,
-            messages,
-            tutorialTitle: currentTutorial?.title || "",
-            tutorialDescription: currentTutorial?.description || "",
-            currentStepTitle: currentStepForAI?.heading || "",
-            currentStepContent: currentStepForAI?.explanation || "",
-            mode: aiChatMode,
-          },
-        }),
-      }),
-    [currentTutorial?.title, currentTutorial?.description, currentStepForAI?.heading, currentStepForAI?.explanation, aiChatMode]
-  );
-
-  const {
-    messages: aiMessages,
-    sendMessage,
-    status: aiStatus,
-    setMessages: setAIMessages,
-  } = useChat({
-    id: `itp-chat-${selectedTutorial || "default"}`,
-    transport: aiChatTransport,
-  });
-
+  interface ChatMessage { id: string; role: "user" | "assistant"; content: string; }
+  const [aiMessages, setAIMessages] = useState<ChatMessage[]>([]);
   const [aiInput, setAIInput] = useState("");
+  const [aiStatus, setAIStatus] = useState<"ready" | "streaming">("ready");
+  const aiAbortRef = useRef<AbortController | null>(null);
 
-  const handleAISend = () => {
-    const text = aiInput.trim();
+  const handleAISend = useCallback(async (textOverride?: string) => {
+    const text = (textOverride || aiInput).trim();
     if (!text || aiStatus === "streaming") return;
-    sendMessage({ text });
-    setAIInput("");
-  };
+    if (!textOverride) setAIInput("");
+
+    const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: "user", content: text };
+    const assistantMsg: ChatMessage = { id: `a-${Date.now()}`, role: "assistant", content: "" };
+
+    setAIMessages((prev) => [...prev, userMsg, assistantMsg]);
+    setAIStatus("streaming");
+
+    const allMessages = [...aiMessages, userMsg].map((m) => ({ role: m.role, content: m.content }));
+
+    try {
+      aiAbortRef.current = new AbortController();
+      const resp = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: allMessages,
+          tutorialTitle: currentTutorial?.title || "",
+          tutorialDescription: currentTutorial?.description || "",
+          currentStepTitle: currentStepForAI?.heading || "",
+          currentStepContent: currentStepForAI?.explanation || "",
+          mode: aiChatMode,
+        }),
+        signal: aiAbortRef.current.signal,
+      });
+
+      if (!resp.ok) {
+        const err = await resp.text();
+        setAIMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: `Error: ${err}` } : m));
+        setAIStatus("ready");
+        return;
+      }
+
+      const reader = resp.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) { setAIStatus("ready"); return; }
+
+      let fullContent = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        // Parse SSE format
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          const trimmed = line.trim();
+          // Handle data-stream format: 0:"text chunk"
+          if (/^\d+:/.test(trimmed)) {
+            const colonIdx = trimmed.indexOf(":");
+            const type = trimmed.substring(0, colonIdx);
+            const payload = trimmed.substring(colonIdx + 1);
+            if (type === "0") {
+              // Text delta - payload is a JSON string
+              try {
+                const text = JSON.parse(payload);
+                if (typeof text === "string") {
+                  fullContent += text;
+                  setAIMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: fullContent } : m));
+                }
+              } catch { /* skip */ }
+            }
+          }
+        }
+      }
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name !== "AbortError") {
+        setAIMessages((prev) => prev.map((m) => m.id === assistantMsg.id ? { ...m, content: `Error: ${e.message}` } : m));
+      }
+    } finally {
+      setAIStatus("ready");
+      aiAbortRef.current = null;
+    }
+  }, [aiInput, aiStatus, aiMessages, currentTutorial?.title, currentTutorial?.description, currentStepForAI?.heading, currentStepForAI?.explanation, aiChatMode]);
 
   const handleAIQuickPrompt = (prompt: string, mode: "chat" | "debug" | "explain" = "chat") => {
     setAIChatMode(mode);
     if (!showAIChat) setShowAIChat(true);
     setTimeout(() => {
-      sendMessage({ text: prompt });
+      handleAISend(prompt);
     }, 100);
   };
 
@@ -1520,15 +1562,6 @@ export default function ITPTutorial() {
   useEffect(() => {
     aiChatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [aiMessages]);
-
-  // Helper to extract text from UIMessage parts
-  function getMessageText(msg: UIMessage): string {
-    if (!msg.parts || !Array.isArray(msg.parts)) return "";
-    return msg.parts
-      .filter((p): p is { type: "text"; text: string } => p.type === "text")
-      .map((p) => p.text)
-      .join("");
-  }
 
   // Render markdown-style code blocks in AI responses
   function renderAIContent(text: string) {
@@ -3090,8 +3123,7 @@ const deleteTutorial = (id: string) => {
                   </div>
                 )}
                 {aiMessages.map((msg) => {
-                  const text = getMessageText(msg);
-                  if (!text) return null;
+                  if (!msg.content) return null;
                   return (
                     <div
                       key={msg.id}
@@ -3105,13 +3137,13 @@ const deleteTutorial = (id: string) => {
                         }`}
                       >
                         {msg.role === "user" ? (
-                          <p className="whitespace-pre-wrap">{text}</p>
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
                         ) : (
-                          <div className="whitespace-pre-wrap leading-relaxed">{renderAIContent(text)}</div>
+                          <div className="whitespace-pre-wrap leading-relaxed">{renderAIContent(msg.content)}</div>
                         )}
-                        {msg.role === "assistant" && (
+                        {msg.role === "assistant" && msg.content && (
                           <button
-                            onClick={() => handleCopy(text)}
+                            onClick={() => handleCopy(msg.content)}
                             className="mt-1.5 flex items-center gap-1 text-xs text-[var(--t-text-faint)] hover:text-[var(--t-text-muted)] transition-colors"
                           >
                             <Copy className="w-3 h-3" />
@@ -3504,8 +3536,7 @@ const deleteTutorial = (id: string) => {
               </div>
             )}
             {aiMessages.map((msg) => {
-              const text = getMessageText(msg);
-              if (!text) return null;
+              if (!msg.content) return null;
               return (
                 <div
                   key={msg.id}
@@ -3519,13 +3550,13 @@ const deleteTutorial = (id: string) => {
                     }`}
                   >
                     {msg.role === "user" ? (
-                      <p className="whitespace-pre-wrap">{text}</p>
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
                     ) : (
-                      <div className="whitespace-pre-wrap leading-relaxed">{renderAIContent(text)}</div>
+                      <div className="whitespace-pre-wrap leading-relaxed">{renderAIContent(msg.content)}</div>
                     )}
-                    {msg.role === "assistant" && (
+                    {msg.role === "assistant" && msg.content && (
                       <button
-                        onClick={() => handleCopy(text)}
+                        onClick={() => handleCopy(msg.content)}
                         className="mt-2 flex items-center gap-1 text-xs text-[var(--t-text-faint)] hover:text-[var(--t-text-muted)] transition-colors"
                       >
                         <Copy className="w-3 h-3" />
