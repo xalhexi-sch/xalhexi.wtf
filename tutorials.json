@@ -627,5 +627,18 @@
       }
     ],
     "locked": true
+  },
+  {
+    "id": "eizjbl7ga",
+    "title": "Vrbtb",
+    "description": "",
+    "steps": [
+      {
+        "id": "m2pxda8ta",
+        "heading": "Root",
+        "explanation": "",
+        "code": "cd ~"
+      }
+    ]
   }
 ]
