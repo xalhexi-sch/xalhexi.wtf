@@ -455,7 +455,7 @@
         "code": "cd ~\npwd  # Optional: confirm location\n\n# When done, exit the server\nexit"
       }
     ],
-    "locked": true
+    "locked": false
   },
   {
     "id": "6",
