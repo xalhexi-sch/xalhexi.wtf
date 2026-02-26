@@ -171,6 +171,32 @@
     "locked": false
   },
   {
+    "id": "vonvgdayy",
+    "title": "App4 [NEW]",
+    "description": "",
+    "steps": [
+      {
+        "id": "187duniug",
+        "heading": "app.py",
+        "explanation": "⚠️ CHANGE YOUR LAST NAME HOY!!!!!!!!!!!!!!",
+        "code": "from werkzeug.wrappers import Request, Response\nfrom werkzeug.routing import Map, Rule\nfrom werkzeug.exceptions import NotFound\nfrom jinja2 import Environment, FileSystemLoader\n\n# ------------------------\n# Basic setup\n# ------------------------\nBASE_URL = \"/it21_banas/webapps/app4\"\n\nenv = Environment(loader=FileSystemLoader(\"templates\"))\n\ndef render(template, **context):\n    context.update({\n        \"base_url\": BASE_URL,\n    })\n    return Response(\n        env.get_template(template).render(**context),\n        content_type=\"text/html\"\n    )\n\n# ------------------------\n# Routes\n# ------------------------\nurl_map = Map([\n    Rule(\"/\", endpoint=\"home\"),\n    Rule(\"/products\", endpoint=\"products\"),\n    Rule(\"/services\", endpoint=\"services\"),\n    Rule(\"/contactus\", endpoint=\"contactus\"),\n    Rule(\"/register\", endpoint=\"register\", methods=[\"GET\", \"POST\"]),  # NEW ROUTE\n])\n\n# ------------------------\n# View functions\n# ------------------------\ndef home(request):\n    return render(\"home.html\")\n\ndef products(request):\n    product_items = [\n        {\"id\": 1, \"name\": \"Gaming Laptop\", \"brand\": \"Dell\", \"price\": 1500, \"stock\": 10},\n        {\"id\": 2, \"name\": \"Mechanical Keyboard\", \"brand\": \"Logitech\", \"price\": 120, \"stock\": 25},\n    ]\n    return render(\"products.html\", product_items=product_items)\n\ndef services(request):\n    return render(\"services.html\")\n\ndef contactus(request):\n    return render(\"contactus.html\")\n\ndef register(request):\n    error = None\n    success = None\n\n    if request.method == \"POST\":\n        email = request.form.get(\"email\", \"\").strip()\n        password = request.form.get(\"password\", \"\").strip()\n\n        if not email or not password:\n            error = \"All fields are required.\"\n        else:\n            success = f\"Welcome, {email}! You are registered.\"\n\n    return render(\"register.html\", error=error, success=success)\n\n# ------------------------\n# WSGI app\n# ------------------------\n@Request.application\ndef app(request):\n    adapter = url_map.bind_to_environ(request.environ)\n\n    try:\n        endpoint, values = adapter.match()\n        return globals()[endpoint](request, **values)\n    except NotFound:\n        return Response(\"404 Not Found\", status=404)"
+      },
+      {
+        "id": "816upbrrw",
+        "heading": "register.html",
+        "explanation": "",
+        "code": "{% extends \"base.html\" %}\n\n\n\n{% block content %}\n\n\n\n{% if error %}\n  <div class=\"alert alert-danger\">{{ error }}</div>\n{% endif %}\n\n{% if success %}\n  <div class=\"alert alert-success\">{{ success }}</div>\n\n\n{% endif %}\n\n{% if not success %}\n<form method=\"POST\" action=\"{{ base_url }}/register\">\n  <div class=\"form-group\">\n    <label for=\"exampleInputEmail1\">Email address</label>\n    <input type=\"email\" class=\"form-control\" id=\"exampleInputEmail1\" name=\"email\" aria-describedby=\"emailHelp\" placeholder=\"Enter email\">\n    <small id=\"emailHelp\" class=\"form-text text-muted\">We'll never share your email with anyone else.</small>\n  </div>\n  <div class=\"form-group\">\n    <label for=\"exampleInputPassword1\">Password</label>\n    <input type=\"password\" class=\"form-control\" id=\"exampleInputPassword1\"  name=\"password\" placeholder=\"Password\">\n  </div>\n  \n  <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\n</form>\n\n{% endif %}\n\n{% endblock %}"
+      },
+      {
+        "id": "2zhc13dap",
+        "heading": "navigation.html",
+        "explanation": "",
+        "code": "<nav class=\"navbar navbar-expand-lg bg-body-tertiary\" data-bs-theme=\"dark\">\n  <div class=\"container-fluid\">\n    <a class=\"navbar-brand\" href=\"#\">Navbar</a>\n    <button class=\"navbar-toggler\" type=\"button\" data-bs-toggle=\"collapse\" data-bs-target=\"#navbarNavDropdown\" aria-controls=\"navbarNavDropdown\" aria-expanded=\"false\" aria-label=\"Toggle navigation\">\n      <span class=\"navbar-toggler-icon\"></span>\n    </button>\n    <div class=\"collapse navbar-collapse\" id=\"navbarNavDropdown\">\n      <ul class=\"navbar-nav\">\n        <li class=\"nav-item\">\n          <a class=\"nav-link active\" aria-current=\"page\" href=\"{{ base_url }}/\">Home</a>\n        </li>\n        <li class=\"nav-item\">\n          <a class=\"nav-link\" href=\"{{ base_url }}/contactus\">Contact Us</a>\n        </li>\n        <li class=\"nav-item\">\n          <a class=\"nav-link\" href=\"{{ base_url }}/products\">Products</a>\n        </li>\n        <li class=\"nav-item\">\n          <a class=\"nav-link\" href=\"{{ base_url }}/services\">Services</a>\n        </li>\n        <li class=\"nav-item dropdown\">\n          <a class=\"nav-link dropdown-toggle\" href=\"#\" role=\"button\" data-bs-toggle=\"dropdown\" aria-expanded=\"false\">\n            About Us\n          </a>\n          <ul class=\"dropdown-menu\">\n            <li><a class=\"dropdown-item\" href=\"{{ base_url }}/register\">Register</a></li>\n            <li><a class=\"dropdown-item\" href=\"#\">The Company</a></li>\n            <li><a class=\"dropdown-item\" href=\"#\">The History</a></li>\n            <li><a class=\"dropdown-item\" href=\"#\">Contact Us</a></li>\n          </ul>\n        </li>\n      </ul>\n    </div>\n  </div>\n</nav>"
+      }
+    ],
+    "starred": true
+  },
+  {
     "id": "1h5r70vne",
     "title": "App3",
     "description": "tuts",
