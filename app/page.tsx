@@ -1349,6 +1349,7 @@ export default function ITPTutorial() {
   const [showDiff, setShowDiff] = useState(false);
   const lastPushedSnapshot = useRef<Tutorial[]>([]);
   const [showStepChanges, setShowStepChanges] = useState<Record<string, boolean>>({});
+  const [persistedStepDiffs, setPersistedStepDiffs] = useState<{ tutorialId: string; tutorialTitle: string; stepId: string; stepIndex: number; isNew: boolean; isDeleted: boolean; changes: { field: string; old: string; new: string }[] }[]>([]);
 
   // Hash-based routing: read hash on mount
   useEffect(() => {
@@ -1448,6 +1449,16 @@ export default function ITPTutorial() {
       }
     };
     loadTutorials();
+
+    // Load persisted step diffs from last push (so everyone sees changes)
+    fetch("/api/changelog")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.entry && Array.isArray(d.entry.changes)) {
+          setPersistedStepDiffs(d.entry.changes);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -1673,18 +1684,32 @@ const deleteTutorial = (id: string) => {
     );
   };
 
-  // Compare a step against the last-pushed snapshot to detect changes
+  // Compare a step against the last-pushed snapshot (unsaved local edits)
+  // OR return persisted diffs from the last push (saved in Supabase, visible to everyone)
   const getStepChanges = useCallback((tutorialId: string, stepIndex: number, step: Step) => {
+    // First check for unsaved local edits (in-memory diff)
     const oldTutorial = lastPushedSnapshot.current.find((t) => t.id === tutorialId);
-    if (!oldTutorial) return { isNew: true, changes: [] };
-    const oldStep = oldTutorial.steps[stepIndex];
-    if (!oldStep) return { isNew: true, changes: [] };
-    const changes: { field: string; old: string; new: string }[] = [];
-    if (oldStep.heading !== step.heading) changes.push({ field: "heading", old: oldStep.heading, new: step.heading });
-    if (oldStep.explanation !== step.explanation) changes.push({ field: "explanation", old: oldStep.explanation, new: step.explanation });
-    if (oldStep.code !== step.code) changes.push({ field: "code", old: oldStep.code, new: step.code });
-    return { isNew: false, changes };
-  }, []);
+    if (oldTutorial) {
+      const oldStep = oldTutorial.steps[stepIndex];
+      if (!oldStep) {
+        // Step doesn't exist in snapshot = locally added
+        return { isNew: true, changes: [], source: "local" as const };
+      }
+      const changes: { field: string; old: string; new: string }[] = [];
+      if (oldStep.heading !== step.heading) changes.push({ field: "heading", old: oldStep.heading, new: step.heading });
+      if (oldStep.explanation !== step.explanation) changes.push({ field: "explanation", old: oldStep.explanation, new: step.explanation });
+      if (oldStep.code !== step.code) changes.push({ field: "code", old: oldStep.code, new: step.code });
+      if (changes.length > 0) return { isNew: false, changes, source: "local" as const };
+    }
+
+    // Fall back to persisted diffs from last push (visible to everyone after refresh)
+    const persisted = persistedStepDiffs.find((d) => d.stepId === step.id);
+    if (persisted) {
+      return { isNew: persisted.isNew, changes: persisted.changes, source: "persisted" as const };
+    }
+
+    return { isNew: false, changes: [], source: "none" as const };
+  }, [persistedStepDiffs]);
 
   const toggleCrown = (id: string) => {
     setTutorials((prev) =>
@@ -1817,62 +1842,61 @@ const deleteTutorial = (id: string) => {
       }
       localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(tutorials));
 
-      // Auto-detect changes: compare snapshot vs current
+      // Auto-detect step-level changes: compare snapshot vs current
       const prev = lastPushedSnapshot.current;
-      const changes: { type: string; title: string; details?: string }[] = [];
       const prevMap = new Map(prev.map((t) => [t.id, t]));
-      const currMap = new Map(tutorials.map((t) => [t.id, t]));
+      // Build detailed step-level diffs keyed by stepId
+      const stepDiffs: { tutorialId: string; tutorialTitle: string; stepId: string; stepIndex: number; isNew: boolean; isDeleted: boolean; changes: { field: string; old: string; new: string }[] }[] = [];
+      let changeCount = 0;
 
-      // Detect added
-      for (const t of tutorials) {
-        if (!prevMap.has(t.id)) {
-          changes.push({ type: "added", title: t.title });
-        }
-      }
-      // Detect deleted
-      for (const t of prev) {
-        if (!currMap.has(t.id)) {
-          changes.push({ type: "deleted", title: t.title });
-        }
-      }
-      // Detect modified
       for (const t of tutorials) {
         const old = prevMap.get(t.id);
-        if (!old) continue;
-        const mods: string[] = [];
-        if (old.title !== t.title) mods.push("title");
-        if (old.description !== t.description) mods.push("description");
-        if (old.locked !== t.locked) mods.push(t.locked ? "locked" : "unlocked");
-        if (old.starred !== t.starred) mods.push(t.starred ? "starred" : "unstarred");
-        if (old.vipOnly !== t.vipOnly) mods.push(t.vipOnly ? "crowned VIP" : "removed VIP");
-        if (old.steps.length !== t.steps.length) {
-          mods.push(`steps: ${old.steps.length} -> ${t.steps.length}`);
-        } else {
-          for (let i = 0; i < t.steps.length; i++) {
-            if (old.steps[i]?.heading !== t.steps[i]?.heading || old.steps[i]?.code !== t.steps[i]?.code || old.steps[i]?.explanation !== t.steps[i]?.explanation) {
-              mods.push(`step ${i + 1} edited`);
-              break;
-            }
+        if (!old) {
+          // Entire tutorial is new - mark all steps as new
+          t.steps.forEach((s, i) => {
+            stepDiffs.push({ tutorialId: t.id, tutorialTitle: t.title, stepId: s.id, stepIndex: i, isNew: true, isDeleted: false, changes: [] });
+          });
+          changeCount++;
+          continue;
+        }
+        for (let i = 0; i < t.steps.length; i++) {
+          const newStep = t.steps[i];
+          const oldStep = old.steps[i];
+          if (!oldStep) {
+            stepDiffs.push({ tutorialId: t.id, tutorialTitle: t.title, stepId: newStep.id, stepIndex: i, isNew: true, isDeleted: false, changes: [] });
+            changeCount++;
+            continue;
+          }
+          const diffs: { field: string; old: string; new: string }[] = [];
+          if (oldStep.heading !== newStep.heading) diffs.push({ field: "heading", old: oldStep.heading, new: newStep.heading });
+          if (oldStep.explanation !== newStep.explanation) diffs.push({ field: "explanation", old: oldStep.explanation, new: newStep.explanation });
+          if (oldStep.code !== newStep.code) diffs.push({ field: "code", old: oldStep.code, new: newStep.code });
+          if (diffs.length > 0) {
+            stepDiffs.push({ tutorialId: t.id, tutorialTitle: t.title, stepId: newStep.id, stepIndex: i, isNew: false, isDeleted: false, changes: diffs });
+            changeCount++;
           }
         }
-        if (mods.length > 0) {
-          changes.push({ type: "modified", title: t.title, details: mods.join(", ") });
+        // Detect deleted steps
+        for (let i = t.steps.length; i < old.steps.length; i++) {
+          stepDiffs.push({ tutorialId: t.id, tutorialTitle: t.title, stepId: old.steps[i].id, stepIndex: i, isNew: false, isDeleted: true, changes: [] });
+          changeCount++;
         }
       }
 
-      // Save changelog to Supabase if there are changes
-      if (changes.length > 0) {
+      // Save to Supabase and update local persisted diffs
+      if (stepDiffs.length > 0) {
+        setPersistedStepDiffs(stepDiffs);
         fetch("/api/changelog", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ changes }),
+          body: JSON.stringify({ changes: stepDiffs }),
         }).catch(() => {});
       }
 
       // Update snapshot
       lastPushedSnapshot.current = JSON.parse(JSON.stringify(tutorials));
 
-      showToast(changes.length > 0 ? `Saved! ${changes.length} change(s) detected.` : "Saved! No changes detected.");
+      showToast(changeCount > 0 ? `Saved! ${changeCount} change(s) detected.` : "Saved! No changes detected.");
     } catch (error) {
       showToast("Failed to save: " + (error instanceof Error ? error.message : "Unknown error"));
       console.error("Push error:", error);
@@ -2986,7 +3010,7 @@ const deleteTutorial = (id: string) => {
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         {(() => {
-                          const { isNew, changes } = getStepChanges(currentTutorial.id, index, step);
+                          const { isNew, changes, source } = getStepChanges(currentTutorial.id, index, step);
                           const hasChanges = isNew || changes.length > 0;
                           return hasChanges ? (
                             <button
@@ -2996,10 +3020,11 @@ const deleteTutorial = (id: string) => {
                                   ? "bg-[var(--t-accent-blue)]/10 text-[var(--t-accent-blue)] border-[var(--t-accent-blue)]/30"
                                   : "bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border-[var(--t-border)]"
                               }`}
-                              title={isNew ? "New step" : `${changes.length} change(s)`}
+                              title={isNew ? "New step" : `${changes.length} change(s)${source === "local" ? " (unsaved)" : ""}`}
                             >
+                              {source === "local" && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
                               <GitCompare className="w-3 h-3" />
-                              {isNew ? "New" : `${changes.length} change${changes.length !== 1 ? "s" : ""}`}
+                              {isNew ? "New" : "Changes"}
                             </button>
                           ) : null;
                         })()}

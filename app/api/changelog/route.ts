@@ -1,22 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-// GET: fetch changelog entries (latest first, limit 50)
+// GET: fetch the latest changelog entry (for showing persisted step diffs)
 export async function GET() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tutorial_changelog")
     .select("*")
     .order("pushed_at", { ascending: false })
-    .limit(50);
+    .limit(1)
+    .single();
 
-  if (error) {
+  if (error && error.code !== "PGRST116") {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ entries: data });
+  return NextResponse.json({ entry: data || null });
 }
 
-// POST: save a new changelog entry
+// POST: save a new changelog entry with detailed step-level diffs
 export async function POST(req: Request) {
   const { changes } = await req.json();
   if (!Array.isArray(changes) || changes.length === 0) {
