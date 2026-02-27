@@ -51,7 +51,6 @@ import {
   GripVertical,
   Crown,
   GitCompare,
-  History,
 } from "lucide-react";
 
 interface StepImage {
@@ -1337,7 +1336,7 @@ export default function ITPTutorial() {
   const [isPushing, setIsPushing] = useState(false);
   const [colorTheme, setColorTheme] = useState<"dark" | "light" | "cyber">("dark");
   const [isLoadingTutorials, setIsLoadingTutorials] = useState(true);
-  const [activeTab, setActiveTab] = useState<"tutorials" | "repositories" | "history">("tutorials");
+  const [activeTab, setActiveTab] = useState<"tutorials" | "repositories">("tutorials");
   const [repos, setRepos] = useState<GithubRepo[]>([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
   const [reposLoaded, setReposLoaded] = useState(false);
@@ -1348,9 +1347,8 @@ export default function ITPTutorial() {
   const [viewingFile, setViewingFile] = useState<FileContent | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
-  const [changelog, setChangelog] = useState<{ id: number; pushed_at: string; changes: { type: string; title: string; details?: string }[] }[]>([]);
-  const [isLoadingChangelog, setIsLoadingChangelog] = useState(false);
   const lastPushedSnapshot = useRef<Tutorial[]>([]);
+  const [showStepChanges, setShowStepChanges] = useState<Record<string, boolean>>({});
 
   // Hash-based routing: read hash on mount
   useEffect(() => {
@@ -1674,6 +1672,19 @@ const deleteTutorial = (id: string) => {
       prev.map((t) => (t.id === id ? { ...t, starred: !t.starred } : t))
     );
   };
+
+  // Compare a step against the last-pushed snapshot to detect changes
+  const getStepChanges = useCallback((tutorialId: string, stepIndex: number, step: Step) => {
+    const oldTutorial = lastPushedSnapshot.current.find((t) => t.id === tutorialId);
+    if (!oldTutorial) return { isNew: true, changes: [] };
+    const oldStep = oldTutorial.steps[stepIndex];
+    if (!oldStep) return { isNew: true, changes: [] };
+    const changes: { field: string; old: string; new: string }[] = [];
+    if (oldStep.heading !== step.heading) changes.push({ field: "heading", old: oldStep.heading, new: step.heading });
+    if (oldStep.explanation !== step.explanation) changes.push({ field: "explanation", old: oldStep.explanation, new: step.explanation });
+    if (oldStep.code !== step.code) changes.push({ field: "code", old: oldStep.code, new: step.code });
+    return { isNew: false, changes };
+  }, []);
 
   const toggleCrown = (id: string) => {
     setTutorials((prev) =>
@@ -2026,27 +2037,11 @@ const deleteTutorial = (id: string) => {
   };
 
   // Handle tab switch
-  const switchTab = (tab: "tutorials" | "repositories" | "history") => {
+  const switchTab = (tab: "tutorials" | "repositories") => {
     setActiveTab(tab);
     if (tab === "repositories" && !reposLoaded) {
       loadRepos();
     }
-    if (tab === "history" && changelog.length === 0) {
-      loadChangelog();
-    }
-  };
-
-  // Load changelog from Supabase
-  const loadChangelog = async () => {
-    setIsLoadingChangelog(true);
-    try {
-      const resp = await fetch("/api/changelog");
-      const data = await resp.json();
-      if (resp.ok && Array.isArray(data.entries)) {
-        setChangelog(data.entries);
-      }
-    } catch { /* silent */ }
-    setIsLoadingChangelog(false);
   };
 
   const [fileCopied, setFileCopied] = useState(false);
@@ -2158,16 +2153,6 @@ const deleteTutorial = (id: string) => {
               }`}
             >
               Repos
-            </button>
-            <button
-              onClick={() => switchTab("history")}
-              className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${
-                activeTab === "history"
-                  ? "bg-[var(--t-accent-green)] text-white"
-                  : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)]"
-              }`}
-            >
-              History
             </button>
           </div>
 
@@ -2296,16 +2281,6 @@ const deleteTutorial = (id: string) => {
                 }`}
               >
                 Repositories
-              </button>
-              <button
-                onClick={() => switchTab("history")}
-                className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${
-                  activeTab === "history"
-                    ? "bg-[var(--t-accent-green)] text-white"
-                    : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
-                }`}
-              >
-                History
               </button>
               {activeTab === "tutorials" && isAdmin && (
                 <button
@@ -2512,61 +2487,6 @@ const deleteTutorial = (id: string) => {
                 </button>
               </div>
             )}
-            {/* History / Changelog */}
-            {activeTab === "history" && (
-              <div className="space-y-3">
-                {isLoadingChangelog ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-5 h-5 animate-spin text-[var(--t-text-faint)]" />
-                  </div>
-                ) : changelog.length === 0 ? (
-                  <p className="text-sm text-[var(--t-text-faint)] text-center py-8">No changes recorded yet. Push tutorials to start tracking.</p>
-                ) : (
-                  changelog.map((entry) => (
-                    <div key={entry.id} className="border border-[var(--t-border)] rounded-lg overflow-hidden">
-                      <div className="px-3 py-2 bg-[var(--t-bg-tertiary)] border-b border-[var(--t-border)] flex items-center gap-2">
-                        <History className="w-3.5 h-3.5 text-[var(--t-text-faint)]" />
-                        <span className="text-xs text-[var(--t-text-muted)] font-medium">
-                          {new Date(entry.pushed_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
-                          {" "}
-                          {new Date(entry.pushed_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                        <span className="ml-auto text-[10px] text-[var(--t-text-faint)] bg-[var(--t-bg-primary)] px-1.5 py-0.5 rounded">
-                          {entry.changes.length} change{entry.changes.length !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                      <div className="divide-y divide-[var(--t-border)]">
-                        {entry.changes.map((ch, ci) => (
-                          <div key={ci} className="px-3 py-2 flex items-start gap-2">
-                            <span className={`mt-0.5 inline-block w-2 h-2 rounded-full shrink-0 ${
-                              ch.type === "added" ? "bg-[var(--t-accent-green)]" :
-                              ch.type === "deleted" ? "bg-[#f85149]" :
-                              "bg-[var(--t-accent-blue)]"
-                            }`} />
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <span className={`text-[10px] font-semibold uppercase ${
-                                  ch.type === "added" ? "text-[var(--t-accent-green-text)]" :
-                                  ch.type === "deleted" ? "text-[#f85149]" :
-                                  "text-[var(--t-accent-blue)]"
-                                }`}>
-                                  {ch.type}
-                                </span>
-                                <span className="text-sm text-[var(--t-text-primary)] truncate">{ch.title}</span>
-                              </div>
-                              {ch.details && (
-                                <p className="text-xs text-[var(--t-text-faint)] mt-0.5">{ch.details}</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
             {/* Terminal button */}
             {(isAdmin || !terminalLocked) && (
               <div className="flex items-center gap-2">
@@ -3065,6 +2985,24 @@ const deleteTutorial = (id: string) => {
                         <h3 className="font-semibold text-[var(--t-text-primary)] truncate">{step.heading}</h3>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
+                        {(() => {
+                          const { isNew, changes } = getStepChanges(currentTutorial.id, index, step);
+                          const hasChanges = isNew || changes.length > 0;
+                          return hasChanges ? (
+                            <button
+                              onClick={() => setShowStepChanges((prev) => ({ ...prev, [step.id]: !prev[step.id] }))}
+                              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-md transition-colors ${
+                                showStepChanges[step.id]
+                                  ? "bg-[var(--t-accent-blue)]/10 text-[var(--t-accent-blue)] border-[var(--t-accent-blue)]/30"
+                                  : "bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border-[var(--t-border)]"
+                              }`}
+                              title={isNew ? "New step" : `${changes.length} change(s)`}
+                            >
+                              <GitCompare className="w-3 h-3" />
+                              {isNew ? "New" : `${changes.length} change${changes.length !== 1 ? "s" : ""}`}
+                            </button>
+                          ) : null;
+                        })()}
                         {step.code && (
                           <button
                             onClick={() => handleCopy(step.code)}
@@ -3109,6 +3047,70 @@ const deleteTutorial = (id: string) => {
                       )}
                       </div>
                     </div>
+                    {/* Inline step diff */}
+                    {showStepChanges[step.id] && (() => {
+                      const { isNew, changes } = getStepChanges(currentTutorial.id, index, step);
+                      return (
+                        <div className="border-b border-[var(--t-border)] bg-[var(--t-bg-primary)] px-4 py-3 space-y-2">
+                          {isNew ? (
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="inline-block w-2 h-2 rounded-full bg-[var(--t-accent-green)]" />
+                              <span className="text-[var(--t-accent-green-text)] font-semibold">NEW STEP</span>
+                              <span className="text-[var(--t-text-faint)]">This step was added since the last push</span>
+                            </div>
+                          ) : changes.length > 0 ? (
+                            changes.map((ch, ci) => (
+                              <div key={ci} className="space-y-1">
+                                <span className="text-[10px] font-semibold uppercase text-[var(--t-accent-blue)]">{ch.field}</span>
+                                {ch.field === "code" ? (
+                                  <div className="rounded border border-[var(--t-border)] overflow-hidden text-xs font-mono">
+                                    {ch.old.split("\n").map((line, li) => {
+                                      const newLines = ch.new.split("\n");
+                                      const isRemoved = !newLines.includes(line);
+                                      return isRemoved ? (
+                                        <div key={`old-${li}`} className="flex bg-red-500/10 text-[#f85149]">
+                                          <span className="w-8 text-right pr-2 select-none opacity-50 shrink-0">-</span>
+                                          <span className="whitespace-pre">{line}</span>
+                                        </div>
+                                      ) : null;
+                                    })}
+                                    {ch.new.split("\n").map((line, li) => {
+                                      const oldLines = ch.old.split("\n");
+                                      const isAdded = !oldLines.includes(line);
+                                      return isAdded ? (
+                                        <div key={`new-${li}`} className="flex bg-green-500/10 text-[var(--t-accent-green-text)]">
+                                          <span className="w-8 text-right pr-2 select-none opacity-50 shrink-0">+</span>
+                                          <span className="whitespace-pre">{line}</span>
+                                        </div>
+                                      ) : (
+                                        <div key={`same-${li}`} className="flex text-[var(--t-text-faint)]">
+                                          <span className="w-8 text-right pr-2 select-none opacity-50 shrink-0"> </span>
+                                          <span className="whitespace-pre">{line}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  <div className="rounded border border-[var(--t-border)] overflow-hidden text-xs">
+                                    {ch.old && (
+                                      <div className="px-3 py-1.5 bg-red-500/10 text-[#f85149]">
+                                        <span className="select-none opacity-50 mr-2">-</span>{ch.old}
+                                      </div>
+                                    )}
+                                    {ch.new && (
+                                      <div className="px-3 py-1.5 bg-green-500/10 text-[var(--t-accent-green-text)]">
+                                        <span className="select-none opacity-50 mr-2">+</span>{ch.new}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          ) : null}
+                        </div>
+                      );
+                    })()}
+
                     <div className="p-4 space-y-3">
                       {step.explanation && (
                         <p className="text-sm text-[var(--t-text-muted)]">{step.explanation}</p>
