@@ -56,7 +56,7 @@
         "id": "6wez8sztv",
         "heading": "start / stop",
         "explanation": "",
-        "code": "# start \n\n~/run_app4_bg.sh\n\n# stop\n\n~/stop_app4.sh"
+        "code": "# start 22\n~/run_app4_bg.sh\n# stop test\n~/stop_app4.sh"
       }
     ],
     "starred": true
