@@ -14,7 +14,7 @@
         "id": "27i0pltdn",
         "heading": "activate website",
         "explanation": "❗ CHANGE 5000 TO YOUR PORT",
-        "code": "gunicorn --bind 127.0.0.1:5000 app:app\n\n# PLEASE MAKE SURE NAA KA SA webapps/app4 \n# use this para mo adto kas app4\n# warpp\ncd ~/webapps/app4"
+        "code": "gunicorn --bind 127.0.0.1:5000 app:app\n\n# PLEASE MAKE SURE NAA KA SA webapps/app4 \n# use this para mo adto kas app4:\ncd ~/webapps/app4"
       },
       {
         "id": "jd644gvb2",
@@ -280,7 +280,7 @@
   },
   {
     "id": "348b9lrsw",
-    "title": "Shortcuts",
+    "title": "SCRIPT!",
     "description": "",
     "steps": [
       {
@@ -300,6 +300,12 @@
         "heading": "~/run.sh",
         "explanation": "",
         "code": "cd ~/webapps/app4\n\nsource ~/virt/bin/activate\n\ngunicorn --bind 127.0.0.1:5065 app:app"
+      },
+      {
+        "id": "4i32qa7bg",
+        "heading": "chmod the script",
+        "explanation": "",
+        "code": "chmod +x ~/run.sh\nchmod +x ~/stop.sh"
       }
     ],
     "starred": false,
