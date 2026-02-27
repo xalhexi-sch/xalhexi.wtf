@@ -287,13 +287,13 @@
         "id": "pbb6agjxq",
         "heading": "~/run.sh",
         "explanation": "⚠️ CHANGE PORT",
-        "code": "#!/usr/bin/env bash\ncd ~/webapps/app4 || exit 1\nsource ~/virt/bin/activate\n\n# stop old gunicorn on 5000 if any\nlsof -t -i :5000 | xargs -r kill\n\n# start in background\nnohup gunicorn --bind 127.0.0.1:5000 --workers 1 --timeout 120 app:app > ~/app4.log 2>&1 &\necho \"App4 running. Log: ~/app4.log\""
+        "code": "#!/usr/bin/env bash\ncd ~/webapps/app4 || exit 1\nsource ~/virt/bin/activate\n\n# stop old gunicorn on 5000 if any \n# PLEASE CHANGE YOUR PORT!\nlsof -t -i :5000 | xargs -r kill\n\n# start in background\nnohup gunicorn --bind 127.0.0.1:5000 --workers 1 --timeout 120 app:app > ~/app4.log 2>&1 &\necho \"App4 running. Log: ~/app4.log\""
       },
       {
         "id": "t5gkiolvm",
         "heading": "~/stop.sh",
         "explanation": "⚠️ CHANGE PORT",
-        "code": "#!/usr/bin/env bash\nlsof -t -i :5000 | xargs -r kill\necho \"app4 stopped\""
+        "code": "#!/usr/bin/env bash\nlsof -t -i :5000 | xargs -r kill\necho \"app4 stopped\"\n\n# PLEASE CHANGE YOUR PORT HERE!"
       },
       {
         "id": "hh9xgeatm",
