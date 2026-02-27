@@ -783,21 +783,23 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
   };
 
   return (
-    <div className="relative rounded-md overflow-hidden border border-[var(--t-border)] bg-[var(--t-bg-primary)] group">
-      <button
-        onClick={handleCopy}
-        className={`absolute top-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md transition-all duration-200 border z-10 ${
-          copied
-            ? 'bg-[var(--t-accent-green)] border-[#238636] text-white scale-105'
-            : 'bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-secondary)] hover:bg-[var(--t-bg-hover)] border-[var(--t-border)]'
-        } ${animating ? 'scale-110' : ''}`}
-      >
-        <span className={`transition-transform duration-200 ${animating ? 'scale-125' : ''}`}>
-          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-        </span>
-        <span className="font-medium">{copied ? "Copied!" : "Copy"}</span>
-      </button>
-      <pre className="text-sm font-mono overflow-x-auto leading-relaxed pt-10 pb-4 pr-4">
+    <div className="rounded-md overflow-hidden border border-[var(--t-border)] bg-[var(--t-bg-primary)] group">
+      <div className="flex items-center justify-end px-3 py-1.5 bg-[var(--t-bg-secondary)] border-b border-[var(--t-border)]">
+        <button
+          onClick={handleCopy}
+          className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md transition-all duration-200 border ${
+            copied
+              ? 'bg-[var(--t-accent-green)] border-[#238636] text-white scale-105'
+              : 'bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-secondary)] hover:bg-[var(--t-bg-hover)] border-[var(--t-border)]'
+          } ${animating ? 'scale-110' : ''}`}
+        >
+          <span className={`transition-transform duration-200 ${animating ? 'scale-125' : ''}`}>
+            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          </span>
+          <span className="font-medium">{copied ? "Copied!" : "Copy"}</span>
+        </button>
+      </div>
+      <pre className="text-sm font-mono overflow-x-auto leading-relaxed py-3 pr-4">
         <code className="hljs block">
           {code.split("\n").map((line, i) => (
             <div key={i} className="flex">
