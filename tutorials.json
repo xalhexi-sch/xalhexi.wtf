@@ -309,7 +309,8 @@
       }
     ],
     "starred": false,
-    "locked": true
+    "locked": false,
+    "vipOnly": true
   },
   {
     "id": "2",
@@ -335,7 +336,8 @@
         "code": "git merge feature-name"
       }
     ],
-    "locked": true
+    "locked": true,
+    "vipOnly": true
   },
   {
     "id": "3",
