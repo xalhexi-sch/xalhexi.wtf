@@ -3047,70 +3047,96 @@ const deleteTutorial = (id: string) => {
                       )}
                       </div>
                     </div>
-                    {/* Inline step diff */}
-                    {showStepChanges[step.id] && (() => {
+                    {showStepChanges[step.id] ? (() => {
                       const { isNew, changes } = getStepChanges(currentTutorial.id, index, step);
                       return (
-                        <div className="border-b border-[var(--t-border)] bg-[var(--t-bg-primary)] px-4 py-3 space-y-2">
+                        <div className="font-mono text-xs overflow-x-auto">
                           {isNew ? (
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="inline-block w-2 h-2 rounded-full bg-[var(--t-accent-green)]" />
-                              <span className="text-[var(--t-accent-green-text)] font-semibold">NEW STEP</span>
-                              <span className="text-[var(--t-text-faint)]">This step was added since the last push</span>
-                            </div>
-                          ) : changes.length > 0 ? (
-                            changes.map((ch, ci) => (
-                              <div key={ci} className="space-y-1">
-                                <span className="text-[10px] font-semibold uppercase text-[var(--t-accent-blue)]">{ch.field}</span>
-                                {ch.field === "code" ? (
-                                  <div className="rounded border border-[var(--t-border)] overflow-hidden text-xs font-mono">
-                                    {ch.old.split("\n").map((line, li) => {
-                                      const newLines = ch.new.split("\n");
-                                      const isRemoved = !newLines.includes(line);
-                                      return isRemoved ? (
-                                        <div key={`old-${li}`} className="flex bg-red-500/10 text-[#f85149]">
-                                          <span className="w-8 text-right pr-2 select-none opacity-50 shrink-0">-</span>
-                                          <span className="whitespace-pre">{line}</span>
-                                        </div>
-                                      ) : null;
-                                    })}
-                                    {ch.new.split("\n").map((line, li) => {
-                                      const oldLines = ch.old.split("\n");
-                                      const isAdded = !oldLines.includes(line);
-                                      return isAdded ? (
-                                        <div key={`new-${li}`} className="flex bg-green-500/10 text-[var(--t-accent-green-text)]">
-                                          <span className="w-8 text-right pr-2 select-none opacity-50 shrink-0">+</span>
-                                          <span className="whitespace-pre">{line}</span>
-                                        </div>
-                                      ) : (
-                                        <div key={`same-${li}`} className="flex text-[var(--t-text-faint)]">
-                                          <span className="w-8 text-right pr-2 select-none opacity-50 shrink-0"> </span>
-                                          <span className="whitespace-pre">{line}</span>
-                                        </div>
-                                      );
-                                    })}
+                            /* Entire step is new -- show all content as green added lines */
+                            <>
+                              {step.explanation && (
+                                <div className="border-b border-[var(--t-border)]">
+                                  <div className="px-3 py-1 bg-[var(--t-bg-tertiary)] text-[10px] font-semibold uppercase text-[var(--t-text-faint)] tracking-wide border-b border-[var(--t-border)]">explanation</div>
+                                  {step.explanation.split("\n").map((line, li) => (
+                                    <div key={li} className="flex bg-green-500/10">
+                                      <span className="w-10 text-right pr-2 py-0.5 text-[var(--t-text-faint)] select-none opacity-40 shrink-0 border-r border-[var(--t-border)]">{li + 1}</span>
+                                      <span className="px-2 py-0.5 text-[var(--t-accent-green-text)] whitespace-pre">+ {line}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {step.code && (
+                                <div>
+                                  <div className="px-3 py-1 bg-[var(--t-bg-tertiary)] text-[10px] font-semibold uppercase text-[var(--t-text-faint)] tracking-wide border-b border-[var(--t-border)]">code</div>
+                                  {step.code.split("\n").map((line, li) => (
+                                    <div key={li} className="flex bg-green-500/10">
+                                      <span className="w-10 text-right pr-2 py-0.5 text-[var(--t-text-faint)] select-none opacity-40 shrink-0 border-r border-[var(--t-border)]">{li + 1}</span>
+                                      <span className="px-2 py-0.5 text-[var(--t-accent-green-text)] whitespace-pre">+ {line}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            /* Show unified diff for each changed field */
+                            changes.map((ch, ci) => {
+                              const oldLines = ch.old.split("\n");
+                              const newLines = ch.new.split("\n");
+                              // Simple LCS-style diff: build unified view
+                              const oldSet = new Set(oldLines);
+                              const newSet = new Set(newLines);
+                              const diffLines: { type: "same" | "added" | "removed"; text: string; lineNo?: number }[] = [];
+                              let lineCounter = 0;
+                              // Show removed lines first (from old), then all new lines marked accordingly
+                              const allLines: { type: "same" | "added" | "removed"; text: string }[] = [];
+                              // Walk through old lines
+                              for (const line of oldLines) {
+                                if (!newSet.has(line)) {
+                                  allLines.push({ type: "removed", text: line });
+                                }
+                              }
+                              // Walk through new lines
+                              for (const line of newLines) {
+                                if (!oldSet.has(line)) {
+                                  allLines.push({ type: "added", text: line });
+                                } else {
+                                  allLines.push({ type: "same", text: line });
+                                }
+                              }
+                              return (
+                                <div key={ci} className={ci > 0 ? "border-t border-[var(--t-border)]" : ""}>
+                                  <div className="px-3 py-1 bg-[var(--t-bg-tertiary)] text-[10px] font-semibold uppercase text-[var(--t-text-faint)] tracking-wide border-b border-[var(--t-border)] flex items-center justify-between">
+                                    <span>{ch.field}</span>
+                                    <span className="normal-case font-normal">{allLines.filter(l => l.type === "removed").length} removed, {allLines.filter(l => l.type === "added").length} added</span>
                                   </div>
-                                ) : (
-                                  <div className="rounded border border-[var(--t-border)] overflow-hidden text-xs">
-                                    {ch.old && (
-                                      <div className="px-3 py-1.5 bg-red-500/10 text-[#f85149]">
-                                        <span className="select-none opacity-50 mr-2">-</span>{ch.old}
-                                      </div>
-                                    )}
-                                    {ch.new && (
-                                      <div className="px-3 py-1.5 bg-green-500/10 text-[var(--t-accent-green-text)]">
-                                        <span className="select-none opacity-50 mr-2">+</span>{ch.new}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            ))
-                          ) : null}
+                                  {allLines.map((dl, dli) => (
+                                    <div
+                                      key={dli}
+                                      className={`flex ${
+                                        dl.type === "removed" ? "bg-red-500/10" :
+                                        dl.type === "added" ? "bg-green-500/10" :
+                                        ""
+                                      }`}
+                                    >
+                                      <span className="w-10 text-right pr-2 py-0.5 text-[var(--t-text-faint)] select-none opacity-40 shrink-0 border-r border-[var(--t-border)]">
+                                        {dl.type === "removed" ? "" : (++lineCounter)}
+                                      </span>
+                                      <span className={`px-2 py-0.5 whitespace-pre ${
+                                        dl.type === "removed" ? "text-[#f85149]" :
+                                        dl.type === "added" ? "text-[var(--t-accent-green-text)]" :
+                                        "text-[var(--t-text-muted)]"
+                                      }`}>
+                                        {dl.type === "removed" ? "- " : dl.type === "added" ? "+ " : "  "}{dl.text}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })
+                          )}
                         </div>
                       );
-                    })()}
-
+                    })() : (
                     <div className="p-4 space-y-3">
                       {step.explanation && (
                         <p className="text-sm text-[var(--t-text-muted)]">{step.explanation}</p>
@@ -3141,6 +3167,7 @@ const deleteTutorial = (id: string) => {
                         />
                       )}
                     </div>
+                    )}
                   </div>
                 ))}
 
