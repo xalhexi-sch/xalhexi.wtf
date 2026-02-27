@@ -762,7 +762,7 @@ function StepImageDisplay({ img, altText }: { img: StepImage; altText: string })
 
 // Syntax highlighting helper
 // Code block with copy and hljs syntax highlighting
-function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => void }) {
+function CodeBlock({ code, onCopy, lineHighlights }: { code: string; onCopy: (text: string) => void; lineHighlights?: Map<number, "added" | "removed" | "modified"> }) {
   const [copied, setCopied] = useState(false);
   const [animating, setAnimating] = useState(false);
 
@@ -787,12 +787,24 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
     <div className="rounded-md overflow-hidden border border-[var(--t-border)] bg-[var(--t-bg-primary)]">
       <pre className="text-sm font-mono overflow-x-auto leading-relaxed py-3 pr-4">
         <code className="hljs block">
-          {highlightedLines.map((line, i) => (
-            <div key={i} className="flex">
-              <span className="inline-block w-10 pr-3 text-right text-[var(--t-text-faint)] select-none opacity-50 shrink-0">{i + 1}</span>
-              <span dangerouslySetInnerHTML={{ __html: line || " " }} />
-            </div>
-          ))}
+          {highlightedLines.map((line, i) => {
+            const hl = lineHighlights?.get(i);
+            return (
+              <div key={i} className={`flex ${
+                hl === "added" ? "bg-green-500/15" :
+                hl === "removed" ? "bg-red-500/15" :
+                hl === "modified" ? "bg-amber-500/15" : ""
+              }`}>
+                <span className={`inline-block w-10 pr-3 text-right select-none opacity-50 shrink-0 ${
+                  hl === "added" ? "text-[var(--t-accent-green-text)]" :
+                  hl === "removed" ? "text-[#f85149]" :
+                  hl === "modified" ? "text-amber-400" :
+                  "text-[var(--t-text-faint)]"
+                }`}>{i + 1}</span>
+                <span dangerouslySetInnerHTML={{ __html: line || " " }} />
+              </div>
+            );
+          })}
         </code>
       </pre>
     </div>
@@ -3072,96 +3084,6 @@ const deleteTutorial = (id: string) => {
                       )}
                       </div>
                     </div>
-                    {showStepChanges[step.id] ? (() => {
-                      const { isNew, changes } = getStepChanges(currentTutorial.id, index, step);
-                      return (
-                        <div className="font-mono text-xs overflow-x-auto">
-                          {isNew ? (
-                            /* Entire step is new -- show all content as green added lines */
-                            <>
-                              {step.explanation && (
-                                <div className="border-b border-[var(--t-border)]">
-                                  <div className="px-3 py-1 bg-[var(--t-bg-tertiary)] text-[10px] font-semibold uppercase text-[var(--t-text-faint)] tracking-wide border-b border-[var(--t-border)]">explanation</div>
-                                  {step.explanation.split("\n").map((line, li) => (
-                                    <div key={li} className="flex bg-green-500/10">
-                                      <span className="w-10 text-right pr-2 py-0.5 text-[var(--t-text-faint)] select-none opacity-40 shrink-0 border-r border-[var(--t-border)]">{li + 1}</span>
-                                      <span className="px-2 py-0.5 text-[var(--t-accent-green-text)] whitespace-pre">+ {line}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              {step.code && (
-                                <div>
-                                  <div className="px-3 py-1 bg-[var(--t-bg-tertiary)] text-[10px] font-semibold uppercase text-[var(--t-text-faint)] tracking-wide border-b border-[var(--t-border)]">code</div>
-                                  {step.code.split("\n").map((line, li) => (
-                                    <div key={li} className="flex bg-green-500/10">
-                                      <span className="w-10 text-right pr-2 py-0.5 text-[var(--t-text-faint)] select-none opacity-40 shrink-0 border-r border-[var(--t-border)]">{li + 1}</span>
-                                      <span className="px-2 py-0.5 text-[var(--t-accent-green-text)] whitespace-pre">+ {line}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            /* Show unified diff for each changed field */
-                            changes.map((ch, ci) => {
-                              const oldLines = ch.old.split("\n");
-                              const newLines = ch.new.split("\n");
-                              // Simple LCS-style diff: build unified view
-                              const oldSet = new Set(oldLines);
-                              const newSet = new Set(newLines);
-                              const diffLines: { type: "same" | "added" | "removed"; text: string; lineNo?: number }[] = [];
-                              let lineCounter = 0;
-                              // Show removed lines first (from old), then all new lines marked accordingly
-                              const allLines: { type: "same" | "added" | "removed"; text: string }[] = [];
-                              // Walk through old lines
-                              for (const line of oldLines) {
-                                if (!newSet.has(line)) {
-                                  allLines.push({ type: "removed", text: line });
-                                }
-                              }
-                              // Walk through new lines
-                              for (const line of newLines) {
-                                if (!oldSet.has(line)) {
-                                  allLines.push({ type: "added", text: line });
-                                } else {
-                                  allLines.push({ type: "same", text: line });
-                                }
-                              }
-                              return (
-                                <div key={ci} className={ci > 0 ? "border-t border-[var(--t-border)]" : ""}>
-                                  <div className="px-3 py-1 bg-[var(--t-bg-tertiary)] text-[10px] font-semibold uppercase text-[var(--t-text-faint)] tracking-wide border-b border-[var(--t-border)] flex items-center justify-between">
-                                    <span>{ch.field}</span>
-                                    <span className="normal-case font-normal">{allLines.filter(l => l.type === "removed").length} removed, {allLines.filter(l => l.type === "added").length} added</span>
-                                  </div>
-                                  {allLines.map((dl, dli) => (
-                                    <div
-                                      key={dli}
-                                      className={`flex ${
-                                        dl.type === "removed" ? "bg-red-500/10" :
-                                        dl.type === "added" ? "bg-green-500/10" :
-                                        ""
-                                      }`}
-                                    >
-                                      <span className="w-10 text-right pr-2 py-0.5 text-[var(--t-text-faint)] select-none opacity-40 shrink-0 border-r border-[var(--t-border)]">
-                                        {dl.type === "removed" ? "" : (++lineCounter)}
-                                      </span>
-                                      <span className={`px-2 py-0.5 whitespace-pre ${
-                                        dl.type === "removed" ? "text-[#f85149]" :
-                                        dl.type === "added" ? "text-[var(--t-accent-green-text)]" :
-                                        "text-[var(--t-text-muted)]"
-                                      }`}>
-                                        {dl.type === "removed" ? "- " : dl.type === "added" ? "+ " : "  "}{dl.text}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      );
-                    })() : (
                     <div className="p-4 space-y-3">
                       {step.explanation && (
                         <p className="text-sm text-[var(--t-text-muted)]">{step.explanation}</p>
@@ -3174,8 +3096,38 @@ const deleteTutorial = (id: string) => {
                           <StepImageDisplay key={img.id} img={img} altText={step.heading} />
                         ))}
 
-                      {/* Code block */}
-                      {step.code && <CodeBlock code={step.code} onCopy={handleCopy} />}
+                      {/* Code block with optional diff highlights */}
+                      {step.code && (() => {
+                        let lineHighlights: Map<number, "added" | "removed" | "modified"> | undefined;
+                        if (showStepChanges[step.id]) {
+                          const { isNew, changes } = getStepChanges(currentTutorial.id, index, step);
+                          lineHighlights = new Map();
+                          if (isNew) {
+                            // All lines are new
+                            step.code.split("\n").forEach((_, li) => lineHighlights!.set(li, "added"));
+                          } else {
+                            const codeDiff = changes.find((c) => c.field === "code");
+                            if (codeDiff) {
+                              const oldLines = codeDiff.old.split("\n");
+                              const newLines = codeDiff.new.split("\n");
+                              // Line-by-line positional diff
+                              const maxLen = Math.max(oldLines.length, newLines.length);
+                              for (let li = 0; li < newLines.length; li++) {
+                                if (li >= oldLines.length) {
+                                  // Line didn't exist before = added
+                                  lineHighlights.set(li, "added");
+                                } else if (oldLines[li] !== newLines[li]) {
+                                  // Line existed but content changed = modified
+                                  lineHighlights.set(li, "modified");
+                                }
+                                // else: same line, no highlight
+                              }
+                            }
+                          }
+                          if (lineHighlights.size === 0) lineHighlights = undefined;
+                        }
+                        return <CodeBlock code={step.code} onCopy={handleCopy} lineHighlights={lineHighlights} />;
+                      })()}
 
                       {/* Images AFTER code */}
                       {step.images && step.images
@@ -3192,7 +3144,6 @@ const deleteTutorial = (id: string) => {
                         />
                       )}
                     </div>
-                    )}
                   </div>
                 ))}
 
