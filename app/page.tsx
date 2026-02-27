@@ -783,22 +783,7 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
   };
 
   return (
-    <div className="rounded-md overflow-hidden border border-[var(--t-border)] bg-[var(--t-bg-primary)] group">
-      <div className="flex items-center justify-end px-3 py-1.5 bg-[var(--t-bg-secondary)] border-b border-[var(--t-border)]">
-        <button
-          onClick={handleCopy}
-          className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md transition-all duration-200 border ${
-            copied
-              ? 'bg-[var(--t-accent-green)] border-[#238636] text-white scale-105'
-              : 'bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-secondary)] hover:bg-[var(--t-bg-hover)] border-[var(--t-border)]'
-          } ${animating ? 'scale-110' : ''}`}
-        >
-          <span className={`transition-transform duration-200 ${animating ? 'scale-125' : ''}`}>
-            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-          </span>
-          <span className="font-medium">{copied ? "Copied!" : "Copy"}</span>
-        </button>
-      </div>
+    <div className="rounded-md overflow-hidden border border-[var(--t-border)] bg-[var(--t-bg-primary)]">
       <pre className="text-sm font-mono overflow-x-auto leading-relaxed py-3 pr-4">
         <code className="hljs block">
           {code.split("\n").map((line, i) => (
@@ -1427,19 +1412,33 @@ export default function ITPTutorial() {
       if (savedTheme) setColorTheme(savedTheme);
     }
 
-    // Fetch tutorials from the server cache (backed by GitHub)
+    // Load tutorials: instant from cache, then refresh from API in background
+    const cached = localStorage.getItem("xalhexi-tutorials-cache");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTutorials(parsed);
+          if (!window.location.hash) setSelectedTutorial(parsed[0].id);
+          setIsLoadingTutorials(false);
+        }
+      } catch { /* corrupt cache, ignore */ }
+    }
+
     const loadTutorials = async () => {
       try {
         const resp = await fetch("/api/tutorials");
         const data = await resp.json();
         if (resp.ok && Array.isArray(data.tutorials) && data.tutorials.length > 0) {
           setTutorials(data.tutorials);
-          setSelectedTutorial(data.tutorials[0].id);
+          localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(data.tutorials));
+          if (!cached && !window.location.hash) setSelectedTutorial(data.tutorials[0].id);
         }
-        // If fetch fails, use defaults as fallback
       } catch {
-        setTutorials(defaultTutorials);
-        setSelectedTutorial(defaultTutorials[0]?.id || null);
+        if (!cached) {
+          setTutorials(defaultTutorials);
+          setSelectedTutorial(defaultTutorials[0]?.id || null);
+        }
       } finally {
         setIsLoadingTutorials(false);
       }
@@ -1799,6 +1798,7 @@ const deleteTutorial = (id: string) => {
       if (!resp.ok) {
         throw new Error(data.error || `HTTP ${resp.status}`);
       }
+      localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(tutorials));
       showToast("Saved! Everyone will see the updated tutorials.");
     } catch (error) {
       showToast("Failed to save: " + (error instanceof Error ? error.message : "Unknown error"));
@@ -1833,6 +1833,7 @@ const deleteTutorial = (id: string) => {
       }
       if (Array.isArray(data.tutorials) && data.tutorials.length > 0) {
         setTutorials(data.tutorials);
+        localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(data.tutorials));
         setSelectedTutorial(data.tutorials[0].id);
         showToast("Synced! All users now see the latest tutorials.");
       } else {
@@ -2903,12 +2904,22 @@ const deleteTutorial = (id: string) => {
                     className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden"
                   >
                     <div className="px-4 py-3 border-b border-[var(--t-border)] flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--t-accent-green)] text-white text-xs font-bold">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--t-accent-green)] text-white text-xs font-bold shrink-0">
                           {index + 1}
                         </span>
-                        <h3 className="font-semibold text-[var(--t-text-primary)]">{step.heading}</h3>
+                        <h3 className="font-semibold text-[var(--t-text-primary)] truncate">{step.heading}</h3>
                       </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {step.code && (
+                          <button
+                            onClick={() => handleCopy(step.code)}
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
+                          >
+                            <Copy className="w-3 h-3" />
+                            Copy
+                          </button>
+                        )}
                       {isAdmin && (
                         <div className="flex items-center gap-1">
                           <button
@@ -2942,6 +2953,7 @@ const deleteTutorial = (id: string) => {
                           </button>
                         </div>
                       )}
+                      </div>
                     </div>
                     <div className="p-4 space-y-3">
                       {step.explanation && (
