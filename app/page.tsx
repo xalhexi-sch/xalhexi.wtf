@@ -51,6 +51,7 @@ import {
   GripVertical,
   Crown,
   GitCompare,
+  History,
 } from "lucide-react";
 
 interface StepImage {
@@ -1336,7 +1337,7 @@ export default function ITPTutorial() {
   const [isPushing, setIsPushing] = useState(false);
   const [colorTheme, setColorTheme] = useState<"dark" | "light" | "cyber">("dark");
   const [isLoadingTutorials, setIsLoadingTutorials] = useState(true);
-  const [activeTab, setActiveTab] = useState<"tutorials" | "repositories">("tutorials");
+  const [activeTab, setActiveTab] = useState<"tutorials" | "repositories" | "history">("tutorials");
   const [repos, setRepos] = useState<GithubRepo[]>([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
   const [reposLoaded, setReposLoaded] = useState(false);
@@ -1347,6 +1348,9 @@ export default function ITPTutorial() {
   const [viewingFile, setViewingFile] = useState<FileContent | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
+  const [changelog, setChangelog] = useState<{ id: number; pushed_at: string; changes: { type: string; title: string; details?: string }[] }[]>([]);
+  const [isLoadingChangelog, setIsLoadingChangelog] = useState(false);
+  const lastPushedSnapshot = useRef<Tutorial[]>([]);
 
   // Hash-based routing: read hash on mount
   useEffect(() => {
@@ -1432,6 +1436,7 @@ export default function ITPTutorial() {
         const data = await resp.json();
         if (resp.ok && Array.isArray(data.tutorials) && data.tutorials.length > 0) {
           setTutorials(data.tutorials);
+          lastPushedSnapshot.current = JSON.parse(JSON.stringify(data.tutorials));
           localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(data.tutorials));
           if (!cached && !window.location.hash) setSelectedTutorial(data.tutorials[0].id);
         }
@@ -1800,7 +1805,63 @@ const deleteTutorial = (id: string) => {
         throw new Error(data.error || `HTTP ${resp.status}`);
       }
       localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(tutorials));
-      showToast("Saved! Everyone will see the updated tutorials.");
+
+      // Auto-detect changes: compare snapshot vs current
+      const prev = lastPushedSnapshot.current;
+      const changes: { type: string; title: string; details?: string }[] = [];
+      const prevMap = new Map(prev.map((t) => [t.id, t]));
+      const currMap = new Map(tutorials.map((t) => [t.id, t]));
+
+      // Detect added
+      for (const t of tutorials) {
+        if (!prevMap.has(t.id)) {
+          changes.push({ type: "added", title: t.title });
+        }
+      }
+      // Detect deleted
+      for (const t of prev) {
+        if (!currMap.has(t.id)) {
+          changes.push({ type: "deleted", title: t.title });
+        }
+      }
+      // Detect modified
+      for (const t of tutorials) {
+        const old = prevMap.get(t.id);
+        if (!old) continue;
+        const mods: string[] = [];
+        if (old.title !== t.title) mods.push("title");
+        if (old.description !== t.description) mods.push("description");
+        if (old.locked !== t.locked) mods.push(t.locked ? "locked" : "unlocked");
+        if (old.starred !== t.starred) mods.push(t.starred ? "starred" : "unstarred");
+        if (old.vipOnly !== t.vipOnly) mods.push(t.vipOnly ? "crowned VIP" : "removed VIP");
+        if (old.steps.length !== t.steps.length) {
+          mods.push(`steps: ${old.steps.length} -> ${t.steps.length}`);
+        } else {
+          for (let i = 0; i < t.steps.length; i++) {
+            if (old.steps[i]?.heading !== t.steps[i]?.heading || old.steps[i]?.code !== t.steps[i]?.code || old.steps[i]?.explanation !== t.steps[i]?.explanation) {
+              mods.push(`step ${i + 1} edited`);
+              break;
+            }
+          }
+        }
+        if (mods.length > 0) {
+          changes.push({ type: "modified", title: t.title, details: mods.join(", ") });
+        }
+      }
+
+      // Save changelog to Supabase if there are changes
+      if (changes.length > 0) {
+        fetch("/api/changelog", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ changes }),
+        }).catch(() => {});
+      }
+
+      // Update snapshot
+      lastPushedSnapshot.current = JSON.parse(JSON.stringify(tutorials));
+
+      showToast(changes.length > 0 ? `Saved! ${changes.length} change(s) detected.` : "Saved! No changes detected.");
     } catch (error) {
       showToast("Failed to save: " + (error instanceof Error ? error.message : "Unknown error"));
       console.error("Push error:", error);
@@ -1834,6 +1895,7 @@ const deleteTutorial = (id: string) => {
       }
       if (Array.isArray(data.tutorials) && data.tutorials.length > 0) {
         setTutorials(data.tutorials);
+        lastPushedSnapshot.current = JSON.parse(JSON.stringify(data.tutorials));
         localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(data.tutorials));
         setSelectedTutorial(data.tutorials[0].id);
         showToast("Synced! All users now see the latest tutorials.");
@@ -1964,11 +2026,27 @@ const deleteTutorial = (id: string) => {
   };
 
   // Handle tab switch
-  const switchTab = (tab: "tutorials" | "repositories") => {
+  const switchTab = (tab: "tutorials" | "repositories" | "history") => {
     setActiveTab(tab);
     if (tab === "repositories" && !reposLoaded) {
       loadRepos();
     }
+    if (tab === "history" && changelog.length === 0) {
+      loadChangelog();
+    }
+  };
+
+  // Load changelog from Supabase
+  const loadChangelog = async () => {
+    setIsLoadingChangelog(true);
+    try {
+      const resp = await fetch("/api/changelog");
+      const data = await resp.json();
+      if (resp.ok && Array.isArray(data.entries)) {
+        setChangelog(data.entries);
+      }
+    } catch { /* silent */ }
+    setIsLoadingChangelog(false);
   };
 
   const [fileCopied, setFileCopied] = useState(false);
@@ -2080,6 +2158,16 @@ const deleteTutorial = (id: string) => {
               }`}
             >
               Repos
+            </button>
+            <button
+              onClick={() => switchTab("history")}
+              className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${
+                activeTab === "history"
+                  ? "bg-[var(--t-accent-green)] text-white"
+                  : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)]"
+              }`}
+            >
+              History
             </button>
           </div>
 
@@ -2208,6 +2296,16 @@ const deleteTutorial = (id: string) => {
                 }`}
               >
                 Repositories
+              </button>
+              <button
+                onClick={() => switchTab("history")}
+                className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${
+                  activeTab === "history"
+                    ? "bg-[var(--t-accent-green)] text-white"
+                    : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
+                }`}
+              >
+                History
               </button>
               {activeTab === "tutorials" && isAdmin && (
                 <button
@@ -2414,6 +2512,61 @@ const deleteTutorial = (id: string) => {
                 </button>
               </div>
             )}
+            {/* History / Changelog */}
+            {activeTab === "history" && (
+              <div className="space-y-3">
+                {isLoadingChangelog ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-5 h-5 animate-spin text-[var(--t-text-faint)]" />
+                  </div>
+                ) : changelog.length === 0 ? (
+                  <p className="text-sm text-[var(--t-text-faint)] text-center py-8">No changes recorded yet. Push tutorials to start tracking.</p>
+                ) : (
+                  changelog.map((entry) => (
+                    <div key={entry.id} className="border border-[var(--t-border)] rounded-lg overflow-hidden">
+                      <div className="px-3 py-2 bg-[var(--t-bg-tertiary)] border-b border-[var(--t-border)] flex items-center gap-2">
+                        <History className="w-3.5 h-3.5 text-[var(--t-text-faint)]" />
+                        <span className="text-xs text-[var(--t-text-muted)] font-medium">
+                          {new Date(entry.pushed_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                          {" "}
+                          {new Date(entry.pushed_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                        <span className="ml-auto text-[10px] text-[var(--t-text-faint)] bg-[var(--t-bg-primary)] px-1.5 py-0.5 rounded">
+                          {entry.changes.length} change{entry.changes.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="divide-y divide-[var(--t-border)]">
+                        {entry.changes.map((ch, ci) => (
+                          <div key={ci} className="px-3 py-2 flex items-start gap-2">
+                            <span className={`mt-0.5 inline-block w-2 h-2 rounded-full shrink-0 ${
+                              ch.type === "added" ? "bg-[var(--t-accent-green)]" :
+                              ch.type === "deleted" ? "bg-[#f85149]" :
+                              "bg-[var(--t-accent-blue)]"
+                            }`} />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`text-[10px] font-semibold uppercase ${
+                                  ch.type === "added" ? "text-[var(--t-accent-green-text)]" :
+                                  ch.type === "deleted" ? "text-[#f85149]" :
+                                  "text-[var(--t-accent-blue)]"
+                                }`}>
+                                  {ch.type}
+                                </span>
+                                <span className="text-sm text-[var(--t-text-primary)] truncate">{ch.title}</span>
+                              </div>
+                              {ch.details && (
+                                <p className="text-xs text-[var(--t-text-faint)] mt-0.5">{ch.details}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
             {/* Terminal button */}
             {(isAdmin || !terminalLocked) && (
               <div className="flex items-center gap-2">
