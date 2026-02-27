@@ -797,7 +797,7 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
         </span>
         <span className="font-medium">{copied ? "Copied!" : "Copy"}</span>
       </button>
-      <pre className="text-sm font-mono overflow-x-auto leading-relaxed">
+      <pre className="text-sm font-mono overflow-x-auto leading-relaxed pt-10 pb-4 pr-4">
         <code className="hljs block">
           {code.split("\n").map((line, i) => (
             <div key={i} className="flex">
