@@ -1119,7 +1119,7 @@ function StepModal({
               onChange={(e) => setCode(e.target.value)}
               placeholder="git init"
               rows={4}
-              className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] focus:border-[var(--t-accent-blue)] outline-none resize-none font-mono text-sm"
+              className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] focus:border-[var(--t-accent-blue)] outline-none resize-y min-h-[100px] font-mono text-sm"
             />
           </div>
 
