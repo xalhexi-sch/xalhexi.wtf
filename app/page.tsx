@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import hljs from "highlight.js";
 import AIAssistant from "@/components/ai-assistant";
+import DiffViewer from "@/components/diff-viewer";
 import {
   Minus,
   Search,
@@ -48,6 +49,8 @@ import {
   Zap,
   Star,
   GripVertical,
+  Crown,
+  GitCompare,
 } from "lucide-react";
 
 interface StepImage {
@@ -74,6 +77,7 @@ interface Tutorial {
   steps: Step[];
   locked?: boolean;
   starred?: boolean;
+  vipOnly?: boolean;
 }
 
 interface SearchResult {
@@ -793,8 +797,15 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
         </span>
         <span className="font-medium">{copied ? "Copied!" : "Copy"}</span>
       </button>
-      <pre className="p-4 pr-24 text-sm font-mono overflow-x-auto leading-relaxed">
-        <code className="hljs" dangerouslySetInnerHTML={{ __html: highlighted }} />
+      <pre className="text-sm font-mono overflow-x-auto leading-relaxed">
+        <code className="hljs block">
+          {code.split("\n").map((line, i) => (
+            <div key={i} className="flex">
+              <span className="inline-block w-10 pr-3 text-right text-[var(--t-text-faint)] select-none opacity-50 shrink-0">{i + 1}</span>
+              <span dangerouslySetInnerHTML={{ __html: hljs.highlightAuto(line).value || " " }} />
+            </div>
+          ))}
+        </code>
       </pre>
     </div>
   );
@@ -833,15 +844,19 @@ function LoginModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (u: string, p: string) => boolean;
+  onLogin: (u: string, p: string) => Promise<boolean>;
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (onLogin(username, password)) {
+    setLoading(true);
+    setError("");
+    const ok = await onLogin(username, password);
+    if (ok) {
       setUsername("");
       setPassword("");
       setError("");
@@ -849,6 +864,7 @@ function LoginModal({
     } else {
       setError("Invalid credentials");
     }
+    setLoading(false);
   };
 
   if (!isOpen) return null;
@@ -857,7 +873,7 @@ function LoginModal({
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-[var(--t-bg-secondary)] rounded-lg border border-[var(--t-border)] w-full max-w-sm p-6">
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg font-semibold text-[var(--t-text-primary)]">Admin Login</h2>
+          <h2 className="text-lg font-semibold text-[var(--t-text-primary)]">Sign In</h2>
           <button onClick={onClose} className="p-1 hover:bg-[var(--t-bg-hover)] rounded">
             <X className="w-5 h-5 text-[var(--t-text-muted)]" />
           </button>
@@ -880,9 +896,10 @@ function LoginModal({
           {error && <p className="text-[#f85149] text-sm">{error}</p>}
           <button
             type="submit"
-            className="w-full bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white font-medium py-2 rounded-md transition-colors"
+            disabled={loading}
+            className="w-full bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white font-medium py-2 rounded-md transition-colors disabled:opacity-50"
           >
-            Sign in
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
       </div>
@@ -1303,7 +1320,9 @@ function StepModal({
 export default function ITPTutorial() {
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<"admin" | "vip" | null>(null);
+  const isAdmin = userRole === "admin";
+  const isVip = userRole === "vip" || userRole === "admin";
   const [toast, setToast] = useState({ message: "", visible: false });
   const [selectedTutorial, setSelectedTutorial] = useState<string>("1");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -1339,11 +1358,65 @@ export default function ITPTutorial() {
   const [isLoadingContents, setIsLoadingContents] = useState(false);
   const [viewingFile, setViewingFile] = useState<FileContent | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [showDiff, setShowDiff] = useState(false);
+
+  // Hash-based routing: read hash on mount
+  useEffect(() => {
+    const parseHash = () => {
+      const hash = window.location.hash.slice(1); // remove #
+      if (hash.startsWith("/tutorials/")) {
+        const id = hash.replace("/tutorials/", "");
+        setActiveTab("tutorials");
+        setSelectedTutorial(id);
+        setSelectedRepo(null);
+        setViewingFile(null);
+      } else if (hash.startsWith("/repos/")) {
+        const rest = hash.replace("/repos/", "");
+        const parts = rest.split("/");
+        const repoName = parts[0];
+        setActiveTab("repositories");
+        setSelectedRepo(repoName);
+        if (parts.length > 1) {
+          setRepoPath(parts.slice(1));
+        }
+      }
+    };
+    parseHash();
+    window.addEventListener("hashchange", parseHash);
+    return () => window.removeEventListener("hashchange", parseHash);
+  }, []);
+
+  // Update hash when navigation changes
+  useEffect(() => {
+    if (activeTab === "tutorials" && selectedTutorial) {
+      const newHash = `#/tutorials/${selectedTutorial}`;
+      if (window.location.hash !== newHash) {
+        window.history.replaceState(null, "", newHash);
+      }
+    } else if (activeTab === "repositories" && selectedRepo) {
+      const path = repoPath.length > 0 ? `/${repoPath.join("/")}` : "";
+      const newHash = `#/repos/${selectedRepo}${path}`;
+      if (window.location.hash !== newHash) {
+        window.history.replaceState(null, "", newHash);
+      }
+    }
+  }, [activeTab, selectedTutorial, selectedRepo, repoPath]);
 
   // Load tutorials from server cache on mount (serves GitHub data to everyone globally)
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (localStorage.getItem("isAdmin") === "true") setIsAdmin(true);
+      // Verify stored JWT token on mount
+      const token = localStorage.getItem("auth_token");
+      if (token) {
+        fetch("/api/auth/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        })
+          .then((r) => r.json())
+          .then((d) => { if (d.valid && d.role) setUserRole(d.role); else localStorage.removeItem("auth_token"); })
+          .catch(() => localStorage.removeItem("auth_token"));
+      }
       const savedTerminalUrl = localStorage.getItem("terminalUrl");
       if (savedTerminalUrl) setTerminalUrl(savedTerminalUrl);
       const savedTerminalLocked = localStorage.getItem("terminalLocked");
@@ -1464,19 +1537,29 @@ export default function ITPTutorial() {
   const currentTutorial = tutorials.find((t) => t.id === selectedTutorial) || tutorials[0] || null;
   const currentStepForAI = currentTutorial?.steps?.[0] || null;
 
-  const handleLogin = (u: string, p: string) => {
-    if (u === "admin" && p === "1234") {
-      setIsAdmin(true);
-      localStorage.setItem("isAdmin", "true");
-      showToast("Logged in!");
-      return true;
+  const handleLogin = async (u: string, p: string): Promise<boolean> => {
+    try {
+      const resp = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: u, password: p }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.token && data.role) {
+        localStorage.setItem("auth_token", data.token);
+        setUserRole(data.role);
+        showToast(`Logged in as ${data.role}`);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
     }
-    return false;
   };
 
   const handleLogout = () => {
-    setIsAdmin(false);
-    localStorage.removeItem("isAdmin");
+    setUserRole(null);
+    localStorage.removeItem("auth_token");
     showToast("Logged out");
   };
 
@@ -1489,13 +1572,18 @@ export default function ITPTutorial() {
     showToast("All commands copied!");
   };
 
-  // Filter tutorials for sidebar (hide locked for non-admin)
+  // Filter tutorials for sidebar
+  // Admin: sees everything | VIP: sees all (read-only) | Guest: no locked, no vipOnly
   const filteredTutorials = useMemo(() => {
     let filtered = tutorials;
-    // Non-admin users cannot see locked tutorials
-    if (!isAdmin) {
+    if (!isAdmin && !isVip) {
+      // Guests: hide locked and vipOnly
+      filtered = filtered.filter((t) => !t.locked && !t.vipOnly);
+    } else if (!isAdmin && isVip) {
+      // VIP: hide locked but show vipOnly
       filtered = filtered.filter((t) => !t.locked);
     }
+    // Admin: no filtering
     if (!searchQuery.trim()) return filtered;
     const q = searchQuery.toLowerCase();
     return filtered.filter(
@@ -1509,7 +1597,7 @@ export default function ITPTutorial() {
             s.explanation.toLowerCase().includes(q)
         )
     );
-  }, [tutorials, searchQuery, isAdmin]);
+  }, [tutorials, searchQuery, isAdmin, isVip]);
 
   // Search results - find all matching steps across visible tutorials (exclude locked for non-admin)
   const searchResults = useMemo((): SearchResult[] => {
@@ -1577,6 +1665,12 @@ const deleteTutorial = (id: string) => {
   const toggleStar = (id: string) => {
     setTutorials((prev) =>
       prev.map((t) => (t.id === id ? { ...t, starred: !t.starred } : t))
+    );
+  };
+
+  const toggleCrown = (id: string) => {
+    setTutorials((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, vipOnly: !t.vipOnly } : t))
     );
   };
 
@@ -2018,15 +2112,23 @@ const deleteTutorial = (id: string) => {
     {colorTheme === "light" && <Sun className="w-5 h-5 text-[var(--t-accent-orange)]" />}
     {colorTheme === "cyber" && <Zap className="w-5 h-5 text-[#a855f7]" />}
   </button>
-  {isAdmin ? (
+  {userRole ? (
     <>
-      <button
-        onClick={() => setTerminalSettingsOpen(true)}
-        className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
-        title="Terminal Settings"
-      >
-        <Terminal className="w-5 h-5 text-[var(--t-text-muted)]" />
-      </button>
+      {userRole === "vip" && (
+        <span className="flex items-center gap-1 px-2 py-1 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-md">
+          <Crown className="w-3 h-3" />
+          VIP
+        </span>
+      )}
+      {isAdmin && (
+        <button
+          onClick={() => setTerminalSettingsOpen(true)}
+          className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
+          title="Terminal Settings"
+        >
+          <Terminal className="w-5 h-5 text-[var(--t-text-muted)]" />
+        </button>
+      )}
       <button
         onClick={handleLogout}
         className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
@@ -2036,13 +2138,13 @@ const deleteTutorial = (id: string) => {
       </button>
     </>
   ) : (
-  <button
-  onClick={() => setLoginModalOpen(true)}
-  className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
-  title="Admin"
-  >
-  <Settings className="w-4 h-4 text-[var(--t-text-faint)]" />
-  </button>
+    <button
+      onClick={() => setLoginModalOpen(true)}
+      className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
+      title="Sign In"
+    >
+      <Settings className="w-4 h-4 text-[var(--t-text-faint)]" />
+    </button>
   )}
           </div>
         </div>
@@ -2148,6 +2250,9 @@ const deleteTutorial = (id: string) => {
                     {tutorial.starred && (
                       <Star className="w-3 h-3 shrink-0 fill-yellow-400 text-yellow-400" />
                     )}
+                    {tutorial.vipOnly && (
+                      <Crown className="w-3 h-3 shrink-0 text-amber-400" />
+                    )}
                     <span className="truncate" title={tutorial.title}>{tutorial.title}</span>
                   </button>
                   {isAdmin && (
@@ -2160,6 +2265,15 @@ const deleteTutorial = (id: string) => {
                         title={tutorial.starred ? "Unstar" : "Star as priority"}
                       >
                         <Star className={`w-3 h-3 ${tutorial.starred ? "fill-yellow-400 text-yellow-400" : "text-[var(--t-text-faint)]"}`} />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleCrown(tutorial.id); }}
+                        className={`p-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${
+                          tutorial.vipOnly ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        }`}
+                        title={tutorial.vipOnly ? "Remove VIP" : "Mark as VIP only"}
+                      >
+                        <Crown className={`w-3 h-3 ${tutorial.vipOnly ? "text-amber-400" : "text-[var(--t-text-faint)]"}`} />
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); toggleLock(tutorial.id); }}
@@ -2487,6 +2601,14 @@ const deleteTutorial = (id: string) => {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-[var(--t-text-faint)]">{formatSize(viewingFile.size)}</span>
+                        <button
+                          onClick={() => setShowDiff(true)}
+                          className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors"
+                          title="View recent changes"
+                        >
+                          <GitCompare className="w-3.5 h-3.5" />
+                          Changes
+                        </button>
                         {viewingFile.content && (
                           <button
                             onClick={() => copyFileContent(viewingFile.content!)}
@@ -2499,7 +2621,16 @@ const deleteTutorial = (id: string) => {
                       </div>
                     </div>
                     {viewingFile.content ? (
-                      <pre className="p-4 text-sm overflow-x-auto font-mono leading-relaxed whitespace-pre"><code dangerouslySetInnerHTML={{ __html: highlightCode(viewingFile.content, viewingFile.name) }} /></pre>
+                      <pre className="text-sm overflow-x-auto font-mono leading-relaxed">
+                        <code className="block">
+                          {viewingFile.content.split("\n").map((line, i) => (
+                            <div key={i} className="flex hover:bg-[var(--t-bg-tertiary)] transition-colors">
+                              <span className="inline-block w-12 pr-3 pl-3 text-right text-[var(--t-text-faint)] select-none opacity-40 shrink-0 border-r border-[var(--t-border-subtle)]">{i + 1}</span>
+                              <span className="pl-3 whitespace-pre" dangerouslySetInnerHTML={{ __html: highlightCode(line, viewingFile.name) || " " }} />
+                            </div>
+                          ))}
+                        </code>
+                      </pre>
                     ) : (
                       <div className="p-6 text-center">
                         <p className="text-[var(--t-text-muted)] mb-2">File too large to display inline</p>
@@ -2721,9 +2852,24 @@ const deleteTutorial = (id: string) => {
               {/* Tutorial header */}
               <div className="mb-6">
                 <div className="flex items-start justify-between gap-4 mb-2">
-                  <h1 className="text-2xl font-bold text-[var(--t-text-primary)] truncate" title={currentTutorial.title}>{currentTutorial.title}</h1>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h1 className="text-2xl font-bold text-[var(--t-text-primary)] truncate" title={currentTutorial.title}>{currentTutorial.title}</h1>
+                    {currentTutorial.vipOnly && (
+                      <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-full shrink-0">
+                        <Crown className="w-3 h-3" />
+                        VIP
+                      </span>
+                    )}
+                  </div>
                   {isAdmin && (
                     <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => toggleCrown(currentTutorial.id)}
+                        className={`p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors ${currentTutorial.vipOnly ? "text-amber-400" : "text-[var(--t-text-muted)] hover:text-amber-400"}`}
+                        title={currentTutorial.vipOnly ? "Remove VIP" : "Mark VIP only"}
+                      >
+                        <Crown className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => {
                           setEditingTutorial(currentTutorial);
@@ -3003,6 +3149,15 @@ const deleteTutorial = (id: string) => {
         onSave={saveStep}
         step={editingStep?.step}
       />
+
+      {/* Diff Viewer Modal */}
+      {showDiff && selectedRepo && viewingFile && (
+        <DiffViewer
+          repo={selectedRepo}
+          filePath={viewingFile.path}
+          onClose={() => setShowDiff(false)}
+        />
+      )}
 
       {/* Terminal Settings Modal (Admin) */}
       {terminalSettingsOpen && (
