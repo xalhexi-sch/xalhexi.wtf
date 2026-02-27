@@ -762,15 +762,16 @@ function StepImageDisplay({ img, altText }: { img: StepImage; altText: string })
 
 // Syntax highlighting helper
 // Code block with copy and hljs syntax highlighting
-function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => void }) {
+function CodeBlock({ code, onCopy, lineHighlights }: { code: string; onCopy: (text: string) => void; lineHighlights?: Map<number, "added" | "removed" | "modified"> }) {
   const [copied, setCopied] = useState(false);
   const [animating, setAnimating] = useState(false);
 
-  const highlighted = useMemo(() => {
+  const highlightedLines = useMemo(() => {
     try {
-      return hljs.highlightAuto(code).value;
+      const html = hljs.highlightAuto(code).value;
+      return html.split("\n");
     } catch {
-      return code;
+      return code.split("\n").map((l) => l.replace(/</g, "&lt;").replace(/>/g, "&gt;"));
     }
   }, [code]);
 
@@ -783,28 +784,27 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
   };
 
   return (
-    <div className="relative rounded-md overflow-hidden border border-[var(--t-border)] bg-[var(--t-bg-primary)] group">
-      <button
-        onClick={handleCopy}
-        className={`absolute top-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-md transition-all duration-200 border z-10 ${
-          copied
-            ? 'bg-[var(--t-accent-green)] border-[#238636] text-white scale-105'
-            : 'bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-secondary)] hover:bg-[var(--t-bg-hover)] border-[var(--t-border)]'
-        } ${animating ? 'scale-110' : ''}`}
-      >
-        <span className={`transition-transform duration-200 ${animating ? 'scale-125' : ''}`}>
-          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-        </span>
-        <span className="font-medium">{copied ? "Copied!" : "Copy"}</span>
-      </button>
-      <pre className="text-sm font-mono overflow-x-auto leading-relaxed">
+    <div className="rounded-md overflow-hidden border border-[var(--t-border)] bg-[var(--t-bg-primary)]">
+      <pre className="text-sm font-mono overflow-x-auto leading-relaxed py-3 pr-4">
         <code className="hljs block">
-          {code.split("\n").map((line, i) => (
-            <div key={i} className="flex">
-              <span className="inline-block w-10 pr-3 text-right text-[var(--t-text-faint)] select-none opacity-50 shrink-0">{i + 1}</span>
-              <span dangerouslySetInnerHTML={{ __html: hljs.highlightAuto(line).value || " " }} />
-            </div>
-          ))}
+          {highlightedLines.map((line, i) => {
+            const hl = lineHighlights?.get(i);
+            return (
+              <div key={i} className={`flex ${
+                hl === "added" ? "bg-green-500/15" :
+                hl === "removed" ? "bg-red-500/15" :
+                hl === "modified" ? "bg-amber-500/15" : ""
+              }`}>
+                <span className={`inline-block w-10 pr-3 text-right select-none opacity-50 shrink-0 ${
+                  hl === "added" ? "text-[var(--t-accent-green-text)]" :
+                  hl === "removed" ? "text-[#f85149]" :
+                  hl === "modified" ? "text-amber-400" :
+                  "text-[var(--t-text-faint)]"
+                }`}>{i + 1}</span>
+                <span dangerouslySetInnerHTML={{ __html: line || " " }} />
+              </div>
+            );
+          })}
         </code>
       </pre>
     </div>
@@ -1119,7 +1119,7 @@ function StepModal({
               onChange={(e) => setCode(e.target.value)}
               placeholder="git init"
               rows={4}
-              className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] focus:border-[var(--t-accent-blue)] outline-none resize-none font-mono text-sm"
+              className="w-full px-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-2 focus:ring-[var(--t-accent-blue)] focus:border-[var(--t-accent-blue)] outline-none resize-y min-h-[100px] font-mono text-sm"
             />
           </div>
 
@@ -1359,6 +1359,12 @@ export default function ITPTutorial() {
   const [viewingFile, setViewingFile] = useState<FileContent | null>(null);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
+  const lastPushedSnapshot = useRef<Tutorial[]>([]);
+  const [showStepChanges, setShowStepChanges] = useState<Record<string, boolean>>({});
+  const [copiedSteps, setCopiedSteps] = useState<Record<string, boolean>>({});
+  const [cmdSearchOpen, setCmdSearchOpen] = useState(false);
+  const [cmdSearchQuery, setCmdSearchQuery] = useState("");
+  const [persistedStepDiffs, setPersistedStepDiffs] = useState<{ tutorialId: string; tutorialTitle: string; stepId: string; stepIndex: number; isNew: boolean; isDeleted: boolean; changes: { field: string; old: string; new: string }[] }[]>([]);
 
   // Hash-based routing: read hash on mount
   useEffect(() => {
@@ -1425,24 +1431,70 @@ export default function ITPTutorial() {
       if (savedTheme) setColorTheme(savedTheme);
     }
 
-    // Fetch tutorials from the server cache (backed by GitHub)
+    // Load tutorials: instant from cache, then refresh from API in background
+    const cached = localStorage.getItem("xalhexi-tutorials-cache");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTutorials(parsed);
+          if (!window.location.hash) setSelectedTutorial(parsed[0].id);
+          setIsLoadingTutorials(false);
+        }
+      } catch { /* corrupt cache, ignore */ }
+    }
+
     const loadTutorials = async () => {
       try {
         const resp = await fetch("/api/tutorials");
         const data = await resp.json();
         if (resp.ok && Array.isArray(data.tutorials) && data.tutorials.length > 0) {
           setTutorials(data.tutorials);
-          setSelectedTutorial(data.tutorials[0].id);
+          lastPushedSnapshot.current = JSON.parse(JSON.stringify(data.tutorials));
+          localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(data.tutorials));
+          if (!cached && !window.location.hash) setSelectedTutorial(data.tutorials[0].id);
         }
-        // If fetch fails, use defaults as fallback
       } catch {
-        setTutorials(defaultTutorials);
-        setSelectedTutorial(defaultTutorials[0]?.id || null);
+        if (!cached) {
+          setTutorials(defaultTutorials);
+          setSelectedTutorial(defaultTutorials[0]?.id || null);
+        }
       } finally {
         setIsLoadingTutorials(false);
       }
     };
     loadTutorials();
+
+    // Ctrl+K to open global search, Esc to close
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCmdSearchOpen((prev) => !prev);
+        setCmdSearchQuery("");
+      }
+      if (e.key === "Escape") {
+        setCmdSearchOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Load copied/done steps from localStorage
+    try {
+      const saved = localStorage.getItem("xalhexi-copied-steps");
+      if (saved) setCopiedSteps(JSON.parse(saved));
+    } catch { /* ignore */ }
+
+    // Load persisted step diffs from last push (so everyone sees changes)
+    fetch("/api/changelog")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.entry && Array.isArray(d.entry.changes)) {
+          setPersistedStepDiffs(d.entry.changes);
+        }
+      })
+      .catch(() => {});
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -1529,9 +1581,16 @@ export default function ITPTutorial() {
     setTimeout(() => setToast({ message: "", visible: false }), 2000);
   };
 
-  const handleCopy = (text: string) => {
+  const handleCopy = (text: string, stepId?: string) => {
     navigator.clipboard.writeText(text);
     showToast("Copied!");
+    if (stepId) {
+      setCopiedSteps((prev) => {
+        const next = { ...prev, [stepId]: true };
+        localStorage.setItem("xalhexi-copied-steps", JSON.stringify(next));
+        return next;
+      });
+    }
   };
 
   const currentTutorial = tutorials.find((t) => t.id === selectedTutorial) || tutorials[0] || null;
@@ -1628,6 +1687,45 @@ export default function ITPTutorial() {
 
   const isSearching = searchQuery.trim().length > 0;
 
+  // Sidebar search: also search repos
+  const repoSearchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return repos.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        (r.description && r.description.toLowerCase().includes(q)) ||
+        (r.language && r.language.toLowerCase().includes(q))
+    );
+  }, [repos, searchQuery]);
+
+  // Ctrl+K global search results (tutorials + repos)
+  const cmdResults = useMemo(() => {
+    if (!cmdSearchQuery.trim()) return { tutorials: [] as { id: string; title: string; description: string; matchedStep?: string }[], repos: [] as GithubRepo[] };
+    const q = cmdSearchQuery.toLowerCase();
+    const matchedTutorials = tutorials
+      .filter((t) => {
+        if (!isAdmin && !isVip && (t.locked || t.vipOnly)) return false;
+        if (!isAdmin && isVip && t.locked) return false;
+        return (
+          t.title.toLowerCase().includes(q) ||
+          t.description.toLowerCase().includes(q) ||
+          t.steps.some((s) => s.heading.toLowerCase().includes(q) || s.code.toLowerCase().includes(q))
+        );
+      })
+      .map((t) => {
+        const matchedStep = t.steps.find((s) => s.heading.toLowerCase().includes(q) || s.code.toLowerCase().includes(q));
+        return { id: t.id, title: t.title, description: t.description, matchedStep: matchedStep?.heading };
+      });
+    const matchedRepos = repos.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        (r.description && r.description.toLowerCase().includes(q)) ||
+        (r.language && r.language.toLowerCase().includes(q))
+    );
+    return { tutorials: matchedTutorials, repos: matchedRepos };
+  }, [cmdSearchQuery, tutorials, repos, isAdmin, isVip]);
+
   const clearSearchAndGoToTutorial = (tutorialId: string) => {
     setSearchQuery("");
     setSelectedTutorial(tutorialId);
@@ -1667,6 +1765,33 @@ const deleteTutorial = (id: string) => {
       prev.map((t) => (t.id === id ? { ...t, starred: !t.starred } : t))
     );
   };
+
+  // Compare a step against the last-pushed snapshot (unsaved local edits)
+  // OR return persisted diffs from the last push (saved in Supabase, visible to everyone)
+  const getStepChanges = useCallback((tutorialId: string, stepIndex: number, step: Step) => {
+    // First check for unsaved local edits (in-memory diff)
+    const oldTutorial = lastPushedSnapshot.current.find((t) => t.id === tutorialId);
+    if (oldTutorial) {
+      const oldStep = oldTutorial.steps[stepIndex];
+      if (!oldStep) {
+        // Step doesn't exist in snapshot = locally added
+        return { isNew: true, changes: [], source: "local" as const };
+      }
+      const changes: { field: string; old: string; new: string }[] = [];
+      if (oldStep.heading !== step.heading) changes.push({ field: "heading", old: oldStep.heading, new: step.heading });
+      if (oldStep.explanation !== step.explanation) changes.push({ field: "explanation", old: oldStep.explanation, new: step.explanation });
+      if (oldStep.code !== step.code) changes.push({ field: "code", old: oldStep.code, new: step.code });
+      if (changes.length > 0) return { isNew: false, changes, source: "local" as const };
+    }
+
+    // Fall back to persisted diffs from last push (visible to everyone after refresh)
+    const persisted = persistedStepDiffs.find((d) => d.stepId === step.id);
+    if (persisted) {
+      return { isNew: persisted.isNew, changes: persisted.changes, source: "persisted" as const };
+    }
+
+    return { isNew: false, changes: [], source: "none" as const };
+  }, [persistedStepDiffs]);
 
   const toggleCrown = (id: string) => {
     setTutorials((prev) =>
@@ -1797,7 +1922,63 @@ const deleteTutorial = (id: string) => {
       if (!resp.ok) {
         throw new Error(data.error || `HTTP ${resp.status}`);
       }
-      showToast("Saved! Everyone will see the updated tutorials.");
+      localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(tutorials));
+
+      // Auto-detect step-level changes: compare snapshot vs current
+      const prev = lastPushedSnapshot.current;
+      const prevMap = new Map(prev.map((t) => [t.id, t]));
+      // Build detailed step-level diffs keyed by stepId
+      const stepDiffs: { tutorialId: string; tutorialTitle: string; stepId: string; stepIndex: number; isNew: boolean; isDeleted: boolean; changes: { field: string; old: string; new: string }[] }[] = [];
+      let changeCount = 0;
+
+      for (const t of tutorials) {
+        const old = prevMap.get(t.id);
+        if (!old) {
+          // Entire tutorial is new - mark all steps as new
+          t.steps.forEach((s, i) => {
+            stepDiffs.push({ tutorialId: t.id, tutorialTitle: t.title, stepId: s.id, stepIndex: i, isNew: true, isDeleted: false, changes: [] });
+          });
+          changeCount++;
+          continue;
+        }
+        for (let i = 0; i < t.steps.length; i++) {
+          const newStep = t.steps[i];
+          const oldStep = old.steps[i];
+          if (!oldStep) {
+            stepDiffs.push({ tutorialId: t.id, tutorialTitle: t.title, stepId: newStep.id, stepIndex: i, isNew: true, isDeleted: false, changes: [] });
+            changeCount++;
+            continue;
+          }
+          const diffs: { field: string; old: string; new: string }[] = [];
+          if (oldStep.heading !== newStep.heading) diffs.push({ field: "heading", old: oldStep.heading, new: newStep.heading });
+          if (oldStep.explanation !== newStep.explanation) diffs.push({ field: "explanation", old: oldStep.explanation, new: newStep.explanation });
+          if (oldStep.code !== newStep.code) diffs.push({ field: "code", old: oldStep.code, new: newStep.code });
+          if (diffs.length > 0) {
+            stepDiffs.push({ tutorialId: t.id, tutorialTitle: t.title, stepId: newStep.id, stepIndex: i, isNew: false, isDeleted: false, changes: diffs });
+            changeCount++;
+          }
+        }
+        // Detect deleted steps
+        for (let i = t.steps.length; i < old.steps.length; i++) {
+          stepDiffs.push({ tutorialId: t.id, tutorialTitle: t.title, stepId: old.steps[i].id, stepIndex: i, isNew: false, isDeleted: true, changes: [] });
+          changeCount++;
+        }
+      }
+
+      // Save to Supabase and update local persisted diffs
+      if (stepDiffs.length > 0) {
+        setPersistedStepDiffs(stepDiffs);
+        fetch("/api/changelog", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ changes: stepDiffs }),
+        }).catch(() => {});
+      }
+
+      // Update snapshot
+      lastPushedSnapshot.current = JSON.parse(JSON.stringify(tutorials));
+
+      showToast(changeCount > 0 ? `Saved! ${changeCount} change(s) detected.` : "Saved! No changes detected.");
     } catch (error) {
       showToast("Failed to save: " + (error instanceof Error ? error.message : "Unknown error"));
       console.error("Push error:", error);
@@ -1831,6 +2012,8 @@ const deleteTutorial = (id: string) => {
       }
       if (Array.isArray(data.tutorials) && data.tutorials.length > 0) {
         setTutorials(data.tutorials);
+        lastPushedSnapshot.current = JSON.parse(JSON.stringify(data.tutorials));
+        localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(data.tutorials));
         setSelectedTutorial(data.tutorials[0].id);
         showToast("Synced! All users now see the latest tutorials.");
       } else {
@@ -2086,7 +2269,7 @@ const deleteTutorial = (id: string) => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tutorials..."
+                placeholder="Search tutorials... (Ctrl+K)"
                 className="w-full pl-9 pr-3 py-1.5 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-sm text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-1 focus:ring-[var(--t-accent-blue)] focus:border-[var(--t-accent-blue)] outline-none"
               />
             </div>
@@ -2157,7 +2340,7 @@ const deleteTutorial = (id: string) => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tutorials..."
+              placeholder="Search tutorials... (Ctrl+K)"
               className="w-full pl-9 pr-3 py-2 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md text-sm text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] focus:ring-1 focus:ring-[var(--t-accent-blue)] focus:border-[var(--t-accent-blue)] outline-none"
             />
           </div>
@@ -2780,7 +2963,8 @@ const deleteTutorial = (id: string) => {
                   </button>
                 </div>
                 <p className="text-[var(--t-text-muted)] text-sm">
-                  Found {searchResults.length} matching {searchResults.length === 1 ? "result" : "results"}
+                  Found {searchResults.length} tutorial {searchResults.length === 1 ? "result" : "results"}
+                  {repoSearchResults.length > 0 && ` and ${repoSearchResults.length} ${repoSearchResults.length === 1 ? "repository" : "repositories"}`}
                 </p>
               </div>
 
@@ -2838,11 +3022,39 @@ const deleteTutorial = (id: string) => {
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : repoSearchResults.length === 0 ? (
                 <div className="text-center py-12 text-[var(--t-text-faint)]">
                   <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p className="text-lg mb-1">No results found</p>
                   <p className="text-sm">Try searching for different keywords</p>
+                </div>
+              ) : null}
+
+              {/* Repo search results */}
+              {repoSearchResults.length > 0 && (
+                <div className="mt-6">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--t-text-faint)] mb-3">Repositories</h2>
+                  <div className="space-y-2">
+                    {repoSearchResults.map((repo) => (
+                      <a
+                        key={repo.name}
+                        href={repo.html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg hover:bg-[var(--t-bg-hover)] transition-colors"
+                      >
+                        <Github className="w-5 h-5 text-[var(--t-text-muted)] shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium text-[var(--t-text-primary)] truncate">{repo.name}</div>
+                          {repo.description && <div className="text-xs text-[var(--t-text-faint)] truncate">{repo.description}</div>}
+                        </div>
+                        {repo.language && (
+                          <span className="text-xs text-[var(--t-text-muted)] shrink-0">{repo.language}</span>
+                        )}
+                        <ExternalLink className="w-3.5 h-3.5 text-[var(--t-text-faint)] shrink-0" />
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -2898,15 +3110,54 @@ const deleteTutorial = (id: string) => {
                 {currentTutorial.steps.map((step, index) => (
                   <div
                     key={step.id}
-                    className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden"
+                    className={`bg-[var(--t-bg-secondary)] border rounded-lg overflow-hidden transition-colors ${
+                      copiedSteps[step.id]
+                        ? "border-[var(--t-accent-green)]/40 ring-1 ring-[var(--t-accent-green)]/10"
+                        : "border-[var(--t-border)]"
+                    }`}
                   >
                     <div className="px-4 py-3 border-b border-[var(--t-border)] flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--t-accent-green)] text-white text-xs font-bold">
-                          {index + 1}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className={`flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold shrink-0 ${
+                          copiedSteps[step.id] ? "bg-[var(--t-accent-green)]" : "bg-[var(--t-accent-green)]"
+                        }`}>
+                          {copiedSteps[step.id] ? <Check className="w-3.5 h-3.5" /> : index + 1}
                         </span>
-                        <h3 className="font-semibold text-[var(--t-text-primary)]">{step.heading}</h3>
+                        <h3 className="font-semibold text-[var(--t-text-primary)] truncate">{step.heading}</h3>
                       </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {(() => {
+                          const { isNew, changes, source } = getStepChanges(currentTutorial.id, index, step);
+                          const hasChanges = isNew || changes.length > 0;
+                          return hasChanges ? (
+                            <button
+                              onClick={() => setShowStepChanges((prev) => ({ ...prev, [step.id]: !prev[step.id] }))}
+                              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-md transition-colors ${
+                                showStepChanges[step.id]
+                                  ? "bg-[var(--t-accent-blue)]/10 text-[var(--t-accent-blue)] border-[var(--t-accent-blue)]/30"
+                                  : "bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border-[var(--t-border)]"
+                              }`}
+                              title={isNew ? "New step" : `${changes.length} change(s)${source === "local" ? " (unsaved)" : ""}`}
+                            >
+                              {source === "local" && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                              <GitCompare className="w-3 h-3" />
+                              {isNew ? "New" : "Changes"}
+                            </button>
+                          ) : null;
+                        })()}
+                        {step.code && (
+                          <button
+                            onClick={() => handleCopy(step.code, step.id)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-md transition-colors ${
+                              copiedSteps[step.id]
+                                ? "bg-[var(--t-accent-green)]/10 text-[var(--t-accent-green-text)] border-[var(--t-accent-green)]/30"
+                                : "bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border-[var(--t-border)]"
+                            }`}
+                          >
+                            {copiedSteps[step.id] ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            {copiedSteps[step.id] ? "Done" : "Copy"}
+                          </button>
+                        )}
                       {isAdmin && (
                         <div className="flex items-center gap-1">
                           <button
@@ -2940,6 +3191,7 @@ const deleteTutorial = (id: string) => {
                           </button>
                         </div>
                       )}
+                      </div>
                     </div>
                     <div className="p-4 space-y-3">
                       {step.explanation && (
@@ -2953,8 +3205,38 @@ const deleteTutorial = (id: string) => {
                           <StepImageDisplay key={img.id} img={img} altText={step.heading} />
                         ))}
 
-                      {/* Code block */}
-                      {step.code && <CodeBlock code={step.code} onCopy={handleCopy} />}
+                      {/* Code block with optional diff highlights */}
+                      {step.code && (() => {
+                        let lineHighlights: Map<number, "added" | "removed" | "modified"> | undefined;
+                        if (showStepChanges[step.id]) {
+                          const { isNew, changes } = getStepChanges(currentTutorial.id, index, step);
+                          lineHighlights = new Map();
+                          if (isNew) {
+                            // All lines are new
+                            step.code.split("\n").forEach((_, li) => lineHighlights!.set(li, "added"));
+                          } else {
+                            const codeDiff = changes.find((c) => c.field === "code");
+                            if (codeDiff) {
+                              const oldLines = codeDiff.old.split("\n");
+                              const newLines = codeDiff.new.split("\n");
+                              // Line-by-line positional diff
+                              const maxLen = Math.max(oldLines.length, newLines.length);
+                              for (let li = 0; li < newLines.length; li++) {
+                                if (li >= oldLines.length) {
+                                  // Line didn't exist before = added
+                                  lineHighlights.set(li, "added");
+                                } else if (oldLines[li] !== newLines[li]) {
+                                  // Line existed but content changed = modified
+                                  lineHighlights.set(li, "modified");
+                                }
+                                // else: same line, no highlight
+                              }
+                            }
+                          }
+                          if (lineHighlights.size === 0) lineHighlights = undefined;
+                        }
+                        return <CodeBlock code={step.code} onCopy={handleCopy} lineHighlights={lineHighlights} />;
+                      })()}
 
                       {/* Images AFTER code */}
                       {step.images && step.images
@@ -3130,6 +3412,107 @@ const deleteTutorial = (id: string) => {
           </div>
         </aside>
       </div>
+
+      {/* Ctrl+K Global Search Modal */}
+      {cmdSearchOpen && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]" onClick={() => setCmdSearchOpen(false)}>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-w-lg bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Search input */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--t-border)]">
+              <Search className="w-5 h-5 text-[var(--t-text-faint)] shrink-0" />
+              <input
+                autoFocus
+                value={cmdSearchQuery}
+                onChange={(e) => setCmdSearchQuery(e.target.value)}
+                placeholder="Search tutorials and repositories..."
+                className="flex-1 bg-transparent text-[var(--t-text-primary)] placeholder-[var(--t-text-faint)] outline-none text-sm"
+              />
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-[var(--t-text-faint)] bg-[var(--t-bg-tertiary)] border border-[var(--t-border)] rounded">ESC</kbd>
+            </div>
+
+            {/* Results */}
+            <div className="max-h-[50vh] overflow-y-auto">
+              {!cmdSearchQuery.trim() ? (
+                <div className="px-4 py-8 text-center text-sm text-[var(--t-text-faint)]">
+                  Type to search tutorials and repositories...
+                </div>
+              ) : cmdResults.tutorials.length === 0 && cmdResults.repos.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-[var(--t-text-faint)]">
+                  No results found for &quot;{cmdSearchQuery}&quot;
+                </div>
+              ) : (
+                <>
+                  {cmdResults.tutorials.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--t-text-faint)] bg-[var(--t-bg-tertiary)]">
+                        Tutorials
+                      </div>
+                      {cmdResults.tutorials.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            setSelectedTutorial(t.id);
+                            setActiveTab("tutorials");
+                            setCmdSearchOpen(false);
+                            setCmdSearchQuery("");
+                            setSidebarOpen(false);
+                          }}
+                          className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[var(--t-bg-hover)] transition-colors text-left"
+                        >
+                          <BookOpen className="w-4 h-4 text-[var(--t-accent-green)] shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm text-[var(--t-text-primary)] truncate">{t.title}</div>
+                            {t.matchedStep && (
+                              <div className="text-xs text-[var(--t-text-faint)] truncate">Step: {t.matchedStep}</div>
+                            )}
+                          </div>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--t-accent-green)]/10 text-[var(--t-accent-green-text)] shrink-0">Tutorial</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {cmdResults.repos.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--t-text-faint)] bg-[var(--t-bg-tertiary)]">
+                        Repositories
+                      </div>
+                      {cmdResults.repos.map((r) => (
+                        <a
+                          key={r.name}
+                          href={r.html_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => { setCmdSearchOpen(false); setCmdSearchQuery(""); }}
+                          className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[var(--t-bg-hover)] transition-colors text-left"
+                        >
+                          <Github className="w-4 h-4 text-[var(--t-text-muted)] shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm text-[var(--t-text-primary)] truncate">{r.name}</div>
+                            {r.description && (
+                              <div className="text-xs text-[var(--t-text-faint)] truncate">{r.description}</div>
+                            )}
+                          </div>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--t-accent-blue)]/10 text-[var(--t-accent-blue)] shrink-0">Repo</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Footer hint */}
+            <div className="px-4 py-2 border-t border-[var(--t-border)] flex items-center gap-4 text-[10px] text-[var(--t-text-faint)]">
+              <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 bg-[var(--t-bg-tertiary)] border border-[var(--t-border)] rounded font-mono">Ctrl</kbd>+<kbd className="px-1 py-0.5 bg-[var(--t-bg-tertiary)] border border-[var(--t-border)] rounded font-mono">K</kbd> to toggle</span>
+              <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 bg-[var(--t-bg-tertiary)] border border-[var(--t-border)] rounded font-mono">Esc</kbd> to close</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       <LoginModal
