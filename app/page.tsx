@@ -766,11 +766,12 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
   const [copied, setCopied] = useState(false);
   const [animating, setAnimating] = useState(false);
 
-  const highlighted = useMemo(() => {
+  const highlightedLines = useMemo(() => {
     try {
-      return hljs.highlightAuto(code).value;
+      const html = hljs.highlightAuto(code).value;
+      return html.split("\n");
     } catch {
-      return code;
+      return code.split("\n").map((l) => l.replace(/</g, "&lt;").replace(/>/g, "&gt;"));
     }
   }, [code]);
 
@@ -786,10 +787,10 @@ function CodeBlock({ code, onCopy }: { code: string; onCopy: (text: string) => v
     <div className="rounded-md overflow-hidden border border-[var(--t-border)] bg-[var(--t-bg-primary)]">
       <pre className="text-sm font-mono overflow-x-auto leading-relaxed py-3 pr-4">
         <code className="hljs block">
-          {code.split("\n").map((line, i) => (
+          {highlightedLines.map((line, i) => (
             <div key={i} className="flex">
               <span className="inline-block w-10 pr-3 text-right text-[var(--t-text-faint)] select-none opacity-50 shrink-0">{i + 1}</span>
-              <span dangerouslySetInnerHTML={{ __html: hljs.highlightAuto(line).value || " " }} />
+              <span dangerouslySetInnerHTML={{ __html: line || " " }} />
             </div>
           ))}
         </code>
