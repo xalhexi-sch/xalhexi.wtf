@@ -279,6 +279,22 @@
     "locked": false
   },
   {
+    "id": "0lipmpmpz",
+    "title": "# notes",
+    "description": "note",
+    "steps": [
+      {
+        "id": "4mxmpyjk0",
+        "heading": "1",
+        "explanation": "1",
+        "code": "# 1. UIs/buttons: is white mode.\n# 2. change login from email to username or email.\n# 3. able to create visit peoples profile, see their bio, able to upload photo/change as well. like a fb or any forum that has profile and timeline\n# 4 profile link gonna be like: /thread/username\n# Example: xalhexi.wtf/thread/{username}\n# 5. improve the timeline/should similar to threads like code snippet. \n# replace name to Thread to Threads? \n# allow to upload photos, through upload or ctrl + v screenshots (same as in Tutorials implement there too.)\n# 6 add badge: make xalhexi username as Admin\n# 7 add badges reward? (idk how but just make one automation, idk what to reward but just think of any relevant for this site(Threads Tab)\n# 8 in comment: allow to paste code and it automatically detect and it will look like code snippet without clicking \"add code\" do the same as in creating post like auto detect code. add code will be just optional now."
+      }
+    ],
+    "starred": true,
+    "vipOnly": false,
+    "locked": true
+  },
+  {
     "id": "348b9lrsw",
     "title": "SCRIPT!",
     "description": "",
