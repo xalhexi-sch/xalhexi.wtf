@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import hljs from "highlight.js";
 import AIAssistant from "@/components/ai-assistant";
 import DiffViewer from "@/components/diff-viewer";
+import CommunityChat from "@/components/community-chat";
 import {
   Minus,
   Search,
@@ -1366,46 +1367,33 @@ export default function ITPTutorial() {
   const [cmdSearchQuery, setCmdSearchQuery] = useState("");
   const [persistedStepDiffs, setPersistedStepDiffs] = useState<{ tutorialId: string; tutorialTitle: string; stepId: string; stepIndex: number; isNew: boolean; isDeleted: boolean; changes: { field: string; old: string; new: string }[] }[]>([]);
 
-  // Hash-based routing: read hash on mount
+  // Persist navigation state in sessionStorage (avoids hash-based routing which
+  // causes the v0 runtime to call querySelector on the hash, crashing the app)
   useEffect(() => {
-    const parseHash = () => {
-      const hash = window.location.hash.slice(1); // remove #
-      if (hash.startsWith("/tutorials/")) {
-        const id = hash.replace("/tutorials/", "");
-        setActiveTab("tutorials");
-        setSelectedTutorial(id);
-        setSelectedRepo(null);
-        setViewingFile(null);
-      } else if (hash.startsWith("/repos/")) {
-        const rest = hash.replace("/repos/", "");
-        const parts = rest.split("/");
-        const repoName = parts[0];
-        setActiveTab("repositories");
-        setSelectedRepo(repoName);
-        if (parts.length > 1) {
-          setRepoPath(parts.slice(1));
+    try {
+      const saved = sessionStorage.getItem("xalhexi-nav");
+      if (saved) {
+        const nav = JSON.parse(saved);
+        if (nav.tab === "tutorials" && nav.tutorialId) {
+          setActiveTab("tutorials");
+          setSelectedTutorial(nav.tutorialId);
+        } else if (nav.tab === "repositories" && nav.repoName) {
+          setActiveTab("repositories");
+          setSelectedRepo(nav.repoName);
+          if (nav.repoPath) setRepoPath(nav.repoPath);
         }
       }
-    };
-    parseHash();
-    window.addEventListener("hashchange", parseHash);
-    return () => window.removeEventListener("hashchange", parseHash);
+    } catch { /* ignore */ }
   }, []);
 
-  // Update hash when navigation changes
   useEffect(() => {
-    if (activeTab === "tutorials" && selectedTutorial) {
-      const newHash = `#/tutorials/${selectedTutorial}`;
-      if (window.location.hash !== newHash) {
-        window.history.replaceState(null, "", newHash);
+    try {
+      if (activeTab === "tutorials" && selectedTutorial) {
+        sessionStorage.setItem("xalhexi-nav", JSON.stringify({ tab: "tutorials", tutorialId: selectedTutorial }));
+      } else if (activeTab === "repositories" && selectedRepo) {
+        sessionStorage.setItem("xalhexi-nav", JSON.stringify({ tab: "repositories", repoName: selectedRepo, repoPath }));
       }
-    } else if (activeTab === "repositories" && selectedRepo) {
-      const path = repoPath.length > 0 ? `/${repoPath.join("/")}` : "";
-      const newHash = `#/repos/${selectedRepo}${path}`;
-      if (window.location.hash !== newHash) {
-        window.history.replaceState(null, "", newHash);
-      }
-    }
+    } catch { /* ignore */ }
   }, [activeTab, selectedTutorial, selectedRepo, repoPath]);
 
   // Load tutorials from server cache on mount (serves GitHub data to everyone globally)
@@ -1438,7 +1426,7 @@ export default function ITPTutorial() {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setTutorials(parsed);
-          if (!window.location.hash) setSelectedTutorial(parsed[0].id);
+          if (!sessionStorage.getItem("xalhexi-nav")) setSelectedTutorial(parsed[0].id);
           setIsLoadingTutorials(false);
         }
       } catch { /* corrupt cache, ignore */ }
@@ -1452,7 +1440,7 @@ export default function ITPTutorial() {
           setTutorials(data.tutorials);
           lastPushedSnapshot.current = JSON.parse(JSON.stringify(data.tutorials));
           localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(data.tutorials));
-          if (!cached && !window.location.hash) setSelectedTutorial(data.tutorials[0].id);
+          if (!cached && !sessionStorage.getItem("xalhexi-nav")) setSelectedTutorial(data.tutorials[0].id);
         }
       } catch {
         if (!cached) {
@@ -2727,6 +2715,15 @@ const deleteTutorial = (id: string) => {
   <span className="text-xs text-[var(--t-text-faint)]">
   Updated {new Date(repo.updated_at).toLocaleDateString()}
   </span>
+  <a
+    href={`https://github.com/xalhexi-sch/${repo.name}/archive/refs/heads/main.zip`}
+    onClick={(e) => e.stopPropagation()}
+    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded transition-colors ml-auto"
+    title={`Download ${repo.name} as ZIP`}
+  >
+    <Download className="w-3 h-3" />
+    ZIP
+  </a>
                           </div>
                         </button>
                       ))}
@@ -2872,6 +2869,14 @@ const deleteTutorial = (id: string) => {
                         </React.Fragment>
                       ))}
                     </div>
+                    <a
+                      href={`https://github.com/xalhexi-sch/${selectedRepo}/archive/refs/heads/main.zip`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors shrink-0"
+                      title={`Download ${selectedRepo} as ZIP`}
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Download ZIP
+                    </a>
                   </div>
 
                   {isLoadingContents ? (
@@ -3715,6 +3720,9 @@ const deleteTutorial = (id: string) => {
       )}
 
       <Toast message={toast.message} visible={toast.visible} />
+
+      {/* Community Chat */}
+      <CommunityChat isAdmin={isAdmin} isVip={isVip} userRole={userRole} />
     </div>
   );
 }
