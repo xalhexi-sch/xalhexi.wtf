@@ -1367,18 +1367,19 @@ export default function ITPTutorial() {
   const [persistedStepDiffs, setPersistedStepDiffs] = useState<{ tutorialId: string; tutorialTitle: string; stepId: string; stepIndex: number; isNew: boolean; isDeleted: boolean; changes: { field: string; old: string; new: string }[] }[]>([]);
 
   // Hash-based routing: read hash on mount
+  // We use "~" as separator instead of "/" to keep hashes valid CSS selectors
+  // e.g. #t~abc123 for tutorials, #r~repo-name~path for repos
   useEffect(() => {
     const parseHash = () => {
       const hash = window.location.hash.slice(1); // remove #
-      if (hash.startsWith("/tutorials/")) {
-        const id = hash.replace("/tutorials/", "");
+      if (hash.startsWith("t~")) {
+        const id = hash.slice(2);
         setActiveTab("tutorials");
         setSelectedTutorial(id);
         setSelectedRepo(null);
         setViewingFile(null);
-      } else if (hash.startsWith("/repos/")) {
-        const rest = hash.replace("/repos/", "");
-        const parts = rest.split("/");
+      } else if (hash.startsWith("r~")) {
+        const parts = hash.slice(2).split("~");
         const repoName = parts[0];
         setActiveTab("repositories");
         setSelectedRepo(repoName);
@@ -1393,15 +1394,16 @@ export default function ITPTutorial() {
   }, []);
 
   // Update hash when navigation changes
+  // Use "~" separator so hashes are valid CSS selectors (slashes are not)
   useEffect(() => {
     if (activeTab === "tutorials" && selectedTutorial) {
-      const newHash = `#/tutorials/${selectedTutorial}`;
+      const newHash = `#t~${selectedTutorial}`;
       if (window.location.hash !== newHash) {
         window.history.replaceState(null, "", newHash);
       }
     } else if (activeTab === "repositories" && selectedRepo) {
-      const path = repoPath.length > 0 ? `/${repoPath.join("/")}` : "";
-      const newHash = `#/repos/${selectedRepo}${path}`;
+      const path = repoPath.length > 0 ? `~${repoPath.join("~")}` : "";
+      const newHash = `#r~${selectedRepo}${path}`;
       if (window.location.hash !== newHash) {
         window.history.replaceState(null, "", newHash);
       }
