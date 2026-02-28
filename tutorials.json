@@ -223,6 +223,46 @@
     "locked": false
   },
   {
+    "id": "88z1e07sw",
+    "title": "migrations",
+    "description": "",
+    "steps": [
+      {
+        "id": "51nfldvld",
+        "heading": "001-add-user-profile-fields.sql",
+        "explanation": "",
+        "code": "-- Migration: Add profile fields to xthread_users\n-- Run this in your Supabase SQL editor when you upload to your main account\n\n-- Add bio column if it doesn't exist\nALTER TABLE xthread_users \nADD COLUMN IF NOT EXISTS bio TEXT DEFAULT NULL;\n\n-- Add avatar_url column if it doesn't exist (may already exist)\nALTER TABLE xthread_users \nADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT NULL;\n\n-- Add display_name column if it doesn't exist (may already exist)\nALTER TABLE xthread_users \nADD COLUMN IF NOT EXISTS display_name TEXT DEFAULT NULL;\n\n-- Add role column for admin/vip badges\nALTER TABLE xthread_users \nADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'vip', 'moderator'));\n\n-- Set xalhexi as admin (run after the user exists)\n-- UPDATE xthread_users SET role = 'admin' WHERE username = 'xalhexi';\n\n-- Add updated_at column\nALTER TABLE xthread_users \nADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();\n\n-- Create function to update updated_at\nCREATE OR REPLACE FUNCTION update_updated_at_column()\nRETURNS TRIGGER AS $$\nBEGIN\n    NEW.updated_at = NOW();\n    RETURN NEW;\nEND;\n$$ language 'plpgsql';\n\n-- Create trigger for updated_at\nDROP TRIGGER IF EXISTS update_xthread_users_updated_at ON xthread_users;\nCREATE TRIGGER update_xthread_users_updated_at\n    BEFORE UPDATE ON xthread_users\n    FOR EACH ROW\n    EXECUTE FUNCTION update_updated_at_column();"
+      },
+      {
+        "id": "ak1vt1l4j",
+        "heading": "002-add-badges-system.sql",
+        "explanation": "",
+        "code": "-- Migration: Add badges system\n-- Run this in your Supabase SQL editor when you upload to your main account\n\n-- Create badges table\nCREATE TABLE IF NOT EXISTS xthread_badges (\n    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,\n    name TEXT NOT NULL UNIQUE,\n    description TEXT,\n    icon TEXT, -- icon name or URL\n    color TEXT DEFAULT '#6366f1', -- badge color\n    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n);\n\n-- Create user_badges junction table\nCREATE TABLE IF NOT EXISTS xthread_user_badges (\n    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,\n    user_id UUID NOT NULL REFERENCES xthread_users(id) ON DELETE CASCADE,\n    badge_id UUID NOT NULL REFERENCES xthread_badges(id) ON DELETE CASCADE,\n    awarded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),\n    awarded_by UUID REFERENCES xthread_users(id), -- admin who awarded it\n    UNIQUE(user_id, badge_id)\n);\n\n-- Insert default badges\nINSERT INTO xthread_badges (name, description, icon, color) VALUES\n    ('Admin', 'Site Administrator', 'shield', '#ef4444'),\n    ('VIP', 'VIP Member', 'crown', '#f59e0b'),\n    ('Moderator', 'Community Moderator', 'badge-check', '#8b5cf6'),\n    ('Early Adopter', 'Joined during early access', 'star', '#06b6d4'),\n    ('Top Contributor', 'Made significant contributions', 'trophy', '#10b981'),\n    ('Helpful', 'Known for helpful responses', 'heart', '#ec4899'),\n    ('Code Master', 'Shared quality code snippets', 'code', '#3b82f6')\nON CONFLICT (name) DO NOTHING;\n\n-- Create index for faster badge lookups\nCREATE INDEX IF NOT EXISTS idx_user_badges_user_id ON xthread_user_badges(user_id);\nCREATE INDEX IF NOT EXISTS idx_user_badges_badge_id ON xthread_user_badges(badge_id);"
+      },
+      {
+        "id": "7jdt3j3wr",
+        "heading": "003-set-xalhexi-admin.sql",
+        "explanation": "",
+        "code": "-- Migration: Set xalhexi as Admin\n-- Run this AFTER the xalhexi user has registered\n\n-- Set xalhexi as admin\nUPDATE xthread_users \nSET role = 'admin' \nWHERE username = 'xalhexi';\n\n-- Award Admin badge to xalhexi\nINSERT INTO xthread_user_badges (user_id, badge_id)\nSELECT u.id, b.id \nFROM xthread_users u, xthread_badges b \nWHERE u.username = 'xalhexi' AND b.name = 'Admin'\nON CONFLICT (user_id, badge_id) DO NOTHING;"
+      },
+      {
+        "id": "mlhm1jxcw",
+        "heading": "004-add-vip-features.sql",
+        "explanation": "",
+        "code": "-- Migration: Add VIP features to posts\n-- Run this in your Supabase SQL editor\n\n-- Add vip_only column to posts (only VIP/Admin users can see VIP-only posts)\nALTER TABLE xthread_posts \nADD COLUMN IF NOT EXISTS is_vip_only BOOLEAN DEFAULT FALSE;\n\n-- Add comments_enabled column to posts (allows users to disable comments)\nALTER TABLE xthread_posts \nADD COLUMN IF NOT EXISTS comments_enabled BOOLEAN DEFAULT TRUE;\n\n-- Index for filtering VIP posts\nCREATE INDEX IF NOT EXISTS idx_xthread_posts_is_vip_only ON xthread_posts(is_vip_only);\n\n-- Update RLS policies if using Supabase RLS\n-- VIP posts are visible to users with role 'vip' or 'admin'\n-- Regular users only see posts where is_vip_only = false\n\n-- Example RLS policy (modify based on your existing policies):\n-- CREATE POLICY \"VIP posts visible to VIP/Admin users\"\n-- ON xthread_posts FOR SELECT\n-- USING (\n--   is_vip_only = false \n--   OR (\n--     auth.uid() IN (\n--       SELECT id FROM xthread_users WHERE role IN ('vip', 'admin')\n--     )\n--   )\n-- );"
+      },
+      {
+        "id": "a21y7b97e",
+        "heading": "README.md",
+        "explanation": "",
+        "code": "# Database Migrations\n\nRun these SQL scripts in your Supabase SQL Editor in order:\n\n## Migration Order\n\n1. **001-add-user-profile-fields.sql** - Adds bio, avatar_url, display_name, and role columns to users table\n2. **002-add-badges-system.sql** - Creates badges tables and default badges\n3. **003-set-xalhexi-admin.sql** - Sets xalhexi user as Admin (run after xalhexi registers)\n4. **004-add-vip-features.sql** - Adds VIP-only posts and comments toggle\n\n## How to Run\n\n1. Go to your Supabase Dashboard\n2. Click on \"SQL Editor\"\n3. Copy and paste each script in order\n4. Click \"Run\"\n\n## What Each Migration Does\n\n### 001-add-user-profile-fields.sql\n- Adds `bio` column for user bio/description\n- Adds `role` column (user, admin, vip, moderator)\n- Adds `updated_at` column with auto-update trigger\n\n### 002-add-badges-system.sql\n- Creates `xthread_badges` table for badge definitions\n- Creates `xthread_user_badges` junction table\n- Inserts default badges: Admin, VIP, Moderator, Early Adopter, Top Contributor, Helpful, Code Master\n\n### 003-set-xalhexi-admin.sql\n- Sets xalhexi user role to 'admin'\n- Awards Admin badge to xalhexi\n- **Run this AFTER xalhexi has registered an account**\n\n### 004-add-vip-features.sql\n- Adds `is_vip_only` column to posts (VIP-only visibility)\n- Adds `comments_enabled` column to posts (toggle comments on/off)"
+      }
+    ],
+    "vipOnly": false,
+    "starred": true,
+    "locked": true
+  },
+  {
     "id": "5",
     "title": "Git Basics: Create Repo & Push",
     "description": "Create a new repository, add files, commit changes, and push to GitHub",
