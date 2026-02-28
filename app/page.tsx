@@ -587,9 +587,8 @@ function generateId() {
 function Toast({ message, visible }: { message: string; visible: boolean }) {
   return (
     <div
-      className={`fixed bottom-5 left-1/2 -translate-x-1/2 bg-[var(--t-accent-green)] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all duration-300 z-50 ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
-      }`}
+      className={`fixed bottom-5 left-1/2 -translate-x-1/2 bg-[var(--t-accent-green)] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all duration-300 z-50 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
+        }`}
     >
       <Check className="w-4 h-4" />
       {message}
@@ -598,15 +597,15 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
 }
 
 // Discord-style image lightbox - double click to zoom, scroll to zoom, drag to pan
-function ImageLightbox({ 
-  src, 
-  alt, 
-  isOpen, 
-  onClose 
-}: { 
-  src: string; 
-  alt: string; 
-  isOpen: boolean; 
+function ImageLightbox({
+  src,
+  alt,
+  isOpen,
+  onClose
+}: {
+  src: string;
+  alt: string;
+  isOpen: boolean;
   onClose: () => void;
 }) {
   const [scale, setScale] = useState(1);
@@ -674,7 +673,7 @@ function ImageLightbox({
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center overflow-hidden"
       onClick={handleClick}
       onWheel={handleWheel}
@@ -690,7 +689,7 @@ function ImageLightbox({
         className="select-none"
         onMouseDown={handleMouseDown}
         onDoubleClick={handleDoubleClick}
-        style={{ 
+        style={{
           transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
           transition: isDragging ? 'none' : 'transform 0.15s ease-out',
           maxWidth: '100vw',
@@ -751,12 +750,12 @@ function StepImageDisplay({ img, altText }: { img: StepImage; altText: string })
           </div>
         )}
       </div>
-      
-      <ImageLightbox 
-        src={img.url || "/placeholder.svg"} 
-        alt={altText} 
-        isOpen={lightboxOpen} 
-        onClose={() => setLightboxOpen(false)} 
+
+      <ImageLightbox
+        src={img.url || "/placeholder.svg"}
+        alt={altText}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
       />
     </>
   );
@@ -792,17 +791,15 @@ function CodeBlock({ code, onCopy, lineHighlights }: { code: string; onCopy: (te
           {highlightedLines.map((line, i) => {
             const hl = lineHighlights?.get(i);
             return (
-              <div key={i} className={`flex ${
-                hl === "added" ? "bg-green-500/15" :
-                hl === "removed" ? "bg-red-500/15" :
-                hl === "modified" ? "bg-amber-500/15" : ""
-              }`}>
-                <span className={`inline-block w-10 pr-3 text-right select-none opacity-50 shrink-0 ${
-                  hl === "added" ? "text-[var(--t-accent-green-text)]" :
-                  hl === "removed" ? "text-[#f85149]" :
-                  hl === "modified" ? "text-amber-400" :
-                  "text-[var(--t-text-faint)]"
-                }`}>{i + 1}</span>
+              <div key={i} className={`flex ${hl === "added" ? "bg-green-500/15" :
+                  hl === "removed" ? "bg-red-500/15" :
+                    hl === "modified" ? "bg-amber-500/15" : ""
+                }`}>
+                <span className={`inline-block w-10 pr-3 text-right select-none opacity-50 shrink-0 ${hl === "added" ? "text-[var(--t-accent-green-text)]" :
+                    hl === "removed" ? "text-[#f85149]" :
+                      hl === "modified" ? "text-amber-400" :
+                        "text-[var(--t-text-faint)]"
+                  }`}>{i + 1}</span>
                 <span dangerouslySetInnerHTML={{ __html: line || " " }} />
               </div>
             );
@@ -1052,9 +1049,9 @@ function StepModal({
   }, [step, isOpen]);
 
   const addImage = () => {
-    setImages([...images, { 
-      id: `img-${Date.now()}`, 
-      url: "", 
+    setImages([...images, {
+      id: `img-${Date.now()}`,
+      url: "",
       position: "after",
       caption: "",
       captionPosition: "bottom"
@@ -1225,11 +1222,10 @@ function StepModal({
                         <button
                           type="button"
                           onClick={() => updateImage(img.id, { position: "before" })}
-                          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs rounded transition-colors ${
-                            img.position === "before"
+                          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs rounded transition-colors ${img.position === "before"
                               ? "bg-[#1f6feb] text-white"
                               : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
-                          }`}
+                            }`}
                         >
                           <ArrowUp className="w-3 h-3" />
                           Before
@@ -1237,11 +1233,10 @@ function StepModal({
                         <button
                           type="button"
                           onClick={() => updateImage(img.id, { position: "after" })}
-                          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs rounded transition-colors ${
-                            img.position === "after"
+                          className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs rounded transition-colors ${img.position === "after"
                               ? "bg-[var(--t-accent-green)] text-white"
                               : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
-                          }`}
+                            }`}
                         >
                           <ArrowDown className="w-3 h-3" />
                           After
@@ -1256,22 +1251,20 @@ function StepModal({
                         <button
                           type="button"
                           onClick={() => updateImage(img.id, { captionPosition: "top" })}
-                          className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
-                            img.captionPosition === "top"
+                          className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${img.captionPosition === "top"
                               ? "bg-[#8957e5] text-white"
                               : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
-                          }`}
+                            }`}
                         >
                           Top
                         </button>
                         <button
                           type="button"
                           onClick={() => updateImage(img.id, { captionPosition: "bottom" })}
-                          className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
-                            img.captionPosition === "bottom" || !img.captionPosition
+                          className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${img.captionPosition === "bottom" || !img.captionPosition
                               ? "bg-[#8957e5] text-white"
                               : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
-                          }`}
+                            }`}
                         >
                           Bottom
                         </button>
@@ -1481,7 +1474,7 @@ export default function ITPTutorial() {
           setPersistedStepDiffs(d.entry.changes);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
@@ -1722,25 +1715,25 @@ export default function ITPTutorial() {
   };
 
   // CRUD operations
-const saveTutorial = (title: string, desc: string) => {
-  if (editingTutorial) {
-  setTutorials((prev) =>
-  prev.map((t) => (t.id === editingTutorial.id ? { ...t, title, description: desc } : t))
-  );
-  } else {
-  const newId = generateId();
-  setTutorials((prev) => [...prev, { id: newId, title, description: desc, steps: [] }]);
-  setSelectedTutorial(newId);
-  }
-  showToast(editingTutorial ? "Tutorial updated" : "Tutorial added");
+  const saveTutorial = (title: string, desc: string) => {
+    if (editingTutorial) {
+      setTutorials((prev) =>
+        prev.map((t) => (t.id === editingTutorial.id ? { ...t, title, description: desc } : t))
+      );
+    } else {
+      const newId = generateId();
+      setTutorials((prev) => [...prev, { id: newId, title, description: desc, steps: [] }]);
+      setSelectedTutorial(newId);
+    }
+    showToast(editingTutorial ? "Tutorial updated" : "Tutorial added");
   };
 
-const deleteTutorial = (id: string) => {
-  setTutorials((prev) => prev.filter((t) => t.id !== id));
-  if (selectedTutorial === id && tutorials.length > 1) {
-  setSelectedTutorial(tutorials.find((t) => t.id !== id)?.id || "");
-  }
-  showToast("Tutorial deleted");
+  const deleteTutorial = (id: string) => {
+    setTutorials((prev) => prev.filter((t) => t.id !== id));
+    if (selectedTutorial === id && tutorials.length > 1) {
+      setSelectedTutorial(tutorials.find((t) => t.id !== id)?.id || "");
+    }
+    showToast("Tutorial deleted");
   };
 
   const toggleLock = (id: string) => {
@@ -1961,7 +1954,7 @@ const deleteTutorial = (id: string) => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ changes: stepDiffs }),
-        }).catch(() => {});
+        }).catch(() => { });
       }
 
       // Update snapshot
@@ -2060,9 +2053,8 @@ const deleteTutorial = (id: string) => {
     setIsLoadingContents(true);
     setViewingFile(null);
     try {
-      const url = `/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}${
-        force ? `&force=1&ts=${Date.now()}` : ""
-      }`;
+      const url = `/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}${force ? `&force=1&ts=${Date.now()}` : ""
+        }`;
       const resp = await fetch(url, force ? { cache: "no-store" } : undefined);
       const data = await resp.json();
       if (resp.ok && data.type === "dir") {
@@ -2079,9 +2071,8 @@ const deleteTutorial = (id: string) => {
   const loadFileContent = async (repo: string, path: string, force: boolean = false) => {
     setIsLoadingFile(true);
     try {
-      const url = `/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}${
-        force ? `&force=1&ts=${Date.now()}` : ""
-      }`;
+      const url = `/api/github/contents?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}${force ? `&force=1&ts=${Date.now()}` : ""
+        }`;
       const resp = await fetch(url, force ? { cache: "no-store" } : undefined);
       const data = await resp.json();
       if (resp.ok && data.type === "file") {
@@ -2216,36 +2207,34 @@ const deleteTutorial = (id: string) => {
             >
               <Menu className="w-5 h-5 text-[var(--t-text-muted)]" />
             </button>
-  <a
-    href="https://github.com/xalhexi-sch"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-  >
-    <Github className="w-5 h-5 text-[var(--t-text-primary)]" />
-    <span className="font-semibold text-[var(--t-text-primary)]">xalhexi.wtf</span>
-  </a>
+            <a
+              href="https://github.com/xalhexi-sch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <Github className="w-5 h-5 text-[var(--t-text-primary)]" />
+              <span className="font-semibold text-[var(--t-text-primary)]">xalhexi.wtf</span>
+            </a>
           </div>
 
           {/* Mobile tab switcher */}
           <div className="flex items-center gap-1 lg:hidden">
             <button
               onClick={() => switchTab("tutorials")}
-              className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${
-                activeTab === "tutorials"
+              className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${activeTab === "tutorials"
                   ? "bg-[var(--t-accent-green)] text-white"
                   : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)]"
-              }`}
+                }`}
             >
               Tutorials
             </button>
             <button
               onClick={() => switchTab("repositories")}
-              className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${
-                activeTab === "repositories"
+              className={`px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide rounded-md transition-colors ${activeTab === "repositories"
                   ? "bg-[var(--t-accent-green)] text-white"
                   : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)]"
-              }`}
+                }`}
             >
               Repos
             </button>
@@ -2265,59 +2254,59 @@ const deleteTutorial = (id: string) => {
           </div>
 
           <div className="flex items-center gap-2">
-  {/* Terminal button - only show if URL is configured AND (admin OR unlocked) */}
-  {terminalUrl && (isAdmin || !terminalLocked) && (
-    <button
-      onClick={() => setShowTerminal(true)}
-      className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
-      title="Open Terminal"
-    >
-      <Monitor className="w-5 h-5 text-[var(--t-accent-blue)]" />
-    </button>
-  )}
-  <button
-    onClick={() => setColorTheme(colorTheme === "dark" ? "light" : colorTheme === "light" ? "cyber" : "dark")}
-    className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
-    title={`Theme: ${colorTheme} (click to switch)`}
-  >
-    {colorTheme === "dark" && <Moon className="w-5 h-5 text-[var(--t-text-muted)]" />}
-    {colorTheme === "light" && <Sun className="w-5 h-5 text-[var(--t-accent-orange)]" />}
-    {colorTheme === "cyber" && <Zap className="w-5 h-5 text-[#a855f7]" />}
-  </button>
-  {userRole ? (
-    <>
-      {userRole === "vip" && (
-        <span className="flex items-center gap-1 px-2 py-1 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-md">
-          <Crown className="w-3 h-3" />
-          VIP
-        </span>
-      )}
-      {isAdmin && (
-        <button
-          onClick={() => setTerminalSettingsOpen(true)}
-          className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
-          title="Terminal Settings"
-        >
-          <Terminal className="w-5 h-5 text-[var(--t-text-muted)]" />
-        </button>
-      )}
-      <button
-        onClick={handleLogout}
-        className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
-        title="Logout"
-      >
-        <LogOut className="w-5 h-5 text-[var(--t-text-muted)]" />
-      </button>
-    </>
-  ) : (
-    <button
-      onClick={() => setLoginModalOpen(true)}
-      className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
-      title="Sign In"
-    >
-      <Settings className="w-4 h-4 text-[var(--t-text-faint)]" />
-    </button>
-  )}
+            {/* Terminal button - only show if URL is configured AND (admin OR unlocked) */}
+            {terminalUrl && (isAdmin || !terminalLocked) && (
+              <button
+                onClick={() => setShowTerminal(true)}
+                className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
+                title="Open Terminal"
+              >
+                <Monitor className="w-5 h-5 text-[var(--t-accent-blue)]" />
+              </button>
+            )}
+            <button
+              onClick={() => setColorTheme(colorTheme === "dark" ? "light" : colorTheme === "light" ? "cyber" : "dark")}
+              className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
+              title={`Theme: ${colorTheme} (click to switch)`}
+            >
+              {colorTheme === "dark" && <Moon className="w-5 h-5 text-[var(--t-text-muted)]" />}
+              {colorTheme === "light" && <Sun className="w-5 h-5 text-[var(--t-accent-orange)]" />}
+              {colorTheme === "cyber" && <Zap className="w-5 h-5 text-[#a855f7]" />}
+            </button>
+            {userRole ? (
+              <>
+                {userRole === "vip" && (
+                  <span className="flex items-center gap-1 px-2 py-1 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-md">
+                    <Crown className="w-3 h-3" />
+                    VIP
+                  </span>
+                )}
+                {isAdmin && (
+                  <button
+                    onClick={() => setTerminalSettingsOpen(true)}
+                    className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
+                    title="Terminal Settings"
+                  >
+                    <Terminal className="w-5 h-5 text-[var(--t-text-muted)]" />
+                  </button>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5 text-[var(--t-text-muted)]" />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setLoginModalOpen(true)}
+                className="p-2 hover:bg-[var(--t-bg-tertiary)] rounded-md transition-colors"
+                title="Sign In"
+              >
+                <Settings className="w-4 h-4 text-[var(--t-text-faint)]" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -2341,301 +2330,291 @@ const deleteTutorial = (id: string) => {
         <aside
           ref={sidebarRef}
           style={{ width: sidebarWidth }}
-          className={`fixed lg:sticky top-14 left-0 z-30 h-[calc(100vh-3.5rem)] bg-[var(--t-bg-secondary)] border-r border-[var(--t-border)] overflow-hidden transition-transform lg:translate-x-0 shrink-0 ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`fixed lg:sticky top-14 left-0 z-30 h-[calc(100vh-3.5rem)] bg-[var(--t-bg-secondary)] border-r border-[var(--t-border)] overflow-hidden transition-transform lg:translate-x-0 shrink-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
         >
           {/* Resize handle */}
           <div
             onMouseDown={startResizing}
-            className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#58a6ff] transition-colors z-50 ${
-              isResizing ? "bg-[#58a6ff]" : "bg-transparent"
-            }`}
+            className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#58a6ff] transition-colors z-50 ${isResizing ? "bg-[#58a6ff]" : "bg-transparent"
+              }`}
           />
           <div className="flex flex-col h-full">
-          {/* Sidebar top: tabs */}
-          <div className="p-4 pb-0 shrink-0">
-            {/* Tab buttons */}
-            <div className="flex items-center gap-1 mb-4">
-              <button
-                onClick={() => switchTab("tutorials")}
-                className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${
-                  activeTab === "tutorials"
-                    ? "bg-[var(--t-accent-green)] text-white"
-                    : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
-                }`}
-              >
-                Tutorials
-              </button>
-              <button
-                onClick={() => switchTab("repositories")}
-                className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${
-                  activeTab === "repositories"
-                    ? "bg-[var(--t-accent-green)] text-white"
-                    : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
-                }`}
-              >
-                Repositories
-              </button>
-              <Link
-                href="/thread"
-                className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
-              >
-                Thread
-              </Link>
-              {activeTab === "tutorials" && isAdmin && (
+            {/* Sidebar top: tabs */}
+            <div className="p-4 pb-0 shrink-0">
+              {/* Tab buttons */}
+              <div className="flex items-center gap-1 mb-4">
                 <button
-                  onClick={() => {
-                    setEditingTutorial(null);
-                    setTutorialModalOpen(true);
-                  }}
-                  className="ml-auto p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
-                  title="Add Tutorial"
+                  onClick={() => switchTab("tutorials")}
+                  className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${activeTab === "tutorials"
+                      ? "bg-[var(--t-accent-green)] text-white"
+                      : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
+                    }`}
                 >
-                  <Plus className="w-4 h-4" />
+                  Tutorials
                 </button>
+                <button
+                  onClick={() => switchTab("repositories")}
+                  className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors ${activeTab === "repositories"
+                      ? "bg-[var(--t-accent-green)] text-white"
+                      : "bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
+                    }`}
+                >
+                  Repositories
+                </button>
+                <Link
+                  href="/thread"
+                  className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
+                >
+                  Thread
+                </Link>
+                {activeTab === "tutorials" && isAdmin && (
+                  <button
+                    onClick={() => {
+                      setEditingTutorial(null);
+                      setTutorialModalOpen(true);
+                    }}
+                    className="ml-auto p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
+                    title="Add Tutorial"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Sidebar middle: scrollable content */}
+            <div className="flex-1 overflow-y-auto px-4 py-2 min-h-0">
+              {/* Tutorials list */}
+              {activeTab === "tutorials" && (
+                <nav className="space-y-1">
+                  {!isLoadingTutorials && filteredTutorials.map((tutorial) => (
+                    <div
+                      key={tutorial.id}
+                      draggable={isAdmin}
+                      onDragStart={() => isAdmin && handleDragStart(tutorial.id)}
+                      onDragOver={(e) => { if (isAdmin) handleDragOver(e); }}
+                      onDrop={() => isAdmin && handleDrop(tutorial.id)}
+                      className={`group flex items-center rounded-md transition-colors cursor-pointer ${selectedTutorial === tutorial.id
+                          ? "bg-[var(--t-bg-tertiary)] text-[var(--t-text-primary)]"
+                          : "text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)]"
+                        }`}
+                    >
+                      {isAdmin && (
+                        <div className="shrink-0 pl-1 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-60 transition-opacity">
+                          <GripVertical className="w-3.5 h-3.5" />
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setSelectedTutorial(tutorial.id)}
+                        className={`flex-1 flex items-center gap-2 ${isAdmin ? "pl-1 pr-1" : "px-3"} py-2 text-sm text-left min-w-0`}
+                      >
+                        {tutorial.starred && (
+                          <Star className="w-3 h-3 shrink-0 fill-yellow-400 text-yellow-400" />
+                        )}
+                        {tutorial.vipOnly && (
+                          <Crown className="w-3 h-3 shrink-0 text-amber-400" />
+                        )}
+                        <span className="truncate" title={tutorial.title}>{tutorial.title}</span>
+                      </button>
+                      {isAdmin && (
+                        <div className="flex items-center shrink-0 mr-1 gap-0.5">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); toggleStar(tutorial.id); }}
+                            className={`p-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${tutorial.starred ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                              }`}
+                            title={tutorial.starred ? "Unstar" : "Star as priority"}
+                          >
+                            <Star className={`w-3 h-3 ${tutorial.starred ? "fill-yellow-400 text-yellow-400" : "text-[var(--t-text-faint)]"}`} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); toggleCrown(tutorial.id); }}
+                            className={`p-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${tutorial.vipOnly ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                              }`}
+                            title={tutorial.vipOnly ? "Remove VIP" : "Mark as VIP only"}
+                          >
+                            <Crown className={`w-3 h-3 ${tutorial.vipOnly ? "text-amber-400" : "text-[var(--t-text-faint)]"}`} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); toggleLock(tutorial.id); }}
+                            className={`p-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${tutorial.locked ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                              }`}
+                            title={tutorial.locked ? "Unlock tutorial" : "Lock tutorial"}
+                          >
+                            {tutorial.locked ? (
+                              <Lock className="w-3 h-3 text-[var(--t-accent-orange)]" />
+                            ) : (
+                              <Unlock className="w-3 h-3 text-[var(--t-accent-green-text)]" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {isLoadingTutorials && (
+                    <div className="space-y-2 py-2">
+                      <div className="skeleton-shimmer h-9 w-full" />
+                      <div className="skeleton-shimmer h-9 w-4/5" />
+                      <div className="skeleton-shimmer h-9 w-11/12" />
+                    </div>
+                  )}
+                  {!isLoadingTutorials && filteredTutorials.length === 0 && (
+                    <p className="text-sm text-[var(--t-text-faint)] text-center py-4">No tutorials found</p>
+                  )}
+                </nav>
+              )}
+
+              {/* Repositories list */}
+              {activeTab === "repositories" && (
+                <nav className="space-y-1">
+                  {isLoadingRepos && (
+                    <div className="space-y-2 py-2">
+                      <div className="skeleton-shimmer h-12 w-full" />
+                      <div className="skeleton-shimmer h-12 w-4/5" />
+                      <div className="skeleton-shimmer h-12 w-11/12" />
+                    </div>
+                  )}
+                  {!isLoadingRepos && repos.map((repo) => (
+                    <button
+                      key={repo.name}
+                      onClick={() => openRepo(repo.name)}
+                      className={`w-full text-left px-3 py-2.5 rounded-md transition-colors ${selectedRepo === repo.name
+                          ? "bg-[var(--t-bg-tertiary)] text-[var(--t-text-primary)]"
+                          : "text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)]"
+                        }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <GitBranch className="w-3.5 h-3.5 shrink-0 text-[var(--t-text-muted)]" />
+                        <span className="text-sm font-medium truncate">{repo.name}</span>
+                      </div>
+                      {repo.description && (
+                        <p className="text-[11px] text-[var(--t-text-faint)] mt-0.5 ml-6 truncate">{repo.description}</p>
+                      )}
+                      {repo.languages && repo.languages.length > 0 && (
+                        <div className="flex items-center gap-2 mt-1 ml-6 flex-wrap">
+                          {repo.languages.slice(0, 4).map((lang) => (
+                            <div key={lang} className="flex items-center gap-1">
+                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: langColor[lang] || "#8b949e" }} />
+                              <span className="text-[10px] text-[var(--t-text-faint)]">{lang}</span>
+                            </div>
+                          ))}
+                          {repo.languages.length > 4 && (
+                            <span className="text-[10px] text-[var(--t-text-faint)]">+{repo.languages.length - 4}</span>
+                          )}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                  {!isLoadingRepos && repos.length === 0 && (
+                    <p className="text-sm text-[var(--t-text-faint)] text-center py-4">No public repos found</p>
+                  )}
+                </nav>
               )}
             </div>
-          </div>
 
-          {/* Sidebar middle: scrollable content */}
-          <div className="flex-1 overflow-y-auto px-4 py-2 min-h-0">
-            {/* Tutorials list */}
-            {activeTab === "tutorials" && (
-            <nav className="space-y-1">
-              {!isLoadingTutorials && filteredTutorials.map((tutorial) => (
-                <div
-                  key={tutorial.id}
-                  draggable={isAdmin}
-                  onDragStart={() => isAdmin && handleDragStart(tutorial.id)}
-                  onDragOver={(e) => { if (isAdmin) handleDragOver(e); }}
-                  onDrop={() => isAdmin && handleDrop(tutorial.id)}
-                  className={`group flex items-center rounded-md transition-colors cursor-pointer ${
-                    selectedTutorial === tutorial.id
-                      ? "bg-[var(--t-bg-tertiary)] text-[var(--t-text-primary)]"
-                      : "text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)]"
-                  }`}
-                >
-                  {isAdmin && (
-                    <div className="shrink-0 pl-1 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-60 transition-opacity">
-                      <GripVertical className="w-3.5 h-3.5" />
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setSelectedTutorial(tutorial.id)}
-                    className={`flex-1 flex items-center gap-2 ${isAdmin ? "pl-1 pr-1" : "px-3"} py-2 text-sm text-left min-w-0`}
-                  >
-                    {tutorial.starred && (
-                      <Star className="w-3 h-3 shrink-0 fill-yellow-400 text-yellow-400" />
-                    )}
-                    {tutorial.vipOnly && (
-                      <Crown className="w-3 h-3 shrink-0 text-amber-400" />
-                    )}
-                    <span className="truncate" title={tutorial.title}>{tutorial.title}</span>
-                  </button>
-                  {isAdmin && (
-                    <div className="flex items-center shrink-0 mr-1 gap-0.5">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleStar(tutorial.id); }}
-                        className={`p-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${
-                          tutorial.starred ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}
-                        title={tutorial.starred ? "Unstar" : "Star as priority"}
-                      >
-                        <Star className={`w-3 h-3 ${tutorial.starred ? "fill-yellow-400 text-yellow-400" : "text-[var(--t-text-faint)]"}`} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleCrown(tutorial.id); }}
-                        className={`p-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${
-                          tutorial.vipOnly ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}
-                        title={tutorial.vipOnly ? "Remove VIP" : "Mark as VIP only"}
-                      >
-                        <Crown className={`w-3 h-3 ${tutorial.vipOnly ? "text-amber-400" : "text-[var(--t-text-faint)]"}`} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleLock(tutorial.id); }}
-                        className={`p-1 hover:bg-[var(--t-bg-hover)] rounded transition-all ${
-                          tutorial.locked ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}
-                        title={tutorial.locked ? "Unlock tutorial" : "Lock tutorial"}
-                      >
-                        {tutorial.locked ? (
-                          <Lock className="w-3 h-3 text-[var(--t-accent-orange)]" />
-                        ) : (
-                          <Unlock className="w-3 h-3 text-[var(--t-accent-green-text)]" />
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-              {isLoadingTutorials && (
-                <div className="space-y-2 py-2">
-                  <div className="skeleton-shimmer h-9 w-full" />
-                  <div className="skeleton-shimmer h-9 w-4/5" />
-                  <div className="skeleton-shimmer h-9 w-11/12" />
-                </div>
-              )}
-              {!isLoadingTutorials && filteredTutorials.length === 0 && (
-                <p className="text-sm text-[var(--t-text-faint)] text-center py-4">No tutorials found</p>
-              )}
-            </nav>
-            )}
-
-            {/* Repositories list */}
-            {activeTab === "repositories" && (
-              <nav className="space-y-1">
-                {isLoadingRepos && (
-                  <div className="space-y-2 py-2">
-                    <div className="skeleton-shimmer h-12 w-full" />
-                    <div className="skeleton-shimmer h-12 w-4/5" />
-                    <div className="skeleton-shimmer h-12 w-11/12" />
+            {/* Sidebar bottom: pinned footer */}
+            <div className="shrink-0 p-4 pt-2 border-t border-[var(--t-border)] bg-[var(--t-bg-secondary)] space-y-2">
+              {isAdmin && activeTab === "tutorials" && (
+                <>
+                  {/* GitHub Push/Pull */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={pushToGithub}
+                      disabled={isPushing}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white rounded-md transition-colors disabled:opacity-50"
+                    >
+                      <Upload className={`w-3.5 h-3.5 ${isPushing ? "animate-pulse" : ""}`} />
+                      {isPushing ? "Saving..." : "Save to GitHub"}
+                    </button>
+                    <button
+                      onClick={pullFromGithub}
+                      disabled={isSyncing}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#1f6feb] hover:bg-[#388bfd] text-white rounded-md transition-colors disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+                      {isSyncing ? "Syncing..." : "Sync from GitHub"}
+                    </button>
                   </div>
-                )}
-                {!isLoadingRepos && repos.map((repo) => (
-                  <button
-                    key={repo.name}
-                    onClick={() => openRepo(repo.name)}
-                    className={`w-full text-left px-3 py-2.5 rounded-md transition-colors ${
-                      selectedRepo === repo.name
-                        ? "bg-[var(--t-bg-tertiary)] text-[var(--t-text-primary)]"
-                        : "text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <GitBranch className="w-3.5 h-3.5 shrink-0 text-[var(--t-text-muted)]" />
-                      <span className="text-sm font-medium truncate">{repo.name}</span>
-                    </div>
-                    {repo.description && (
-                      <p className="text-[11px] text-[var(--t-text-faint)] mt-0.5 ml-6 truncate">{repo.description}</p>
-                    )}
-  {repo.languages && repo.languages.length > 0 && (
-  <div className="flex items-center gap-2 mt-1 ml-6 flex-wrap">
-    {repo.languages.slice(0, 4).map((lang) => (
-      <div key={lang} className="flex items-center gap-1">
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: langColor[lang] || "#8b949e" }} />
-        <span className="text-[10px] text-[var(--t-text-faint)]">{lang}</span>
-      </div>
-    ))}
-    {repo.languages.length > 4 && (
-      <span className="text-[10px] text-[var(--t-text-faint)]">+{repo.languages.length - 4}</span>
-    )}
-  </div>
-  )}
-  </button>
-  ))}
-  {!isLoadingRepos && repos.length === 0 && (
-                  <p className="text-sm text-[var(--t-text-faint)] text-center py-4">No public repos found</p>
-                )}
-              </nav>
-            )}
-          </div>
+                  {/* File Export/Import */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={exportTutorials}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
+                    >
+                      <Download className="w-3 h-3" />
+                      Export
+                    </button>
+                    <button
+                      onClick={importTutorials}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
+                    >
+                      <Upload className="w-3 h-3" />
+                      Import
+                    </button>
+                  </div>
+                </>
+              )}
 
-          {/* Sidebar bottom: pinned footer */}
-          <div className="shrink-0 p-4 pt-2 border-t border-[var(--t-border)] bg-[var(--t-bg-secondary)] space-y-2">
-            {isAdmin && activeTab === "tutorials" && (
-              <>
-                {/* GitHub Push/Pull */}
+              {isAdmin && activeTab === "repositories" && (
                 <div className="flex gap-2">
                   <button
-                    onClick={pushToGithub}
-                    disabled={isPushing}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white rounded-md transition-colors disabled:opacity-50"
-                  >
-                    <Upload className={`w-3.5 h-3.5 ${isPushing ? "animate-pulse" : ""}`} />
-                    {isPushing ? "Saving..." : "Save to GitHub"}
-                  </button>
-                  <button
-                    onClick={pullFromGithub}
-                    disabled={isSyncing}
+                    onClick={refreshReposNow}
+                    disabled={isLoadingRepos || isLoadingContents || isLoadingFile}
                     className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#1f6feb] hover:bg-[#388bfd] text-white rounded-md transition-colors disabled:opacity-50"
+                    title="Admin: bypass cache and pull fresh repos/contents from GitHub"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
-                    {isSyncing ? "Syncing..." : "Sync from GitHub"}
+                    <RefreshCw className={`w-3.5 h-3.5 ${(isLoadingRepos || isLoadingContents || isLoadingFile) ? "animate-spin" : ""}`} />
+                    {(isLoadingRepos || isLoadingContents || isLoadingFile) ? "Refreshing..." : "Refresh Repos Now"}
                   </button>
                 </div>
-                {/* File Export/Import */}
-                <div className="flex gap-2">
+              )}
+              {/* Terminal button */}
+              {(isAdmin || !terminalLocked) && (
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={exportTutorials}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
+                    onClick={() => setShowTerminal(true)}
+                    className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--t-accent-blue)] hover:bg-[var(--t-bg-tertiary)] transition-colors"
                   >
-                    <Download className="w-3 h-3" />
-                    Export
+                    <Terminal className="w-4 h-4" />
+                    <span>Terminal</span>
                   </button>
-                  <button
-                    onClick={importTutorials}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border border-[var(--t-border)] rounded-md transition-colors"
-                  >
-                    <Upload className="w-3 h-3" />
-                    Import
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={toggleTerminalLock}
+                      className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-all"
+                      title={terminalLocked ? "Unlock terminal" : "Lock terminal"}
+                    >
+                      {terminalLocked ? (
+                        <Lock className="w-3.5 h-3.5 text-[var(--t-accent-orange)]" />
+                      ) : (
+                        <Unlock className="w-3.5 h-3.5 text-[var(--t-accent-green-text)]" />
+                      )}
+                    </button>
+                  )}
                 </div>
-              </>
-            )}
-
-            {isAdmin && activeTab === "repositories" && (
-              <div className="flex gap-2">
-                <button
-                  onClick={refreshReposNow}
-                  disabled={isLoadingRepos || isLoadingContents || isLoadingFile}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium bg-[#1f6feb] hover:bg-[#388bfd] text-white rounded-md transition-colors disabled:opacity-50"
-                  title="Admin: bypass cache and pull fresh repos/contents from GitHub"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${(isLoadingRepos || isLoadingContents || isLoadingFile) ? "animate-spin" : ""}`} />
-                  {(isLoadingRepos || isLoadingContents || isLoadingFile) ? "Refreshing..." : "Refresh Repos Now"}
-                </button>
-              </div>
-            )}
-            {/* Terminal button */}
-            {(isAdmin || !terminalLocked) && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowTerminal(true)}
-                  className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--t-accent-blue)] hover:bg-[var(--t-bg-tertiary)] transition-colors"
-                >
-                  <Terminal className="w-4 h-4" />
-                  <span>Terminal</span>
-                </button>
-                {isAdmin && (
-                  <button
-                    onClick={toggleTerminalLock}
-                    className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-all"
-                    title={terminalLocked ? "Unlock terminal" : "Lock terminal"}
-                  >
-                    {terminalLocked ? (
-                      <Lock className="w-3.5 h-3.5 text-[var(--t-accent-orange)]" />
-                    ) : (
-                      <Unlock className="w-3.5 h-3.5 text-[var(--t-accent-green-text)]" />
-                    )}
-                  </button>
-                )}
-              </div>
-            )}
-            {/* AI Assistant button */}
-            <button
-              onClick={() => setShowAIChat(true)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
-                showAIChat
-                  ? "bg-[var(--t-accent-blue)]/10 text-[var(--t-accent-blue)]"
-                  : "text-[var(--t-accent-purple,#a78bfa)] hover:bg-[var(--t-bg-tertiary)]"
-              }`}
-            >
-              <Zap className="w-4 h-4" />
-              <span>AI Assistant</span>
-              {showAIChat && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--t-accent-green)]" />}
-            </button>
-            <a
-              href="https://github.com/xalhexi-sch"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-xs text-[var(--t-text-faint)] hover:text-[var(--t-text-muted)] transition-colors"
-            >
-              <Heart className="w-3 h-3" />
-              <span>Made by xalhexi-sch</span>
-            </a>
-          </div>
+              )}
+              {/* AI Assistant button */}
+              <button
+                onClick={() => setShowAIChat(true)}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${showAIChat
+                    ? "bg-[var(--t-accent-blue)]/10 text-[var(--t-accent-blue)]"
+                    : "text-[var(--t-accent-purple,#a78bfa)] hover:bg-[var(--t-bg-tertiary)]"
+                  }`}
+              >
+                <Zap className="w-4 h-4" />
+                <span>AI Assistant</span>
+                {showAIChat && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--t-accent-green)]" />}
+              </button>
+              <a
+                href="https://github.com/xalhexi-sch"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-xs text-[var(--t-text-faint)] hover:text-[var(--t-text-muted)] transition-colors"
+              >
+                <Heart className="w-3 h-3" />
+                <span>Made by xalhexi-sch</span>
+              </a>
+            </div>
           </div>
         </aside>
 
@@ -2651,196 +2630,94 @@ const deleteTutorial = (id: string) => {
         <div className={`flex-1 min-w-0 flex ${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? '' : 'justify-center'}`}>
           <main className={`${showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) ? 'w-1/2' : 'w-full max-w-4xl'} min-w-0 p-4 lg:p-6 overflow-y-auto`}>
 
-          {/* Loading skeleton for main content */}
-          {activeTab === "tutorials" && isLoadingTutorials ? (
-            <div className="max-w-3xl mx-auto">
-              {/* Title skeleton */}
-              <div className="mb-6">
-                <div className="skeleton-shimmer h-7 w-2/5 mb-3" />
-                <div className="skeleton-shimmer h-4 w-3/5" />
-              </div>
-              {/* Step skeletons */}
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden mb-4">
-                  <div className="px-4 py-3 border-b border-[var(--t-border)]">
-                    <div className="skeleton-shimmer h-5 w-1/3" />
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <div className="skeleton-shimmer h-4 w-full" />
-                    <div className="skeleton-shimmer h-4 w-4/5" />
-                    <div className="skeleton-shimmer h-4 w-3/5" />
-                    <div className="skeleton-shimmer h-20 w-full mt-2" />
-                  </div>
+            {/* Loading skeleton for main content */}
+            {activeTab === "tutorials" && isLoadingTutorials ? (
+              <div className="max-w-3xl mx-auto">
+                {/* Title skeleton */}
+                <div className="mb-6">
+                  <div className="skeleton-shimmer h-7 w-2/5 mb-3" />
+                  <div className="skeleton-shimmer h-4 w-3/5" />
                 </div>
-              ))}
-            </div>
-          ) : activeTab === "repositories" ? (
-            <div className="max-w-3xl mx-auto">
-              {!selectedRepo ? (
-                /* Repo list view */
-                <div>
-                  <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-[var(--t-text-primary)] mb-1">Public Repositories</h1>
-                    <p className="text-[var(--t-text-muted)] text-sm">Public repositories from xalhexi-sch</p>
-                  </div>
-                  {isLoadingRepos ? (
-                    <div className="space-y-3">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="p-4 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg">
-                          <div className="skeleton-shimmer h-5 w-2/5 mb-3" />
-                          <div className="skeleton-shimmer h-4 w-4/5 mb-2 ml-6" />
-                          <div className="skeleton-shimmer h-3 w-1/4 ml-6" />
-                        </div>
-                      ))}
+                {/* Step skeletons */}
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden mb-4">
+                    <div className="px-4 py-3 border-b border-[var(--t-border)]">
+                      <div className="skeleton-shimmer h-5 w-1/3" />
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {repos.map((repo) => (
-                        <button
-                          key={repo.name}
-                          onClick={() => openRepo(repo.name)}
-                          className="w-full text-left p-4 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg hover:border-[var(--t-text-faint)] transition-colors"
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <GitBranch className="w-4 h-4 text-[var(--t-text-muted)]" />
-                            <span className="text-[var(--t-accent-blue)] font-semibold text-sm hover:underline">{repo.name}</span>
-                          </div>
-                          {repo.description && (
-                            <p className="text-sm text-[var(--t-text-muted)] mb-2 ml-6">{repo.description}</p>
-                          )}
-  <div className="flex items-center gap-4 ml-6 flex-wrap">
-  {repo.languages && repo.languages.length > 0 && (
-    <div className="flex items-center gap-2 flex-wrap">
-      {repo.languages.map((lang) => (
-        <div key={lang} className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: langColor[lang] || "#8b949e" }} />
-          <span className="text-xs text-[var(--t-text-muted)]">{lang}</span>
-        </div>
-      ))}
-    </div>
-  )}
-  <span className="text-xs text-[var(--t-text-faint)]">
-  Updated {new Date(repo.updated_at).toLocaleDateString()}
-  </span>
-  <button
-    onClick={(e) => { e.stopPropagation(); window.open(`https://github.com/xalhexi-sch/${repo.name}/archive/refs/heads/${repo.default_branch || "main"}.zip`, "_blank"); }}
-    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded transition-colors ml-auto"
-    title={`Download ${repo.name} as ZIP`}
-  >
-    <Download className="w-3 h-3" />
-    ZIP
-  </button>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : viewingFile ? (
-                /* File content view */
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <button
-                      onClick={goBack}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Back
-                    </button>
-                    <div className="flex items-center gap-1.5 text-sm text-[var(--t-text-muted)] min-w-0">
-                      <button onClick={backToRepoList} className="text-[var(--t-accent-blue)] hover:underline shrink-0">{selectedRepo}</button>
-                      {repoPath.map((part, i) => (
-                        <React.Fragment key={i}>
-                          <span className="text-[var(--t-text-faint)]">/</span>
-                          <button
-                            onClick={() => {
-                              const newPath = repoPath.slice(0, i + 1);
-                              setRepoPath(newPath);
-                              setViewingFile(null);
-                              loadRepoContents(selectedRepo, newPath.join("/"));
-                            }}
-                            className="text-[var(--t-accent-blue)] hover:underline"
-                          >
-                            {part}
-                          </button>
-                        </React.Fragment>
-                      ))}
-                      <span className="text-[var(--t-text-faint)]">/</span>
-                      <span className="text-[var(--t-text-primary)] truncate">{viewingFile.name}</span>
-                    </div>
-                  </div>
-                  {isLoadingFile ? (
-                    <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg p-4 space-y-3">
-                      <div className="skeleton-shimmer h-4 w-3/5" />
+                    <div className="p-4 space-y-3">
                       <div className="skeleton-shimmer h-4 w-full" />
                       <div className="skeleton-shimmer h-4 w-4/5" />
-                      <div className="skeleton-shimmer h-4 w-2/3" />
-                      <div className="skeleton-shimmer h-4 w-full" />
-                      <div className="skeleton-shimmer h-4 w-1/2" />
+                      <div className="skeleton-shimmer h-4 w-3/5" />
+                      <div className="skeleton-shimmer h-20 w-full mt-2" />
                     </div>
-                  ) : (
-                  <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
-                    <div className="px-4 py-2 border-b border-[var(--t-border)] flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileIcon className="w-4 h-4 text-[var(--t-text-muted)]" />
-                        <span className="text-sm font-medium text-[var(--t-text-primary)]">{viewingFile.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-[var(--t-text-faint)]">{formatSize(viewingFile.size)}</span>
-                        <button
-                          onClick={() => setShowDiff(true)}
-                          className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors"
-                          title="View recent changes"
-                        >
-                          <GitCompare className="w-3.5 h-3.5" />
-                          Changes
-                        </button>
-                        {viewingFile.content && (
-                          <button
-                            onClick={() => copyFileContent(viewingFile.content!)}
-                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
-                          >
-                            {fileCopied ? <Check className="w-3.5 h-3.5 text-[var(--t-accent-green-text)]" /> : <Copy className="w-3.5 h-3.5" />}
-                            {fileCopied ? "Copied!" : "Copy"}
-                          </button>
-                        )}
-                      </div>
+                  </div>
+                ))}
+              </div>
+            ) : activeTab === "repositories" ? (
+              <div className="max-w-3xl mx-auto">
+                {!selectedRepo ? (
+                  /* Repo list view */
+                  <div>
+                    <div className="mb-6">
+                      <h1 className="text-2xl font-bold text-[var(--t-text-primary)] mb-1">Public Repositories</h1>
+                      <p className="text-[var(--t-text-muted)] text-sm">Public repositories from xalhexi-sch</p>
                     </div>
-                    {viewingFile.content ? (
-                      <pre className="text-sm overflow-x-auto font-mono leading-relaxed">
-                        <code className="block">
-                          {viewingFile.content.split("\n").map((line, i) => (
-                            <div key={i} className="flex hover:bg-[var(--t-bg-tertiary)] transition-colors">
-                              <span className="inline-block w-12 pr-3 pl-3 text-right text-[var(--t-text-faint)] select-none opacity-40 shrink-0 border-r border-[var(--t-border-subtle)]">{i + 1}</span>
-                              <span className="pl-3 whitespace-pre" dangerouslySetInnerHTML={{ __html: highlightCode(line, viewingFile.name) || " " }} />
-                            </div>
-                          ))}
-                        </code>
-                      </pre>
+                    {isLoadingRepos ? (
+                      <div className="space-y-3">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="p-4 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg">
+                            <div className="skeleton-shimmer h-5 w-2/5 mb-3" />
+                            <div className="skeleton-shimmer h-4 w-4/5 mb-2 ml-6" />
+                            <div className="skeleton-shimmer h-3 w-1/4 ml-6" />
+                          </div>
+                        ))}
+                      </div>
                     ) : (
-                      <div className="p-6 text-center">
-                        <p className="text-[var(--t-text-muted)] mb-2">File too large to display inline</p>
-                        {viewingFile.download_url && (
-                          <a
-                            href={viewingFile.download_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors"
+                      <div className="space-y-2">
+                        {repos.map((repo) => (
+                          <button
+                            key={repo.name}
+                            onClick={() => openRepo(repo.name)}
+                            className="w-full text-left p-4 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg hover:border-[var(--t-text-faint)] transition-colors"
                           >
-                            <Download className="w-4 h-4" />
-                            Download
-                          </a>
-                        )}
+                            <div className="flex items-center gap-2 mb-1">
+                              <GitBranch className="w-4 h-4 text-[var(--t-text-muted)]" />
+                              <span className="text-[var(--t-accent-blue)] font-semibold text-sm hover:underline">{repo.name}</span>
+                            </div>
+                            {repo.description && (
+                              <p className="text-sm text-[var(--t-text-muted)] mb-2 ml-6">{repo.description}</p>
+                            )}
+                            <div className="flex items-center gap-4 ml-6 flex-wrap">
+                              {repo.languages && repo.languages.length > 0 && (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {repo.languages.map((lang) => (
+                                    <div key={lang} className="flex items-center gap-1">
+                                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: langColor[lang] || "#8b949e" }} />
+                                      <span className="text-xs text-[var(--t-text-muted)]">{lang}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <span className="text-xs text-[var(--t-text-faint)]">
+                                Updated {new Date(repo.updated_at).toLocaleDateString()}
+                              </span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); window.open(`https://github.com/xalhexi-sch/${repo.name}/archive/refs/heads/${repo.default_branch || "main"}.zip`, "_blank"); }}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded transition-colors ml-auto"
+                                title={`Download ${repo.name} as ZIP`}
+                              >
+                                <Download className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
-                  )}
-                </div>
-              ) : (
-                /* Directory listing view */
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    {repoPath.length > 0 ? (
+                ) : viewingFile ? (
+                  /* File content view */
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
                       <button
                         onClick={goBack}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
@@ -2848,459 +2725,554 @@ const deleteTutorial = (id: string) => {
                         <ChevronLeft className="w-4 h-4" />
                         Back
                       </button>
+                      <div className="flex items-center gap-1.5 text-sm text-[var(--t-text-muted)] min-w-0">
+                        <button onClick={backToRepoList} className="text-[var(--t-accent-blue)] hover:underline shrink-0">{selectedRepo}</button>
+                        {repoPath.map((part, i) => (
+                          <React.Fragment key={i}>
+                            <span className="text-[var(--t-text-faint)]">/</span>
+                            <button
+                              onClick={() => {
+                                const newPath = repoPath.slice(0, i + 1);
+                                setRepoPath(newPath);
+                                setViewingFile(null);
+                                loadRepoContents(selectedRepo, newPath.join("/"));
+                              }}
+                              className="text-[var(--t-accent-blue)] hover:underline"
+                            >
+                              {part}
+                            </button>
+                          </React.Fragment>
+                        ))}
+                        <span className="text-[var(--t-text-faint)]">/</span>
+                        <span className="text-[var(--t-text-primary)] truncate">{viewingFile.name}</span>
+                      </div>
+                    </div>
+                    {isLoadingFile ? (
+                      <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg p-4 space-y-3">
+                        <div className="skeleton-shimmer h-4 w-3/5" />
+                        <div className="skeleton-shimmer h-4 w-full" />
+                        <div className="skeleton-shimmer h-4 w-4/5" />
+                        <div className="skeleton-shimmer h-4 w-2/3" />
+                        <div className="skeleton-shimmer h-4 w-full" />
+                        <div className="skeleton-shimmer h-4 w-1/2" />
+                      </div>
                     ) : (
-                      <button
-                        onClick={backToRepoList}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        All Repos
-                      </button>
-                    )}
-                    <div className="flex items-center gap-1.5 text-sm text-[var(--t-text-muted)] min-w-0">
-                      <button onClick={backToRepoList} className="text-[var(--t-accent-blue)] hover:underline font-semibold shrink-0">{selectedRepo}</button>
-                      {repoPath.map((part, i) => (
-                        <React.Fragment key={i}>
-                          <span className="text-[var(--t-text-faint)]">/</span>
-                          <button
-                            onClick={() => {
-                              const newPath = repoPath.slice(0, i + 1);
-                              setRepoPath(newPath);
-                              loadRepoContents(selectedRepo, newPath.join("/"));
-                            }}
-                            className={`hover:underline ${i === repoPath.length - 1 ? "text-[var(--t-text-primary)] font-semibold" : "text-[var(--t-accent-blue)]"}`}
-                          >
-                            {part}
-                          </button>
-                        </React.Fragment>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => {
-                        const repo = repos.find((r) => r.name === selectedRepo);
-                        const branch = repo?.default_branch || "main";
-                        window.open(`https://github.com/xalhexi-sch/${selectedRepo}/archive/refs/heads/${branch}.zip`, "_blank");
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors shrink-0"
-                      title={`Download ${selectedRepo} as ZIP`}
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      Download ZIP
-                    </button>
-                  </div>
-
-                  {isLoadingContents ? (
-                    <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${i < 5 ? "border-b border-[var(--t-border-subtle)]" : ""}`}>
-                          <div className="skeleton-shimmer h-4 w-4 shrink-0" />
-                          <div className="skeleton-shimmer h-4" style={{ width: `${30 + i * 10}%` }} />
+                      <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
+                        <div className="px-4 py-2 border-b border-[var(--t-border)] flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileIcon className="w-4 h-4 text-[var(--t-text-muted)]" />
+                            <span className="text-sm font-medium text-[var(--t-text-primary)]">{viewingFile.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-[var(--t-text-faint)]">{formatSize(viewingFile.size)}</span>
+                            <button
+                              onClick={() => setShowDiff(true)}
+                              className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors"
+                              title="View recent changes"
+                            >
+                              <GitCompare className="w-3.5 h-3.5" />
+                              Changes
+                            </button>
+                            {viewingFile.content && (
+                              <button
+                                onClick={() => copyFileContent(viewingFile.content!)}
+                                className="flex items-center gap-1.5 px-2.5 py-1 text-xs bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
+                              >
+                                {fileCopied ? <Check className="w-3.5 h-3.5 text-[var(--t-accent-green-text)]" /> : <Copy className="w-3.5 h-3.5" />}
+                                {fileCopied ? "Copied!" : "Copy"}
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
-                      {repoContents.map((item, i) => (
+                        {viewingFile.content ? (
+                          <pre className="text-sm overflow-x-auto font-mono leading-relaxed">
+                            <code className="block">
+                              {viewingFile.content.split("\n").map((line, i) => (
+                                <div key={i} className="flex hover:bg-[var(--t-bg-tertiary)] transition-colors">
+                                  <span className="inline-block w-12 pr-3 pl-3 text-right text-[var(--t-text-faint)] select-none opacity-40 shrink-0 border-r border-[var(--t-border-subtle)]">{i + 1}</span>
+                                  <span className="pl-3 whitespace-pre" dangerouslySetInnerHTML={{ __html: highlightCode(line, viewingFile.name) || " " }} />
+                                </div>
+                              ))}
+                            </code>
+                          </pre>
+                        ) : (
+                          <div className="p-6 text-center">
+                            <p className="text-[var(--t-text-muted)] mb-2">File too large to display inline</p>
+                            {viewingFile.download_url && (
+                              <a
+                                href={viewingFile.download_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors"
+                              >
+                                <Download className="w-4 h-4" />
+                                Download
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Directory listing view */
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      {repoPath.length > 0 ? (
                         <button
-                          key={item.path}
-                          onClick={() => {
-                            if (item.type === "dir") {
-                              enterFolder(item.name);
-                            } else {
-                              loadFileContent(selectedRepo, item.path);
-                            }
-                          }}
-                          className={`w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--t-bg-tertiary)] transition-colors ${
-                            i < repoContents.length - 1 ? "border-b border-[var(--t-border-subtle)]" : ""
-                          }`}
+                          onClick={goBack}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
                         >
-                          {item.type === "dir" ? (
-                            <FolderIcon className="w-4 h-4 text-[#54aeff] shrink-0" />
-                          ) : (
-                            <FileIcon className="w-4 h-4 text-[var(--t-text-muted)] shrink-0" />
-                          )}
-                          <span className={`text-sm ${item.type === "dir" ? "text-[var(--t-text-primary)]" : "text-[var(--t-text-secondary)]"}`}>
-                            {item.name}
-                          </span>
-                          {item.type === "file" && item.size > 0 && (
-                            <span className="text-xs text-[var(--t-text-faint)] ml-auto">{formatSize(item.size)}</span>
-                          )}
+                          <ChevronLeft className="w-4 h-4" />
+                          Back
                         </button>
-                      ))}
-                      {repoContents.length === 0 && (
-                        <p className="text-sm text-[var(--t-text-faint)] text-center py-6">Empty directory</p>
+                      ) : (
+                        <button
+                          onClick={backToRepoList}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-secondary)] border border-[var(--t-border)] rounded-md transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          All Repos
+                        </button>
                       )}
+                      <div className="flex items-center gap-1.5 text-sm text-[var(--t-text-muted)] min-w-0">
+                        <button onClick={backToRepoList} className="text-[var(--t-accent-blue)] hover:underline font-semibold shrink-0">{selectedRepo}</button>
+                        {repoPath.map((part, i) => (
+                          <React.Fragment key={i}>
+                            <span className="text-[var(--t-text-faint)]">/</span>
+                            <button
+                              onClick={() => {
+                                const newPath = repoPath.slice(0, i + 1);
+                                setRepoPath(newPath);
+                                loadRepoContents(selectedRepo, newPath.join("/"));
+                              }}
+                              className={`hover:underline ${i === repoPath.length - 1 ? "text-[var(--t-text-primary)] font-semibold" : "text-[var(--t-accent-blue)]"}`}
+                            >
+                              {part}
+                            </button>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => {
+                          const repo = repos.find((r) => r.name === selectedRepo);
+                          const branch = repo?.default_branch || "main";
+                          window.open(`https://github.com/xalhexi-sch/${selectedRepo}/archive/refs/heads/${branch}.zip`, "_blank");
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors shrink-0"
+                        title={`Download ${selectedRepo} as ZIP`}
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                  )}
-                </div>
-              )}
 
-              {/* GitHub Attribution Footer */}
-              <div className="mt-8 pt-4 border-t border-[var(--t-border-subtle)] text-center space-y-1">
-                <p className="text-xs text-[var(--t-text-faint)]">
-                  Repositories from{" "}
-                  <a
-                    href="https://github.com/xalhexi-sch"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[var(--t-accent-blue)] hover:underline"
-                  >
-                    xalhexi-sch
-                  </a>
-                </p>
-                {selectedRepo && (
+                    {isLoadingContents ? (
+                      <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${i < 5 ? "border-b border-[var(--t-border-subtle)]" : ""}`}>
+                            <div className="skeleton-shimmer h-4 w-4 shrink-0" />
+                            <div className="skeleton-shimmer h-4" style={{ width: `${30 + i * 10}%` }} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden">
+                        {repoContents.map((item, i) => (
+                          <button
+                            key={item.path}
+                            onClick={() => {
+                              if (item.type === "dir") {
+                                enterFolder(item.name);
+                              } else {
+                                loadFileContent(selectedRepo, item.path);
+                              }
+                            }}
+                            className={`w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--t-bg-tertiary)] transition-colors ${i < repoContents.length - 1 ? "border-b border-[var(--t-border-subtle)]" : ""
+                              }`}
+                          >
+                            {item.type === "dir" ? (
+                              <FolderIcon className="w-4 h-4 text-[#54aeff] shrink-0" />
+                            ) : (
+                              <FileIcon className="w-4 h-4 text-[var(--t-text-muted)] shrink-0" />
+                            )}
+                            <span className={`text-sm ${item.type === "dir" ? "text-[var(--t-text-primary)]" : "text-[var(--t-text-secondary)]"}`}>
+                              {item.name}
+                            </span>
+                            {item.type === "file" && item.size > 0 && (
+                              <span className="text-xs text-[var(--t-text-faint)] ml-auto">{formatSize(item.size)}</span>
+                            )}
+                          </button>
+                        ))}
+                        {repoContents.length === 0 && (
+                          <p className="text-sm text-[var(--t-text-faint)] text-center py-6">Empty directory</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* GitHub Attribution Footer */}
+                <div className="mt-8 pt-4 border-t border-[var(--t-border-subtle)] text-center space-y-1">
                   <p className="text-xs text-[var(--t-text-faint)]">
+                    Repositories from{" "}
                     <a
-                      href={`https://github.com/xalhexi-sch/${selectedRepo}`}
+                      href="https://github.com/xalhexi-sch"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[var(--t-accent-blue)] hover:underline"
                     >
-                      View this repository on GitHub
+                      xalhexi-sch
                     </a>
                   </p>
+                  {selectedRepo && (
+                    <p className="text-xs text-[var(--t-text-faint)]">
+                      <a
+                        href={`https://github.com/xalhexi-sch/${selectedRepo}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--t-accent-blue)] hover:underline"
+                      >
+                        View this repository on GitHub
+                      </a>
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : isSearching ? (
+              /* Search Results View */
+              <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) ? '' : 'max-w-3xl mx-auto'}`}>
+                <div className="mb-6">
+                  <div className="flex items-center justify-between gap-4 mb-2">
+                    <h1 className="text-xl font-bold text-[var(--t-text-primary)]">
+                      Search Results for "{searchQuery}"
+                    </h1>
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="px-3 py-1.5 text-sm border border-[var(--t-border)] rounded-md text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
+                    >
+                      Clear search
+                    </button>
+                  </div>
+                  <p className="text-[var(--t-text-muted)] text-sm">
+                    Found {searchResults.length} tutorial {searchResults.length === 1 ? "result" : "results"}
+                    {repoSearchResults.length > 0 && ` and ${repoSearchResults.length} ${repoSearchResults.length === 1 ? "repository" : "repositories"}`}
+                  </p>
+                </div>
+
+                {searchResults.length > 0 ? (
+                  <div className="space-y-4">
+                    {searchResults.map((result, index) => (
+                      <div
+                        key={`${result.tutorialId}-${result.step.id}-${index}`}
+                        className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden"
+                      >
+                        {/* Result header with tutorial name */}
+                        <div className="px-4 py-2 border-b border-[var(--t-border)] bg-[var(--t-bg-tertiary)] flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs text-[var(--t-text-muted)] min-w-0 flex-1">
+                            <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate max-w-[120px]" title={result.tutorialTitle}>{result.tutorialTitle}</span>
+                            <span className="text-[var(--t-text-faint)] shrink-0">/</span>
+                            <span className="text-[var(--t-accent-blue)] truncate" title={result.step.heading}>{result.step.heading}</span>
+                          </div>
+                          <button
+                            onClick={() => clearSearchAndGoToTutorial(result.tutorialId)}
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white rounded transition-colors"
+                          >
+                            <ChevronRight className="w-3 h-3" />
+                            View full tutorial
+                          </button>
+                        </div>
+
+                        {/* Step content */}
+                        <div className="p-4 space-y-3">
+                          {result.step.explanation && (
+                            <p className="text-sm text-[var(--t-text-muted)]">{result.step.explanation}</p>
+                          )}
+                          {/* Show images before code */}
+                          {result.step.images?.filter(img => img.position === "before").map((img) => (
+                            <div key={img.id} className="rounded-md overflow-hidden border border-[var(--t-border)]">
+                              <img src={img.url} alt={img.caption || "Step image"} className="max-w-full h-auto" />
+                              {img.caption && <p className="text-xs text-[var(--t-text-muted)] p-2 bg-[var(--t-bg-primary)]">{img.caption}</p>}
+                            </div>
+                          ))}
+                          {/* Legacy single image */}
+                          {result.step.image && !result.step.images?.length && (
+                            <div className="rounded-md overflow-hidden border border-[var(--t-border)]">
+                              <img src={result.step.image} alt="Step screenshot" className="max-w-full h-auto" />
+                            </div>
+                          )}
+                          {result.step.code && <CodeBlock code={result.step.code} onCopy={handleCopy} />}
+                          {/* Show images after code */}
+                          {result.step.images?.filter(img => img.position === "after").map((img) => (
+                            <div key={img.id} className="rounded-md overflow-hidden border border-[var(--t-border)]">
+                              <img src={img.url} alt={img.caption || "Step image"} className="max-w-full h-auto" />
+                              {img.caption && <p className="text-xs text-[var(--t-text-muted)] p-2 bg-[var(--t-bg-primary)]">{img.caption}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : repoSearchResults.length === 0 ? (
+                  <div className="text-center py-12 text-[var(--t-text-faint)]">
+                    <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-lg mb-1">No results found</p>
+                    <p className="text-sm">Try searching for different keywords</p>
+                  </div>
+                ) : null}
+
+                {/* Repo search results */}
+                {repoSearchResults.length > 0 && (
+                  <div className="mt-6">
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--t-text-faint)] mb-3">Repositories</h2>
+                    <div className="space-y-2">
+                      {repoSearchResults.map((repo) => (
+                        <a
+                          key={repo.name}
+                          href={repo.html_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg hover:bg-[var(--t-bg-hover)] transition-colors"
+                        >
+                          <Github className="w-5 h-5 text-[var(--t-text-muted)] shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium text-[var(--t-text-primary)] truncate">{repo.name}</div>
+                            {repo.description && <div className="text-xs text-[var(--t-text-faint)] truncate">{repo.description}</div>}
+                          </div>
+                          {repo.language && (
+                            <span className="text-xs text-[var(--t-text-muted)] shrink-0">{repo.language}</span>
+                          )}
+                          <ExternalLink className="w-3.5 h-3.5 text-[var(--t-text-faint)] shrink-0" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
-          ) : isSearching ? (
-            /* Search Results View */
-            <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) ? '' : 'max-w-3xl mx-auto'}`}>
-              <div className="mb-6">
-                <div className="flex items-center justify-between gap-4 mb-2">
-                  <h1 className="text-xl font-bold text-[var(--t-text-primary)]">
-                    Search Results for "{searchQuery}"
-                  </h1>
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="px-3 py-1.5 text-sm border border-[var(--t-border)] rounded-md text-[var(--t-text-muted)] hover:bg-[var(--t-bg-tertiary)] hover:text-[var(--t-text-primary)] transition-colors"
-                  >
-                    Clear search
-                  </button>
-                </div>
-                <p className="text-[var(--t-text-muted)] text-sm">
-                  Found {searchResults.length} tutorial {searchResults.length === 1 ? "result" : "results"}
-                  {repoSearchResults.length > 0 && ` and ${repoSearchResults.length} ${repoSearchResults.length === 1 ? "repository" : "repositories"}`}
-                </p>
-              </div>
-
-              {searchResults.length > 0 ? (
-                <div className="space-y-4">
-                  {searchResults.map((result, index) => (
-                    <div
-                      key={`${result.tutorialId}-${result.step.id}-${index}`}
-                      className="bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg overflow-hidden"
-                    >
-                      {/* Result header with tutorial name */}
-                      <div className="px-4 py-2 border-b border-[var(--t-border)] bg-[var(--t-bg-tertiary)] flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-[var(--t-text-muted)] min-w-0 flex-1">
-                          <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate max-w-[120px]" title={result.tutorialTitle}>{result.tutorialTitle}</span>
-                          <span className="text-[var(--t-text-faint)] shrink-0">/</span>
-                          <span className="text-[var(--t-accent-blue)] truncate" title={result.step.heading}>{result.step.heading}</span>
-                        </div>
+            ) : currentTutorial ? (
+              /* Normal Tutorial View */
+              <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) ? '' : 'max-w-3xl mx-auto'}`}>
+                {/* Tutorial header */}
+                <div className="mb-6">
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <h1 className="text-2xl font-bold text-[var(--t-text-primary)] truncate" title={currentTutorial.title}>{currentTutorial.title}</h1>
+                      {currentTutorial.vipOnly && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-full shrink-0">
+                          <Crown className="w-3 h-3" />
+                          VIP
+                        </span>
+                      )}
+                    </div>
+                    {isAdmin && (
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
-                          onClick={() => clearSearchAndGoToTutorial(result.tutorialId)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white rounded transition-colors"
+                          onClick={() => toggleCrown(currentTutorial.id)}
+                          className={`p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors ${currentTutorial.vipOnly ? "text-amber-400" : "text-[var(--t-text-muted)] hover:text-amber-400"}`}
+                          title={currentTutorial.vipOnly ? "Remove VIP" : "Mark VIP only"}
                         >
-                          <ChevronRight className="w-3 h-3" />
-                          View full tutorial
+                          <Crown className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingTutorial(currentTutorial);
+                            setTutorialModalOpen(true);
+                          }}
+                          className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
+                          title="Edit"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteTutorial(currentTutorial.id)}
+                          className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[#f85149]"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      
-                      {/* Step content */}
+                    )}
+                  </div>
+                  <p className="text-[var(--t-text-muted)]">{currentTutorial.description}</p>
+                </div>
+
+                {/* Steps */}
+                <div className="space-y-4">
+                  {currentTutorial.steps.map((step, index) => (
+                    <div
+                      key={step.id}
+                      className={`bg-[var(--t-bg-secondary)] border rounded-lg overflow-hidden transition-colors ${copiedSteps[step.id]
+                          ? "border-[var(--t-accent-green)]/40 ring-1 ring-[var(--t-accent-green)]/10"
+                          : "border-[var(--t-border)]"
+                        }`}
+                    >
+                      <div className="px-4 py-3 border-b border-[var(--t-border)] flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className={`flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold shrink-0 ${copiedSteps[step.id] ? "bg-[var(--t-accent-green)]" : "bg-[var(--t-accent-green)]"
+                            }`}>
+                            {copiedSteps[step.id] ? <Check className="w-3.5 h-3.5" /> : index + 1}
+                          </span>
+                          <h3 className="font-semibold text-[var(--t-text-primary)] truncate">{step.heading}</h3>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {(() => {
+                            const { isNew, changes, source } = getStepChanges(currentTutorial.id, index, step);
+                            const hasChanges = isNew || changes.length > 0;
+                            return hasChanges ? (
+                              <button
+                                onClick={() => setShowStepChanges((prev) => ({ ...prev, [step.id]: !prev[step.id] }))}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-md transition-colors ${showStepChanges[step.id]
+                                    ? "bg-[var(--t-accent-blue)]/10 text-[var(--t-accent-blue)] border-[var(--t-accent-blue)]/30"
+                                    : "bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border-[var(--t-border)]"
+                                  }`}
+                                title={isNew ? "New step" : `${changes.length} change(s)${source === "local" ? " (unsaved)" : ""}`}
+                              >
+                                {source === "local" && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                                <GitCompare className="w-3 h-3" />
+                                {isNew ? "New" : "Changes"}
+                              </button>
+                            ) : null;
+                          })()}
+                          {step.code && (
+                            <button
+                              onClick={() => handleCopy(step.code, step.id)}
+                              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-md transition-colors ${copiedSteps[step.id]
+                                  ? "bg-[var(--t-accent-green)]/10 text-[var(--t-accent-green-text)] border-[var(--t-accent-green)]/30"
+                                  : "bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border-[var(--t-border)]"
+                                }`}
+                            >
+                              {copiedSteps[step.id] ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                              {copiedSteps[step.id] ? "Done" : "Copy"}
+                            </button>
+                          )}
+                          {isAdmin && (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => moveStep(currentTutorial.id, step.id, "up")}
+                                disabled={index === 0}
+                                className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => moveStep(currentTutorial.id, step.id, "down")}
+                                disabled={index === currentTutorial.steps.length - 1}
+                                className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingStep({ tutorialId: currentTutorial.id, step });
+                                  setStepModalOpen(true);
+                                }}
+                                className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => deleteStep(currentTutorial.id, step.id)}
+                                className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[#f85149]"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                       <div className="p-4 space-y-3">
-                        {result.step.explanation && (
-                          <p className="text-sm text-[var(--t-text-muted)]">{result.step.explanation}</p>
+                        {step.explanation && (
+                          <p className="text-sm text-[var(--t-text-muted)]">{step.explanation}</p>
                         )}
-                        {/* Show images before code */}
-                        {result.step.images?.filter(img => img.position === "before").map((img) => (
-                          <div key={img.id} className="rounded-md overflow-hidden border border-[var(--t-border)]">
-                            <img src={img.url} alt={img.caption || "Step image"} className="max-w-full h-auto" />
-                            {img.caption && <p className="text-xs text-[var(--t-text-muted)] p-2 bg-[var(--t-bg-primary)]">{img.caption}</p>}
-                          </div>
-                        ))}
-                        {/* Legacy single image */}
-                        {result.step.image && !result.step.images?.length && (
-                          <div className="rounded-md overflow-hidden border border-[var(--t-border)]">
-                            <img src={result.step.image} alt="Step screenshot" className="max-w-full h-auto" />
-                          </div>
+
+                        {/* Images BEFORE code */}
+                        {step.images && step.images
+                          .filter(img => img.position === 'before' && img.url)
+                          .map((img) => (
+                            <StepImageDisplay key={img.id} img={img} altText={step.heading} />
+                          ))}
+
+                        {/* Code block with optional diff highlights */}
+                        {step.code && (() => {
+                          let lineHighlights: Map<number, "added" | "removed" | "modified"> | undefined;
+                          if (showStepChanges[step.id]) {
+                            const { isNew, changes } = getStepChanges(currentTutorial.id, index, step);
+                            lineHighlights = new Map();
+                            if (isNew) {
+                              // All lines are new
+                              step.code.split("\n").forEach((_, li) => lineHighlights!.set(li, "added"));
+                            } else {
+                              const codeDiff = changes.find((c) => c.field === "code");
+                              if (codeDiff) {
+                                const oldLines = codeDiff.old.split("\n");
+                                const newLines = codeDiff.new.split("\n");
+                                // Line-by-line positional diff
+                                const maxLen = Math.max(oldLines.length, newLines.length);
+                                for (let li = 0; li < newLines.length; li++) {
+                                  if (li >= oldLines.length) {
+                                    // Line didn't exist before = added
+                                    lineHighlights.set(li, "added");
+                                  } else if (oldLines[li] !== newLines[li]) {
+                                    // Line existed but content changed = modified
+                                    lineHighlights.set(li, "modified");
+                                  }
+                                  // else: same line, no highlight
+                                }
+                              }
+                            }
+                            if (lineHighlights.size === 0) lineHighlights = undefined;
+                          }
+                          return <CodeBlock code={step.code} onCopy={handleCopy} lineHighlights={lineHighlights} />;
+                        })()}
+
+                        {/* Images AFTER code */}
+                        {step.images && step.images
+                          .filter(img => img.position === 'after' && img.url)
+                          .map((img) => (
+                            <StepImageDisplay key={img.id} img={img} altText={step.heading} />
+                          ))}
+
+                        {/* Legacy single image support */}
+                        {!step.images && step.image && (
+                          <StepImageDisplay
+                            img={{ id: 'legacy', url: step.image, position: 'after' }}
+                            altText={step.heading}
+                          />
                         )}
-                        {result.step.code && <CodeBlock code={result.step.code} onCopy={handleCopy} />}
-                        {/* Show images after code */}
-                        {result.step.images?.filter(img => img.position === "after").map((img) => (
-                          <div key={img.id} className="rounded-md overflow-hidden border border-[var(--t-border)]">
-                            <img src={img.url} alt={img.caption || "Step image"} className="max-w-full h-auto" />
-                            {img.caption && <p className="text-xs text-[var(--t-text-muted)] p-2 bg-[var(--t-bg-primary)]">{img.caption}</p>}
-                          </div>
-                        ))}
                       </div>
                     </div>
                   ))}
-                </div>
-              ) : repoSearchResults.length === 0 ? (
-                <div className="text-center py-12 text-[var(--t-text-faint)]">
-                  <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p className="text-lg mb-1">No results found</p>
-                  <p className="text-sm">Try searching for different keywords</p>
-                </div>
-              ) : null}
 
-              {/* Repo search results */}
-              {repoSearchResults.length > 0 && (
-                <div className="mt-6">
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--t-text-faint)] mb-3">Repositories</h2>
-                  <div className="space-y-2">
-                    {repoSearchResults.map((repo) => (
-                      <a
-                        key={repo.name}
-                        href={repo.html_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg hover:bg-[var(--t-bg-hover)] transition-colors"
-                      >
-                        <Github className="w-5 h-5 text-[var(--t-text-muted)] shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium text-[var(--t-text-primary)] truncate">{repo.name}</div>
-                          {repo.description && <div className="text-xs text-[var(--t-text-faint)] truncate">{repo.description}</div>}
-                        </div>
-                        {repo.language && (
-                          <span className="text-xs text-[var(--t-text-muted)] shrink-0">{repo.language}</span>
-                        )}
-                        <ExternalLink className="w-3.5 h-3.5 text-[var(--t-text-faint)] shrink-0" />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : currentTutorial ? (
-            /* Normal Tutorial View */
-            <div className={`${(showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked)) ? '' : 'max-w-3xl mx-auto'}`}>
-              {/* Tutorial header */}
-              <div className="mb-6">
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <h1 className="text-2xl font-bold text-[var(--t-text-primary)] truncate" title={currentTutorial.title}>{currentTutorial.title}</h1>
-                    {currentTutorial.vipOnly && (
-                      <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-400 rounded-full shrink-0">
-                        <Crown className="w-3 h-3" />
-                        VIP
-                      </span>
-                    )}
-                  </div>
+                  {/* Add step button */}
                   {isAdmin && (
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => toggleCrown(currentTutorial.id)}
-                        className={`p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded transition-colors ${currentTutorial.vipOnly ? "text-amber-400" : "text-[var(--t-text-muted)] hover:text-amber-400"}`}
-                        title={currentTutorial.vipOnly ? "Remove VIP" : "Mark VIP only"}
-                      >
-                        <Crown className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingTutorial(currentTutorial);
-                          setTutorialModalOpen(true);
-                        }}
-                        className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
-                        title="Edit"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteTutorial(currentTutorial.id)}
-                        className="p-1.5 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[#f85149]"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <button
+                      onClick={() => {
+                        setEditingStep({ tutorialId: currentTutorial.id, step: null });
+                        setStepModalOpen(true);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--t-border)] rounded-lg text-[var(--t-text-muted)] hover:border-[var(--t-text-faint)] hover:text-[var(--t-text-primary)] transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Step
+                    </button>
+                  )}
+
+                  {currentTutorial.steps.length === 0 && !isAdmin && (
+                    <div className="text-center py-12 text-[var(--t-text-faint)]">
+                      <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>No steps in this tutorial yet</p>
                     </div>
                   )}
                 </div>
-                <p className="text-[var(--t-text-muted)]">{currentTutorial.description}</p>
               </div>
-
-              {/* Steps */}
-              <div className="space-y-4">
-                {currentTutorial.steps.map((step, index) => (
-                  <div
-                    key={step.id}
-                    className={`bg-[var(--t-bg-secondary)] border rounded-lg overflow-hidden transition-colors ${
-                      copiedSteps[step.id]
-                        ? "border-[var(--t-accent-green)]/40 ring-1 ring-[var(--t-accent-green)]/10"
-                        : "border-[var(--t-border)]"
-                    }`}
-                  >
-                    <div className="px-4 py-3 border-b border-[var(--t-border)] flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className={`flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold shrink-0 ${
-                          copiedSteps[step.id] ? "bg-[var(--t-accent-green)]" : "bg-[var(--t-accent-green)]"
-                        }`}>
-                          {copiedSteps[step.id] ? <Check className="w-3.5 h-3.5" /> : index + 1}
-                        </span>
-                        <h3 className="font-semibold text-[var(--t-text-primary)] truncate">{step.heading}</h3>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {(() => {
-                          const { isNew, changes, source } = getStepChanges(currentTutorial.id, index, step);
-                          const hasChanges = isNew || changes.length > 0;
-                          return hasChanges ? (
-                            <button
-                              onClick={() => setShowStepChanges((prev) => ({ ...prev, [step.id]: !prev[step.id] }))}
-                              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-md transition-colors ${
-                                showStepChanges[step.id]
-                                  ? "bg-[var(--t-accent-blue)]/10 text-[var(--t-accent-blue)] border-[var(--t-accent-blue)]/30"
-                                  : "bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border-[var(--t-border)]"
-                              }`}
-                              title={isNew ? "New step" : `${changes.length} change(s)${source === "local" ? " (unsaved)" : ""}`}
-                            >
-                              {source === "local" && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
-                              <GitCompare className="w-3 h-3" />
-                              {isNew ? "New" : "Changes"}
-                            </button>
-                          ) : null;
-                        })()}
-                        {step.code && (
-                          <button
-                            onClick={() => handleCopy(step.code, step.id)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-md transition-colors ${
-                              copiedSteps[step.id]
-                                ? "bg-[var(--t-accent-green)]/10 text-[var(--t-accent-green-text)] border-[var(--t-accent-green)]/30"
-                                : "bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-text-muted)] border-[var(--t-border)]"
-                            }`}
-                          >
-                            {copiedSteps[step.id] ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                            {copiedSteps[step.id] ? "Done" : "Copy"}
-                          </button>
-                        )}
-                      {isAdmin && (
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => moveStep(currentTutorial.id, step.id, "up")}
-                            disabled={index === 0}
-                            className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                          >
-                            <ArrowUp className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => moveStep(currentTutorial.id, step.id, "down")}
-                            disabled={index === currentTutorial.steps.length - 1}
-                            className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
-                          >
-                            <ArrowDown className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingStep({ tutorialId: currentTutorial.id, step });
-                              setStepModalOpen(true);
-                            }}
-                            className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[var(--t-text-primary)]"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => deleteStep(currentTutorial.id, step.id)}
-                            className="p-1 hover:bg-[var(--t-bg-tertiary)] rounded text-[var(--t-text-muted)] hover:text-[#f85149]"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      )}
-                      </div>
-                    </div>
-                    <div className="p-4 space-y-3">
-                      {step.explanation && (
-                        <p className="text-sm text-[var(--t-text-muted)]">{step.explanation}</p>
-                      )}
-
-                      {/* Images BEFORE code */}
-                      {step.images && step.images
-                        .filter(img => img.position === 'before' && img.url)
-                        .map((img) => (
-                          <StepImageDisplay key={img.id} img={img} altText={step.heading} />
-                        ))}
-
-                      {/* Code block with optional diff highlights */}
-                      {step.code && (() => {
-                        let lineHighlights: Map<number, "added" | "removed" | "modified"> | undefined;
-                        if (showStepChanges[step.id]) {
-                          const { isNew, changes } = getStepChanges(currentTutorial.id, index, step);
-                          lineHighlights = new Map();
-                          if (isNew) {
-                            // All lines are new
-                            step.code.split("\n").forEach((_, li) => lineHighlights!.set(li, "added"));
-                          } else {
-                            const codeDiff = changes.find((c) => c.field === "code");
-                            if (codeDiff) {
-                              const oldLines = codeDiff.old.split("\n");
-                              const newLines = codeDiff.new.split("\n");
-                              // Line-by-line positional diff
-                              const maxLen = Math.max(oldLines.length, newLines.length);
-                              for (let li = 0; li < newLines.length; li++) {
-                                if (li >= oldLines.length) {
-                                  // Line didn't exist before = added
-                                  lineHighlights.set(li, "added");
-                                } else if (oldLines[li] !== newLines[li]) {
-                                  // Line existed but content changed = modified
-                                  lineHighlights.set(li, "modified");
-                                }
-                                // else: same line, no highlight
-                              }
-                            }
-                          }
-                          if (lineHighlights.size === 0) lineHighlights = undefined;
-                        }
-                        return <CodeBlock code={step.code} onCopy={handleCopy} lineHighlights={lineHighlights} />;
-                      })()}
-
-                      {/* Images AFTER code */}
-                      {step.images && step.images
-                        .filter(img => img.position === 'after' && img.url)
-                        .map((img) => (
-                          <StepImageDisplay key={img.id} img={img} altText={step.heading} />
-                        ))}
-
-                      {/* Legacy single image support */}
-                      {!step.images && step.image && (
-                        <StepImageDisplay 
-                          img={{ id: 'legacy', url: step.image, position: 'after' }} 
-                          altText={step.heading} 
-                        />
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Add step button */}
-                {isAdmin && (
-                  <button
-                    onClick={() => {
-                      setEditingStep({ tutorialId: currentTutorial.id, step: null });
-                      setStepModalOpen(true);
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--t-border)] rounded-lg text-[var(--t-text-muted)] hover:border-[var(--t-text-faint)] hover:text-[var(--t-text-primary)] transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Step
-                  </button>
-                )}
-
-                {currentTutorial.steps.length === 0 && !isAdmin && (
-                  <div className="text-center py-12 text-[var(--t-text-faint)]">
-                    <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>No steps in this tutorial yet</p>
-                  </div>
-                )}
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[50vh] text-center">
+                <BookOpen className="w-16 h-16 text-[var(--t-bg-hover)] mb-4" />
+                <h2 className="text-xl font-semibold text-[var(--t-text-primary)] mb-2">Select a Tutorial</h2>
+                <p className="text-[var(--t-text-muted)]">Choose a tutorial from the sidebar to get started</p>
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-              <BookOpen className="w-16 h-16 text-[var(--t-bg-hover)] mb-4" />
-              <h2 className="text-xl font-semibold text-[var(--t-text-primary)] mb-2">Select a Tutorial</h2>
-              <p className="text-[var(--t-text-muted)]">Choose a tutorial from the sidebar to get started</p>
-            </div>
-          )}
-        </main>
+            )}
+          </main>
 
           {/* Terminal Panel - Split Screen Right Side (only show if admin OR unlocked) */}
           {showTerminal && !terminalFullscreen && (isAdmin || !terminalLocked) && (
@@ -3330,7 +3302,7 @@ const deleteTutorial = (id: string) => {
                   </button>
                 </div>
               </div>
-              
+
               {/* Terminal Content */}
               {terminalUrl ? (
                 <iframe
@@ -3579,7 +3551,7 @@ const deleteTutorial = (id: string) => {
                 />
                 <p className="text-xs text-[var(--t-text-faint)] mt-1">Enter the URL where ttyd is running on your VPS</p>
               </div>
-              
+
               {/* Lock/Unlock Toggle */}
               <div className="flex items-center justify-between gap-4 p-3 bg-[var(--t-bg-primary)] border border-[var(--t-border)] rounded-md">
                 <div className="flex items-center gap-3 min-w-0">
@@ -3593,8 +3565,8 @@ const deleteTutorial = (id: string) => {
                       {terminalLocked ? "Terminal Locked" : "Terminal Unlocked"}
                     </p>
                     <p className="text-xs text-[var(--t-text-faint)]">
-                      {terminalLocked 
-                        ? "Only admins can access" 
+                      {terminalLocked
+                        ? "Only admins can access"
                         : "All users can access"}
                     </p>
                   </div>
@@ -3605,11 +3577,10 @@ const deleteTutorial = (id: string) => {
                     setTerminalLocked(!terminalLocked);
                     showToast(terminalLocked ? "Terminal unlocked" : "Terminal locked");
                   }}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 shrink-0 cursor-pointer ${
-                    terminalLocked
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 shrink-0 cursor-pointer ${terminalLocked
                       ? "bg-[var(--t-accent-green)] hover:bg-[#2ea043] text-white"
                       : "bg-[#da3633] hover:bg-[#f85149] text-white"
-                  }`}
+                    }`}
                 >
                   {terminalLocked ? (
                     <>
@@ -3681,7 +3652,7 @@ const deleteTutorial = (id: string) => {
               </button>
             </div>
           </div>
-          
+
           {/* Fullscreen Terminal Content */}
           {terminalUrl ? (
             <iframe
