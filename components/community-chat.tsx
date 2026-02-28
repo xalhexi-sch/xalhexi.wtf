@@ -262,7 +262,15 @@ export default function CommunityChat({
     : "fixed bottom-6 right-6 z-[90] w-[400px] h-[550px] max-h-[80vh] rounded-xl shadow-2xl";
 
   return (
-    <div className={`${panelClasses} flex flex-col bg-[var(--t-bg-secondary)] border border-[var(--t-border)] overflow-hidden ${isFullscreen ? "" : "rounded-xl"}`}>
+    <>
+      {/* Click-outside backdrop (only when not fullscreen) */}
+      {!isFullscreen && (
+        <div
+          className="fixed inset-0 z-[89]"
+          onClick={() => { setIsOpen(false); setIsFullscreen(false); }}
+        />
+      )}
+      <div className={`${panelClasses} flex flex-col bg-[var(--t-bg-secondary)] border border-[var(--t-border)] overflow-hidden ${isFullscreen ? "" : "rounded-xl"}`}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--t-border)] bg-[var(--t-bg-tertiary)] shrink-0">
         <div className="flex items-center gap-3 min-w-0">
@@ -497,5 +505,6 @@ export default function CommunityChat({
         </div>
       )}
     </div>
+    </>
   );
 }

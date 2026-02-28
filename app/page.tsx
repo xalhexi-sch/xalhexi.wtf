@@ -2715,15 +2715,14 @@ const deleteTutorial = (id: string) => {
   <span className="text-xs text-[var(--t-text-faint)]">
   Updated {new Date(repo.updated_at).toLocaleDateString()}
   </span>
-  <a
-    href={`https://github.com/xalhexi-sch/${repo.name}/archive/refs/heads/main.zip`}
-    onClick={(e) => e.stopPropagation()}
+  <button
+    onClick={(e) => { e.stopPropagation(); window.open(`https://github.com/xalhexi-sch/${repo.name}/archive/refs/heads/${repo.default_branch || "main"}.zip`, "_blank"); }}
     className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded transition-colors ml-auto"
     title={`Download ${repo.name} as ZIP`}
   >
     <Download className="w-3 h-3" />
     ZIP
-  </a>
+  </button>
                           </div>
                         </button>
                       ))}
@@ -2869,14 +2868,18 @@ const deleteTutorial = (id: string) => {
                         </React.Fragment>
                       ))}
                     </div>
-                    <a
-                      href={`https://github.com/xalhexi-sch/${selectedRepo}/archive/refs/heads/main.zip`}
+                    <button
+                      onClick={() => {
+                        const repo = repos.find((r) => r.name === selectedRepo);
+                        const branch = repo?.default_branch || "main";
+                        window.open(`https://github.com/xalhexi-sch/${selectedRepo}/archive/refs/heads/${branch}.zip`, "_blank");
+                      }}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--t-bg-tertiary)] hover:bg-[var(--t-bg-hover)] text-[var(--t-accent-blue)] border border-[var(--t-border)] rounded-md transition-colors shrink-0"
                       title={`Download ${selectedRepo} as ZIP`}
                     >
                       <Download className="w-3.5 h-3.5" />
                       Download ZIP
-                    </a>
+                    </button>
                   </div>
 
                   {isLoadingContents ? (
