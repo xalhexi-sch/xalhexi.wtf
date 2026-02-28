@@ -5,6 +5,7 @@ import hljs from "highlight.js";
 import AIAssistant from "@/components/ai-assistant";
 import DiffViewer from "@/components/diff-viewer";
 import CommunityChat from "@/components/community-chat";
+import Link from "next/link";
 import {
   Minus,
   Search,
@@ -2376,6 +2377,12 @@ const deleteTutorial = (id: string) => {
               >
                 Repositories
               </button>
+              <Link
+                href="/thread"
+                className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-md transition-colors bg-[var(--t-bg-tertiary)] text-[var(--t-text-muted)] hover:bg-[var(--t-bg-hover)] hover:text-[var(--t-text-primary)]"
+              >
+                Thread
+              </Link>
               {activeTab === "tutorials" && isAdmin && (
                 <button
                   onClick={() => {
