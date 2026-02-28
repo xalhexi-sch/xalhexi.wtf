@@ -2675,10 +2675,10 @@ export default function ITPTutorial() {
                     ) : (
                       <div className="space-y-2">
                         {repos.map((repo) => (
-                          <button
+                          <div
                             key={repo.name}
                             onClick={() => openRepo(repo.name)}
-                            className="w-full text-left p-4 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg hover:border-[var(--t-text-faint)] transition-colors"
+                            className="w-full text-left p-4 bg-[var(--t-bg-secondary)] border border-[var(--t-border)] rounded-lg hover:border-[var(--t-text-faint)] transition-colors cursor-pointer"
                           >
                             <div className="flex items-center gap-2 mb-1">
                               <GitBranch className="w-4 h-4 text-[var(--t-text-muted)]" />
@@ -2709,7 +2709,7 @@ export default function ITPTutorial() {
                                 <Download className="w-3 h-3" />
                               </button>
                             </div>
-                          </button>
+                          </div>
                         ))}
                       </div>
                     )}
