@@ -1366,48 +1366,33 @@ export default function ITPTutorial() {
   const [cmdSearchQuery, setCmdSearchQuery] = useState("");
   const [persistedStepDiffs, setPersistedStepDiffs] = useState<{ tutorialId: string; tutorialTitle: string; stepId: string; stepIndex: number; isNew: boolean; isDeleted: boolean; changes: { field: string; old: string; new: string }[] }[]>([]);
 
-  // Hash-based routing: read hash on mount
-  // We use "~" as separator instead of "/" to keep hashes valid CSS selectors
-  // e.g. #t~abc123 for tutorials, #r~repo-name~path for repos
+  // Persist navigation state in sessionStorage (avoids hash-based routing which
+  // causes the v0 runtime to call querySelector on the hash, crashing the app)
   useEffect(() => {
-    const parseHash = () => {
-      const hash = window.location.hash.slice(1); // remove #
-      if (hash.startsWith("t~")) {
-        const id = hash.slice(2);
-        setActiveTab("tutorials");
-        setSelectedTutorial(id);
-        setSelectedRepo(null);
-        setViewingFile(null);
-      } else if (hash.startsWith("r~")) {
-        const parts = hash.slice(2).split("~");
-        const repoName = parts[0];
-        setActiveTab("repositories");
-        setSelectedRepo(repoName);
-        if (parts.length > 1) {
-          setRepoPath(parts.slice(1));
+    try {
+      const saved = sessionStorage.getItem("xalhexi-nav");
+      if (saved) {
+        const nav = JSON.parse(saved);
+        if (nav.tab === "tutorials" && nav.tutorialId) {
+          setActiveTab("tutorials");
+          setSelectedTutorial(nav.tutorialId);
+        } else if (nav.tab === "repositories" && nav.repoName) {
+          setActiveTab("repositories");
+          setSelectedRepo(nav.repoName);
+          if (nav.repoPath) setRepoPath(nav.repoPath);
         }
       }
-    };
-    parseHash();
-    window.addEventListener("hashchange", parseHash);
-    return () => window.removeEventListener("hashchange", parseHash);
+    } catch { /* ignore */ }
   }, []);
 
-  // Update hash when navigation changes
-  // Use "~" separator so hashes are valid CSS selectors (slashes are not)
   useEffect(() => {
-    if (activeTab === "tutorials" && selectedTutorial) {
-      const newHash = `#t~${selectedTutorial}`;
-      if (window.location.hash !== newHash) {
-        window.history.replaceState(null, "", newHash);
+    try {
+      if (activeTab === "tutorials" && selectedTutorial) {
+        sessionStorage.setItem("xalhexi-nav", JSON.stringify({ tab: "tutorials", tutorialId: selectedTutorial }));
+      } else if (activeTab === "repositories" && selectedRepo) {
+        sessionStorage.setItem("xalhexi-nav", JSON.stringify({ tab: "repositories", repoName: selectedRepo, repoPath }));
       }
-    } else if (activeTab === "repositories" && selectedRepo) {
-      const path = repoPath.length > 0 ? `~${repoPath.join("~")}` : "";
-      const newHash = `#r~${selectedRepo}${path}`;
-      if (window.location.hash !== newHash) {
-        window.history.replaceState(null, "", newHash);
-      }
-    }
+    } catch { /* ignore */ }
   }, [activeTab, selectedTutorial, selectedRepo, repoPath]);
 
   // Load tutorials from server cache on mount (serves GitHub data to everyone globally)
@@ -1440,7 +1425,7 @@ export default function ITPTutorial() {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setTutorials(parsed);
-          if (!window.location.hash) setSelectedTutorial(parsed[0].id);
+          if (!sessionStorage.getItem("xalhexi-nav")) setSelectedTutorial(parsed[0].id);
           setIsLoadingTutorials(false);
         }
       } catch { /* corrupt cache, ignore */ }
@@ -1454,7 +1439,7 @@ export default function ITPTutorial() {
           setTutorials(data.tutorials);
           lastPushedSnapshot.current = JSON.parse(JSON.stringify(data.tutorials));
           localStorage.setItem("xalhexi-tutorials-cache", JSON.stringify(data.tutorials));
-          if (!cached && !window.location.hash) setSelectedTutorial(data.tutorials[0].id);
+          if (!cached && !sessionStorage.getItem("xalhexi-nav")) setSelectedTutorial(data.tutorials[0].id);
         }
       } catch {
         if (!cached) {
