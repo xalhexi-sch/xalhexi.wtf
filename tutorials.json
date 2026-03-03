@@ -752,5 +752,20 @@
       }
     ],
     "locked": true
+  },
+  {
+    "id": "vb9yo7l7p",
+    "title": "ubuntu",
+    "description": "",
+    "steps": [
+      {
+        "id": "fgzooyrpv",
+        "heading": "restart pterodactyl",
+        "explanation": "",
+        "code": "cd /var/www/reviactyl\nyarn build\nsudo -u www-data php artisan optimize:clear\nsystemctl restart nginx"
+      }
+    ],
+    "starred": true,
+    "vipOnly": true
   }
 ]
